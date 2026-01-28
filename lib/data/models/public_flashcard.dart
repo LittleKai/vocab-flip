@@ -90,6 +90,31 @@ class PublicFlashcard {
     );
   }
 
+  /// Create from REST API response (Map with parsed values)
+  factory PublicFlashcard.fromMap(Map<String, dynamic> data) {
+    return PublicFlashcard(
+      id: data['id'] as String? ?? '',
+      publicDeckId: data['public_deck_id'] as String? ?? '',
+      front: data['front'] as String? ?? '',
+      frontPhonetic: data['front_phonetic'] as String?,
+      back: data['back'] as String? ?? '',
+      example: data['example'] as String?,
+      notes: data['notes'] as String?,
+      tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+      order: data['order'] as int? ?? 0,
+      createdAt: _parseDateTime(data['created_at']),
+      updatedAt: _parseDateTime(data['updated_at']),
+    );
+  }
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is DateTime) return value;
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
+  }
+
   @override
   String toString() => 'PublicFlashcard(id: $id, front: $front)';
 

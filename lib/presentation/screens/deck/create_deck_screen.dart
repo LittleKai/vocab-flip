@@ -118,7 +118,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.vietnameseBadge.withOpacity(0.1),
+                color: AppColors.vietnameseBadge.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.vietnameseBadge),
               ),
@@ -128,27 +128,32 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.vietnameseBadge.withOpacity(0.1),
+                      color: AppColors.vietnameseBadge.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Center(
                       child: Text(
-                        'VI',
-                        style: TextStyle(
-                          color: AppColors.vietnameseBadge,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        '🇻🇳',
+                        style: TextStyle(fontSize: 20),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Vietnamese',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Vietnamese',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          'Tiếng Việt',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
                   const Icon(
                     Icons.check_circle,
                     color: AppColors.vietnameseBadge,
@@ -194,6 +199,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
           name: _nameController.text.trim(),
           description: _descriptionController.text.trim(),
           sourceLanguage: _sourceLanguage.code,
+          targetLanguage: 'vi', // Always Vietnamese
         );
         await provider.updateDeck(updatedDeck);
       } else {
@@ -201,6 +207,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
           name: _nameController.text.trim(),
           description: _descriptionController.text.trim(),
           sourceLanguage: _sourceLanguage.code,
+          targetLanguage: 'vi', // Always Vietnamese
         );
         await provider.createDeck(newDeck);
       }
@@ -246,7 +253,7 @@ class _LanguageSelector extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSelected ? color.withOpacity(0.1) : null,
+                color: isSelected ? color.withValues(alpha: 0.1) : null,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected ? color : Colors.grey.shade300,
@@ -259,27 +266,37 @@ class _LanguageSelector extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: Text(
-                        lang.code.toUpperCase(),
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        lang.flag,
+                        style: const TextStyle(fontSize: 20),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    lang.nameEn,
-                    style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.w600 : null,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          lang.nameEn,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.w600 : null,
+                          ),
+                        ),
+                        Text(
+                          lang.nameVi,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
                   if (isSelected)
                     Icon(Icons.check_circle, color: color),
                 ],

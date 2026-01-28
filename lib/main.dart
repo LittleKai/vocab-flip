@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'data/local/preferences/app_preferences.dart';
 import 'data/remote/firebase/category_seeder.dart';
+import 'data/remote/firebase/public_deck_seeder.dart';
 
 /// Global flag to track if Firebase is available
 bool isFirebaseInitialized = false;
@@ -29,13 +30,21 @@ void main() async {
       isFirebaseInitialized = true;
       debugPrint('Firebase initialized successfully');
 
-      // Skip category seeding for now - will be done on first library access
-      // try {
-      //   await CategorySeeder().seedIfNeeded();
-      //   debugPrint('Categories seeded successfully');
-      // } catch (e) {
-      //   debugPrint('Failed to seed categories: $e');
-      // }
+      // Seed categories and sample public deck
+      // On Windows, this uses REST API instead of native SDK
+      try {
+        await CategorySeeder().seedIfNeeded();
+        debugPrint('Categories seeded');
+      } catch (e) {
+        debugPrint('Failed to seed categories: $e');
+      }
+
+      try {
+        await PublicDeckSeeder().seedIfNeeded();
+        debugPrint('Public decks seeded');
+      } catch (e) {
+        debugPrint('Failed to seed public decks: $e');
+      }
     } catch (e, stackTrace) {
       debugPrint('Failed to initialize Firebase: $e');
       debugPrint('Stack trace: $stackTrace');

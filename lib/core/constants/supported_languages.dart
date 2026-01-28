@@ -33,8 +33,19 @@ class LanguagePair {
   const LanguagePair({required this.source, required this.target});
 
   static const List<LanguagePair> supportedPairs = [
+    // English pairs
     LanguagePair(source: SupportedLanguage.english, target: SupportedLanguage.vietnamese),
+    LanguagePair(source: SupportedLanguage.english, target: SupportedLanguage.japanese),
+    LanguagePair(source: SupportedLanguage.english, target: SupportedLanguage.chinese),
+    // Vietnamese pairs
+    LanguagePair(source: SupportedLanguage.vietnamese, target: SupportedLanguage.english),
+    LanguagePair(source: SupportedLanguage.vietnamese, target: SupportedLanguage.japanese),
+    LanguagePair(source: SupportedLanguage.vietnamese, target: SupportedLanguage.chinese),
+    // Japanese pairs
     LanguagePair(source: SupportedLanguage.japanese, target: SupportedLanguage.vietnamese),
+    LanguagePair(source: SupportedLanguage.japanese, target: SupportedLanguage.english),
+    // Chinese pairs
     LanguagePair(source: SupportedLanguage.chinese, target: SupportedLanguage.vietnamese),
+    LanguagePair(source: SupportedLanguage.chinese, target: SupportedLanguage.english),
   ];
 }

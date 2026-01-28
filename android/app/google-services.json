@@ -12,7 +12,12 @@
           "package_name": "com.vocabflip.vocabflip"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "521663665160-vpbmi0438bj560e0tvg30phcqf05ooq0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDiTSs8VY34uzWaKWVh0rWiYivD3K9E1Bc"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "521663665160-vpbmi0438bj560e0tvg30phcqf05ooq0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

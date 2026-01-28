@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'l10n/app_localizations.dart';
 import 'presentation/providers/deck_provider.dart';
 import 'presentation/providers/flashcard_provider.dart';
 import 'presentation/providers/study_provider.dart';
@@ -48,6 +50,18 @@ class VocabFlipApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            // Localization setup
+            locale: Locale(settings.locale),
+            supportedLocales: const [
+              Locale('en'),
+              Locale('vi'),
+            ],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             home: const HomeScreen(),
             onGenerateRoute: _generateRoute,
           );

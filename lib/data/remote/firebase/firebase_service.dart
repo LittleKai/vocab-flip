@@ -119,4 +119,16 @@ class FirebaseService {
 
     await currentUser!.updateDisplayName(name);
   }
+
+  /// Get Firebase ID token for REST API authentication
+  Future<String?> getIdToken({bool forceRefresh = false}) async {
+    if (!_initialized || currentUser == null) return null;
+
+    try {
+      return await currentUser!.getIdToken(forceRefresh);
+    } catch (e) {
+      debugPrint('Failed to get ID token: $e');
+      return null;
+    }
+  }
 }

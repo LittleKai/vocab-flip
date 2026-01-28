@@ -147,6 +147,39 @@ class PublicDeck {
     );
   }
 
+  /// Create from REST API response (Map with parsed values)
+  factory PublicDeck.fromMap(Map<String, dynamic> data) {
+    return PublicDeck(
+      id: data['id'] as String? ?? '',
+      originalLocalId: data['original_local_id'] as String?,
+      authorId: data['author_id'] as String? ?? '',
+      authorName: data['author_name'] as String? ?? 'Unknown',
+      name: data['name'] as String? ?? '',
+      description: data['description'] as String?,
+      sourceLanguage: data['source_language'] as String? ?? 'en',
+      targetLanguage: data['target_language'] as String? ?? 'vi',
+      categoryId: data['category_id'] as String? ?? 'other',
+      tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+      cardCount: data['card_count'] as int? ?? 0,
+      version: data['version'] as int? ?? 1,
+      ratingSum: (data['rating_sum'] as num?)?.toDouble() ?? 0,
+      ratingCount: data['rating_count'] as int? ?? 0,
+      downloadCount: data['download_count'] as int? ?? 0,
+      createdAt: _parseDateTime(data['created_at']),
+      updatedAt: _parseDateTime(data['updated_at']),
+      publishedAt: data['published_at'] != null ? _parseDateTime(data['published_at']) : null,
+      isActive: data['is_active'] as bool? ?? true,
+    );
+  }
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is DateTime) return value;
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
+  }
+
   @override
   String toString() => 'PublicDeck(id: $id, name: $name, author: $authorName)';
 

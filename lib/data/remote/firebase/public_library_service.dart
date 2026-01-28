@@ -6,6 +6,7 @@ import '../../models/public_deck.dart';
 import '../../models/public_flashcard.dart';
 import '../../models/category.dart';
 import 'firebase_service.dart';
+import 'firestore_rest_client.dart';
 
 /// Filter options for browsing public decks
 class LibraryFilter {
@@ -59,6 +60,10 @@ enum LibrarySortBy {
 class PublicLibraryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseService _authService = FirebaseService();
+  final FirestoreRestClient _restClient = FirestoreRestClient();
+
+  /// Check if we should use REST API (Windows)
+  bool get _useRest => FirestoreRestClient.shouldUseRest;
 
   CollectionReference<Map<String, dynamic>> get _publicDecksRef =>
       _firestore.collection(AppConstants.collectionPublicDecks);
@@ -75,39 +80,252 @@ class PublicLibraryService {
     int limit = 20,
     DocumentSnapshot? startAfter,
   }) async {
-    // TODO: Re-enable when Firestore collection exists
-    debugPrint('browse: returning empty list (Firestore disabled for now)');
-    return [];
+    if (_useRest) {
+      return _browseRest(filter: filter, limit: limit);
+    }
+    return _browseNative(filter: filter, limit: limit, startAfter: startAfter);
+  }
+
+  Future<List<PublicDeck>> _browseNative({
+    LibraryFilter? filter,
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+  }) async {
+    try {
+      Query<Map<String, dynamic>> query = _publicDecksRef.where('is_active', isEqualTo: true);
+
+      if (filter?.categoryId != null) {
+        query = query.where('category_id', isEqualTo: filter!.categoryId);
+      }
+      if (filter?.sourceLanguage != null) {
+        query = query.where('source_language', isEqualTo: filter!.sourceLanguage);
+      }
+      if (filter?.targetLanguage != null) {
+        query = query.where('target_language', isEqualTo: filter!.targetLanguage);
+      }
+
+      // Sort
+      final sortField = _getSortField(filter?.sortBy ?? LibrarySortBy.popular);
+      query = query.orderBy(sortField, descending: filter?.descending ?? true);
+
+      query = query.limit(limit);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+
+      final snapshot = await query.get();
+      return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+    } catch (e) {
+      debugPrint('browse error: $e');
+      return [];
+    }
+  }
+
+  Future<List<PublicDeck>> _browseRest({
+    LibraryFilter? filter,
+    int limit = 20,
+  }) async {
+    try {
+      final filters = <QueryFilter>[
+        QueryFilter.isEqualTo('is_active', true),
+      ];
+
+      if (filter?.categoryId != null) {
+        filters.add(QueryFilter.isEqualTo('category_id', filter!.categoryId));
+      }
+      if (filter?.sourceLanguage != null) {
+        filters.add(QueryFilter.isEqualTo('source_language', filter!.sourceLanguage));
+      }
+      if (filter?.targetLanguage != null) {
+        filters.add(QueryFilter.isEqualTo('target_language', filter!.targetLanguage));
+      }
+
+      final sortField = _getSortField(filter?.sortBy ?? LibrarySortBy.popular);
+      final orderBy = [OrderBy(sortField, descending: filter?.descending ?? true)];
+
+      final docs = await _restClient.getCollection(
+        AppConstants.collectionPublicDecks,
+        where: filters,
+        orderBy: orderBy,
+        limit: limit,
+      );
+
+      return docs.map((doc) => PublicDeck.fromMap(doc)).toList();
+    } catch (e) {
+      debugPrint('browse REST error: $e');
+      return [];
+    }
+  }
+
+  String _getSortField(LibrarySortBy sortBy) {
+    switch (sortBy) {
+      case LibrarySortBy.popular:
+        return 'download_count';
+      case LibrarySortBy.rating:
+        return 'rating_sum';
+      case LibrarySortBy.newest:
+        return 'published_at';
+      case LibrarySortBy.updated:
+        return 'updated_at';
+    }
   }
 
   /// Search public decks by keyword
   Future<List<PublicDeck>> search(String query, {int limit = 20}) async {
-    // TODO: Re-enable when Firestore collection exists
-    debugPrint('search: returning empty list (Firestore disabled for now)');
-    return [];
+    if (_useRest) {
+      return _searchRest(query, limit: limit);
+    }
+    return _searchNative(query, limit: limit);
+  }
 
+  Future<List<PublicDeck>> _searchNative(String query, {int limit = 20}) async {
+    try {
+      // Simple search by name prefix (Firestore doesn't support full-text search)
+      final snapshot = await _publicDecksRef
+          .where('is_active', isEqualTo: true)
+          .orderBy('name')
+          .startAt([query])
+          .endAt(['$query\uf8ff'])
+          .limit(limit)
+          .get();
+
+      return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+    } catch (e) {
+      debugPrint('search error: $e');
+      return [];
+    }
+  }
+
+  Future<List<PublicDeck>> _searchRest(String query, {int limit = 20}) async {
+    try {
+      // REST API doesn't support startAt/endAt easily, get all and filter client-side
+      final docs = await _restClient.getCollection(
+        AppConstants.collectionPublicDecks,
+        where: [QueryFilter.isEqualTo('is_active', true)],
+        limit: 100,
+      );
+
+      final lowerQuery = query.toLowerCase();
+      final filtered = docs
+          .map((doc) => PublicDeck.fromMap(doc))
+          .where((deck) =>
+              deck.name.toLowerCase().contains(lowerQuery) ||
+              (deck.description?.toLowerCase().contains(lowerQuery) ?? false) ||
+              deck.tags.any((tag) => tag.toLowerCase().contains(lowerQuery)))
+          .take(limit)
+          .toList();
+
+      return filtered;
+    } catch (e) {
+      debugPrint('search REST error: $e');
+      return [];
+    }
   }
 
   /// Get a single public deck by ID
   Future<PublicDeck?> getDeck(String deckId) async {
-    final doc = await _publicDecksRef.doc(deckId).get();
-    if (!doc.exists) return null;
-    return PublicDeck.fromFirestore(doc);
+    if (_useRest) {
+      return _getDeckRest(deckId);
+    }
+    return _getDeckNative(deckId);
+  }
+
+  Future<PublicDeck?> _getDeckNative(String deckId) async {
+    try {
+      final doc = await _publicDecksRef.doc(deckId).get();
+      if (!doc.exists) return null;
+      return PublicDeck.fromFirestore(doc);
+    } catch (e) {
+      debugPrint('getDeck error: $e');
+      return null;
+    }
+  }
+
+  Future<PublicDeck?> _getDeckRest(String deckId) async {
+    try {
+      final doc = await _restClient.getDocument(AppConstants.collectionPublicDecks, deckId);
+      if (doc == null) return null;
+      return PublicDeck.fromMap(doc);
+    } catch (e) {
+      debugPrint('getDeck REST error: $e');
+      return null;
+    }
   }
 
   /// Get flashcards for a public deck
   Future<List<PublicFlashcard>> getFlashcards(String publicDeckId) async {
-    final snapshot = await _publicDecksRef
-        .doc(publicDeckId)
-        .collection(AppConstants.collectionPublicFlashcards)
-        .orderBy('order')
-        .get();
+    if (_useRest) {
+      return _getFlashcardsRest(publicDeckId);
+    }
+    return _getFlashcardsNative(publicDeckId);
+  }
 
-    return snapshot.docs.map((doc) => PublicFlashcard.fromFirestore(doc)).toList();
+  Future<List<PublicFlashcard>> _getFlashcardsNative(String publicDeckId) async {
+    try {
+      final snapshot = await _publicDecksRef
+          .doc(publicDeckId)
+          .collection(AppConstants.collectionPublicFlashcards)
+          .orderBy('order')
+          .get();
+
+      return snapshot.docs.map((doc) => PublicFlashcard.fromFirestore(doc)).toList();
+    } catch (e) {
+      debugPrint('getFlashcards error: $e');
+      return [];
+    }
+  }
+
+  Future<List<PublicFlashcard>> _getFlashcardsRest(String publicDeckId) async {
+    try {
+      final collectionPath = '${AppConstants.collectionPublicDecks}/$publicDeckId/${AppConstants.collectionPublicFlashcards}';
+      final docs = await _restClient.getCollection(
+        collectionPath,
+        orderBy: [OrderBy('order')],
+      );
+
+      return docs.map((doc) => PublicFlashcard.fromMap(doc)).toList();
+    } catch (e) {
+      debugPrint('getFlashcards REST error: $e');
+      return [];
+    }
   }
 
   /// Publish a local deck to the public library
   Future<PublicDeck> publishDeck({
+    required String localDeckId,
+    required String name,
+    String? description,
+    required String sourceLanguage,
+    required String targetLanguage,
+    required String categoryId,
+    required List<String> tags,
+    required List<Map<String, dynamic>> flashcards,
+  }) async {
+    if (_useRest) {
+      return _publishDeckRest(
+        localDeckId: localDeckId,
+        name: name,
+        description: description,
+        sourceLanguage: sourceLanguage,
+        targetLanguage: targetLanguage,
+        categoryId: categoryId,
+        tags: tags,
+        flashcards: flashcards,
+      );
+    }
+    return _publishDeckNative(
+      localDeckId: localDeckId,
+      name: name,
+      description: description,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+      categoryId: categoryId,
+      tags: tags,
+      flashcards: flashcards,
+    );
+  }
+
+  Future<PublicDeck> _publishDeckNative({
     required String localDeckId,
     required String name,
     String? description,
@@ -171,6 +389,99 @@ class PublicLibraryService {
     return publicDeck;
   }
 
+  Future<PublicDeck> _publishDeckRest({
+    required String localDeckId,
+    required String name,
+    String? description,
+    required String sourceLanguage,
+    required String targetLanguage,
+    required String categoryId,
+    required List<String> tags,
+    required List<Map<String, dynamic>> flashcards,
+  }) async {
+    final userId = _authService.userId;
+    final userName = _authService.userName ?? 'Anonymous';
+
+    if (userId == null) {
+      throw Exception('User must be signed in to publish');
+    }
+
+    final now = DateTime.now();
+    final deckData = {
+      'original_local_id': localDeckId,
+      'author_id': userId,
+      'author_name': userName,
+      'name': name,
+      'description': description,
+      'source_language': sourceLanguage,
+      'target_language': targetLanguage,
+      'category_id': categoryId,
+      'tags': tags,
+      'card_count': flashcards.length,
+      'download_count': 0,
+      'rating_sum': 0,
+      'rating_count': 0,
+      'version': 1,
+      'is_active': true,
+      'created_at': now,
+      'updated_at': now,
+      'published_at': now,
+    };
+
+    // Create deck document
+    final deckDoc = await _restClient.createDocument(
+      AppConstants.collectionPublicDecks,
+      deckData,
+    );
+
+    if (deckDoc == null) {
+      throw Exception('Failed to create deck');
+    }
+
+    final deckId = deckDoc['id'] as String;
+
+    // Create flashcards using batch
+    final batchOps = <BatchOperation>[];
+    for (int i = 0; i < flashcards.length; i++) {
+      final cardData = flashcards[i];
+      final cardId = '${deckId}_card_$i';
+      batchOps.add(BatchOperation.set(
+        '${AppConstants.collectionPublicDecks}/$deckId/${AppConstants.collectionPublicFlashcards}',
+        cardId,
+        {
+          'public_deck_id': deckId,
+          'front': cardData['front'],
+          'front_phonetic': cardData['front_phonetic'],
+          'back': cardData['back'],
+          'example': cardData['example'],
+          'notes': cardData['notes'],
+          'tags': cardData['tags'] ?? [],
+          'order': i,
+          'created_at': now,
+          'updated_at': now,
+        },
+      ));
+    }
+
+    await _restClient.batchWrite(batchOps);
+
+    return PublicDeck(
+      id: deckId,
+      originalLocalId: localDeckId,
+      authorId: userId,
+      authorName: userName,
+      name: name,
+      description: description,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+      categoryId: categoryId,
+      tags: tags,
+      cardCount: flashcards.length,
+      version: 1,
+      publishedAt: now,
+    );
+  }
+
   /// Update a published deck (author only)
   Future<void> updatePublishedDeck({
     required String publicDeckId,
@@ -180,6 +491,34 @@ class PublicLibraryService {
     List<String>? tags,
     List<Map<String, dynamic>>? flashcards,
     String? changeDescription,
+  }) async {
+    if (_useRest) {
+      return _updatePublishedDeckRest(
+        publicDeckId: publicDeckId,
+        name: name,
+        description: description,
+        categoryId: categoryId,
+        tags: tags,
+        flashcards: flashcards,
+      );
+    }
+    return _updatePublishedDeckNative(
+      publicDeckId: publicDeckId,
+      name: name,
+      description: description,
+      categoryId: categoryId,
+      tags: tags,
+      flashcards: flashcards,
+    );
+  }
+
+  Future<void> _updatePublishedDeckNative({
+    required String publicDeckId,
+    String? name,
+    String? description,
+    String? categoryId,
+    List<String>? tags,
+    List<Map<String, dynamic>>? flashcards,
   }) async {
     final userId = _authService.userId;
     if (userId == null) {
@@ -248,9 +587,80 @@ class PublicLibraryService {
     }
 
     await batch.commit();
+  }
 
-    // TODO: Trigger Cloud Function to notify importers about update
-    // This would create sync_notifications for users who imported this deck
+  Future<void> _updatePublishedDeckRest({
+    required String publicDeckId,
+    String? name,
+    String? description,
+    String? categoryId,
+    List<String>? tags,
+    List<Map<String, dynamic>>? flashcards,
+  }) async {
+    final userId = _authService.userId;
+    if (userId == null) {
+      throw Exception('User must be signed in');
+    }
+
+    final deckDoc = await _restClient.getDocument(AppConstants.collectionPublicDecks, publicDeckId);
+    if (deckDoc == null) {
+      throw Exception('Deck not found');
+    }
+
+    final deck = PublicDeck.fromMap(deckDoc);
+    if (deck.authorId != userId) {
+      throw Exception('Only the author can update this deck');
+    }
+
+    final now = DateTime.now();
+    final updates = <String, dynamic>{
+      'version': deck.version + 1,
+      'updated_at': now,
+    };
+
+    if (name != null) updates['name'] = name;
+    if (description != null) updates['description'] = description;
+    if (categoryId != null) updates['category_id'] = categoryId;
+    if (tags != null) updates['tags'] = tags;
+    if (flashcards != null) updates['card_count'] = flashcards.length;
+
+    await _restClient.updateDocument(AppConstants.collectionPublicDecks, publicDeckId, updates);
+
+    // Handle flashcards update
+    if (flashcards != null) {
+      // Get and delete existing flashcards
+      final collectionPath = '${AppConstants.collectionPublicDecks}/$publicDeckId/${AppConstants.collectionPublicFlashcards}';
+      final existingCards = await _restClient.getCollection(collectionPath);
+
+      final batchOps = <BatchOperation>[];
+      for (final card in existingCards) {
+        batchOps.add(BatchOperation.delete(collectionPath, card['id']));
+      }
+
+      // Add new flashcards
+      for (int i = 0; i < flashcards.length; i++) {
+        final cardData = flashcards[i];
+        final cardId = '${publicDeckId}_card_$i';
+        batchOps.add(BatchOperation.set(
+          collectionPath,
+          cardId,
+          {
+            'public_deck_id': publicDeckId,
+            'front': cardData['front'],
+            'front_phonetic': cardData['front_phonetic'],
+            'back': cardData['back'],
+            'example': cardData['example'],
+            'notes': cardData['notes'],
+            'tags': cardData['tags'] ?? [],
+            'order': i,
+            'created_at': now,
+            'updated_at': now,
+          },
+        ));
+      }
+
+      await _restClient.batchWrite(batchOps);
+    }
   }
 
   /// Unpublish a deck (set inactive)
@@ -260,27 +670,55 @@ class PublicLibraryService {
       throw Exception('User must be signed in');
     }
 
-    final deckDoc = await _publicDecksRef.doc(publicDeckId).get();
-    if (!deckDoc.exists) {
-      throw Exception('Deck not found');
-    }
+    if (_useRest) {
+      final deckDoc = await _restClient.getDocument(AppConstants.collectionPublicDecks, publicDeckId);
+      if (deckDoc == null) {
+        throw Exception('Deck not found');
+      }
 
-    final deck = PublicDeck.fromFirestore(deckDoc);
-    if (deck.authorId != userId) {
-      throw Exception('Only the author can unpublish this deck');
-    }
+      final deck = PublicDeck.fromMap(deckDoc);
+      if (deck.authorId != userId) {
+        throw Exception('Only the author can unpublish this deck');
+      }
 
-    await _publicDecksRef.doc(publicDeckId).update({
-      'is_active': false,
-      'updated_at': Timestamp.now(),
-    });
+      await _restClient.updateDocument(AppConstants.collectionPublicDecks, publicDeckId, {
+        'is_active': false,
+        'updated_at': DateTime.now(),
+      });
+    } else {
+      final deckDoc = await _publicDecksRef.doc(publicDeckId).get();
+      if (!deckDoc.exists) {
+        throw Exception('Deck not found');
+      }
+
+      final deck = PublicDeck.fromFirestore(deckDoc);
+      if (deck.authorId != userId) {
+        throw Exception('Only the author can unpublish this deck');
+      }
+
+      await _publicDecksRef.doc(publicDeckId).update({
+        'is_active': false,
+        'updated_at': Timestamp.now(),
+      });
+    }
   }
 
   /// Increment download count when a deck is imported
   Future<void> incrementDownloadCount(String publicDeckId) async {
-    await _publicDecksRef.doc(publicDeckId).update({
-      'download_count': FieldValue.increment(1),
-    });
+    if (_useRest) {
+      // For REST, we need to read current value and update
+      final doc = await _restClient.getDocument(AppConstants.collectionPublicDecks, publicDeckId);
+      if (doc != null) {
+        final currentCount = doc['download_count'] as int? ?? 0;
+        await _restClient.updateDocument(AppConstants.collectionPublicDecks, publicDeckId, {
+          'download_count': currentCount + 1,
+        });
+      }
+    } else {
+      await _publicDecksRef.doc(publicDeckId).update({
+        'download_count': FieldValue.increment(1),
+      });
+    }
   }
 
   /// Get decks published by the current user
@@ -288,55 +726,123 @@ class PublicLibraryService {
     final userId = _authService.userId;
     if (userId == null) return [];
 
-    final snapshot = await _publicDecksRef
-        .where('author_id', isEqualTo: userId)
-        .orderBy('updated_at', descending: true)
-        .get();
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionPublicDecks,
+          where: [QueryFilter.isEqualTo('author_id', userId)],
+          orderBy: [OrderBy('updated_at', descending: true)],
+        );
+        return docs.map((doc) => PublicDeck.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('getMyPublishedDecks REST error: $e');
+        return [];
+      }
+    } else {
+      try {
+        final snapshot = await _publicDecksRef
+            .where('author_id', isEqualTo: userId)
+            .orderBy('updated_at', descending: true)
+            .get();
 
-    return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+        return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+      } catch (e) {
+        debugPrint('getMyPublishedDecks error: $e');
+        return [];
+      }
+    }
   }
 
   /// Get featured/popular decks for homepage
   Future<List<PublicDeck>> getFeaturedDecks({int limit = 10}) async {
-    // TODO: Re-enable when Firestore is properly configured
-    // Currently disabled to prevent crashes on Windows
-    debugPrint('getFeaturedDecks: returning empty list (Firestore disabled for now)');
-    return [];
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionPublicDecks,
+          where: [QueryFilter.isEqualTo('is_active', true)],
+          orderBy: [OrderBy('download_count', descending: true)],
+          limit: limit,
+        );
+        return docs.map((doc) => PublicDeck.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('getFeaturedDecks REST error: $e');
+        return [];
+      }
+    } else {
+      try {
+        final snapshot = await _publicDecksRef
+            .where('is_active', isEqualTo: true)
+            .orderBy('download_count', descending: true)
+            .limit(limit)
+            .get();
 
-    /*
-    try {
-      debugPrint('getFeaturedDecks: querying Firestore...');
-      final snapshot = await _publicDecksRef
-          .limit(limit)
-          .get()
-          .timeout(const Duration(seconds: 10));
-
-      debugPrint('getFeaturedDecks: got ${snapshot.docs.length} docs');
-
-      final decks = snapshot.docs
-          .map((doc) => PublicDeck.fromFirestore(doc))
-          .where((deck) => deck.isActive)
-          .toList();
-
-      decks.sort((a, b) => b.downloadCount.compareTo(a.downloadCount));
-      return decks.take(limit).toList();
-    } catch (e, stack) {
-      debugPrint('Error in getFeaturedDecks: $e');
-      debugPrint('Stack: $stack');
-      return [];
+        return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+      } catch (e) {
+        debugPrint('getFeaturedDecks error: $e');
+        return [];
+      }
     }
-    */
   }
 
   /// Get top rated decks
   Future<List<PublicDeck>> getTopRatedDecks({int limit = 10}) async {
-    debugPrint('getTopRatedDecks: returning empty list (Firestore disabled for now)');
-    return [];
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionPublicDecks,
+          where: [QueryFilter.isEqualTo('is_active', true)],
+          orderBy: [OrderBy('rating_sum', descending: true)],
+          limit: limit,
+        );
+        return docs.map((doc) => PublicDeck.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('getTopRatedDecks REST error: $e');
+        return [];
+      }
+    } else {
+      try {
+        final snapshot = await _publicDecksRef
+            .where('is_active', isEqualTo: true)
+            .orderBy('rating_sum', descending: true)
+            .limit(limit)
+            .get();
+
+        return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+      } catch (e) {
+        debugPrint('getTopRatedDecks error: $e');
+        return [];
+      }
+    }
   }
 
   /// Get newest decks
   Future<List<PublicDeck>> getNewestDecks({int limit = 10}) async {
-    debugPrint('getNewestDecks: returning empty list (Firestore disabled for now)');
-    return [];
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionPublicDecks,
+          where: [QueryFilter.isEqualTo('is_active', true)],
+          orderBy: [OrderBy('published_at', descending: true)],
+          limit: limit,
+        );
+        return docs.map((doc) => PublicDeck.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('getNewestDecks REST error: $e');
+        return [];
+      }
+    } else {
+      try {
+        final snapshot = await _publicDecksRef
+            .where('is_active', isEqualTo: true)
+            .orderBy('published_at', descending: true)
+            .limit(limit)
+            .get();
+
+        return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+      } catch (e) {
+        debugPrint('getNewestDecks error: $e');
+        return [];
+      }
+    }
   }
 }

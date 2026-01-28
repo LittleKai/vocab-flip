@@ -73,4 +73,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'vocal-flip.firebasestorage.app',
     measurementId: 'G-S29JMGKVX3',
   );
+
 }

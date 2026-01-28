@@ -11,6 +11,7 @@
 migrate_working_dir/
 test/
 nul
+.env
 
 # IntelliJ related
 *.iml
