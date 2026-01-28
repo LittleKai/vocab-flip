@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' hide Category;
+import '../../main.dart' show isFirebaseInitialized;
 import '../../data/models/public_deck.dart';
 import '../../data/models/category.dart';
 import '../../data/repositories/public_library_repository.dart';
@@ -38,6 +39,13 @@ class PublishProvider extends ChangeNotifier {
 
   /// Initialize publish provider
   Future<void> initialize() async {
+    if (!isFirebaseInitialized) {
+      _error = 'Firebase is not available';
+      _state = PublishState.error;
+      notifyListeners();
+      return;
+    }
+
     _state = PublishState.loading;
     _error = null;
     notifyListeners();

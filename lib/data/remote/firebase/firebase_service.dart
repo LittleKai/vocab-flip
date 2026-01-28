@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -12,9 +13,7 @@ class FirebaseService {
   bool _initialized = false;
 
   FirebaseAuth get auth {
-    if (_auth == null) {
-      throw StateError('FirebaseService not initialized. Call initialize() first.');
-    }
+    _ensureInitialized();
     return _auth!;
   }
 
@@ -28,18 +27,31 @@ class FirebaseService {
   String? get userName => currentUser?.displayName;
   String? get userEmail => currentUser?.email;
 
-  Future<void> initialize() async {
+  /// Ensure service is initialized (call this lazily)
+  void _ensureInitialized() {
     if (_initialized) return;
 
     try {
-      await Firebase.initializeApp();
-      _auth = FirebaseAuth.instance;
-      _googleSignIn = GoogleSignIn();
-      _initialized = true;
+      // Firebase should already be initialized in main.dart
+      if (Firebase.apps.isNotEmpty) {
+        _auth = FirebaseAuth.instance;
+        _initialized = true;
+
+        // GoogleSignIn may not work on all platforms (e.g., Windows)
+        try {
+          _googleSignIn = GoogleSignIn();
+        } catch (e) {
+          debugPrint('GoogleSignIn not available on this platform: $e');
+        }
+      }
     } catch (e) {
-      // Firebase not configured, continue without it
+      debugPrint('Failed to initialize FirebaseService: $e');
       _initialized = false;
     }
+  }
+
+  Future<void> initialize() async {
+    _ensureInitialized();
   }
 
   Future<UserCredential?> signInWithGoogle() async {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/publish_provider.dart';
-import '../../widgets/library/public_deck_card.dart';
 import '../../widgets/library/rating_widget.dart';
 
 /// Screen for managing user's published decks

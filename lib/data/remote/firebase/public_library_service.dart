@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import '../../../core/constants/app_constants.dart';
 import '../../models/public_deck.dart';
 import '../../models/public_flashcard.dart';
@@ -73,94 +75,17 @@ class PublicLibraryService {
     int limit = 20,
     DocumentSnapshot? startAfter,
   }) async {
-    Query<Map<String, dynamic>> query = _publicDecksRef
-        .where('is_active', isEqualTo: true);
-
-    // Apply filters
-    if (filter != null) {
-      if (filter.categoryId != null && filter.categoryId!.isNotEmpty) {
-        query = query.where('category_id', isEqualTo: filter.categoryId);
-      }
-
-      if (filter.sourceLanguage != null && filter.sourceLanguage!.isNotEmpty) {
-        query = query.where('source_language', isEqualTo: filter.sourceLanguage);
-      }
-
-      if (filter.targetLanguage != null && filter.targetLanguage!.isNotEmpty) {
-        query = query.where('target_language', isEqualTo: filter.targetLanguage);
-      }
-
-      // Sort order
-      String orderField;
-      switch (filter.sortBy) {
-        case LibrarySortBy.popular:
-          orderField = 'download_count';
-          break;
-        case LibrarySortBy.rating:
-          orderField = 'rating_sum'; // Will calculate average on client
-          break;
-        case LibrarySortBy.newest:
-          orderField = 'published_at';
-          break;
-        case LibrarySortBy.updated:
-          orderField = 'updated_at';
-          break;
-      }
-      query = query.orderBy(orderField, descending: filter.descending);
-    } else {
-      query = query.orderBy('download_count', descending: true);
-    }
-
-    // Pagination
-    if (startAfter != null) {
-      query = query.startAfterDocument(startAfter);
-    }
-    query = query.limit(limit);
-
-    final snapshot = await query.get();
-    final decks = snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
-
-    // Client-side filtering for search query and tags (Firestore limitations)
-    if (filter?.searchQuery != null && filter!.searchQuery!.isNotEmpty) {
-      final searchLower = filter.searchQuery!.toLowerCase();
-      return decks.where((deck) {
-        return deck.name.toLowerCase().contains(searchLower) ||
-            (deck.description?.toLowerCase().contains(searchLower) ?? false) ||
-            deck.authorName.toLowerCase().contains(searchLower);
-      }).toList();
-    }
-
-    if (filter?.tags != null && filter!.tags!.isNotEmpty) {
-      return decks.where((deck) {
-        return filter.tags!.any((tag) => deck.tags.contains(tag));
-      }).toList();
-    }
-
-    return decks;
+    // TODO: Re-enable when Firestore collection exists
+    debugPrint('browse: returning empty list (Firestore disabled for now)');
+    return [];
   }
 
   /// Search public decks by keyword
   Future<List<PublicDeck>> search(String query, {int limit = 20}) async {
-    if (query.isEmpty) return [];
+    // TODO: Re-enable when Firestore collection exists
+    debugPrint('search: returning empty list (Firestore disabled for now)');
+    return [];
 
-    // Firestore doesn't support full-text search, so we fetch and filter
-    final snapshot = await _publicDecksRef
-        .where('is_active', isEqualTo: true)
-        .orderBy('download_count', descending: true)
-        .limit(100) // Fetch more for client-side filtering
-        .get();
-
-    final queryLower = query.toLowerCase();
-    return snapshot.docs
-        .map((doc) => PublicDeck.fromFirestore(doc))
-        .where((deck) {
-          return deck.name.toLowerCase().contains(queryLower) ||
-              (deck.description?.toLowerCase().contains(queryLower) ?? false) ||
-              deck.authorName.toLowerCase().contains(queryLower) ||
-              deck.tags.any((tag) => tag.toLowerCase().contains(queryLower));
-        })
-        .take(limit)
-        .toList();
   }
 
   /// Get a single public deck by ID
@@ -373,40 +298,45 @@ class PublicLibraryService {
 
   /// Get featured/popular decks for homepage
   Future<List<PublicDeck>> getFeaturedDecks({int limit = 10}) async {
-    final snapshot = await _publicDecksRef
-        .where('is_active', isEqualTo: true)
-        .orderBy('download_count', descending: true)
-        .limit(limit)
-        .get();
+    // TODO: Re-enable when Firestore is properly configured
+    // Currently disabled to prevent crashes on Windows
+    debugPrint('getFeaturedDecks: returning empty list (Firestore disabled for now)');
+    return [];
 
-    return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+    /*
+    try {
+      debugPrint('getFeaturedDecks: querying Firestore...');
+      final snapshot = await _publicDecksRef
+          .limit(limit)
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      debugPrint('getFeaturedDecks: got ${snapshot.docs.length} docs');
+
+      final decks = snapshot.docs
+          .map((doc) => PublicDeck.fromFirestore(doc))
+          .where((deck) => deck.isActive)
+          .toList();
+
+      decks.sort((a, b) => b.downloadCount.compareTo(a.downloadCount));
+      return decks.take(limit).toList();
+    } catch (e, stack) {
+      debugPrint('Error in getFeaturedDecks: $e');
+      debugPrint('Stack: $stack');
+      return [];
+    }
+    */
   }
 
   /// Get top rated decks
   Future<List<PublicDeck>> getTopRatedDecks({int limit = 10}) async {
-    final snapshot = await _publicDecksRef
-        .where('is_active', isEqualTo: true)
-        .where('rating_count', isGreaterThan: 0)
-        .orderBy('rating_count', descending: true)
-        .limit(limit * 2) // Fetch more to sort by average
-        .get();
-
-    final decks = snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
-
-    // Sort by average rating
-    decks.sort((a, b) => b.averageRating.compareTo(a.averageRating));
-
-    return decks.take(limit).toList();
+    debugPrint('getTopRatedDecks: returning empty list (Firestore disabled for now)');
+    return [];
   }
 
   /// Get newest decks
   Future<List<PublicDeck>> getNewestDecks({int limit = 10}) async {
-    final snapshot = await _publicDecksRef
-        .where('is_active', isEqualTo: true)
-        .orderBy('published_at', descending: true)
-        .limit(limit)
-        .get();
-
-    return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+    debugPrint('getNewestDecks: returning empty list (Firestore disabled for now)');
+    return [];
   }
 }

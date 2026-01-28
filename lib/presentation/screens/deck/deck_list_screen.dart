@@ -6,7 +6,6 @@ import '../../providers/deck_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
-import '../../widgets/sync/sync_badge.dart';
 import 'create_deck_screen.dart';
 import 'deck_detail_screen.dart';
 

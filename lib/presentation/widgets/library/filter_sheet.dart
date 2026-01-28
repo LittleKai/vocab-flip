@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart' hide Category;
-import '../../../core/theme/app_colors.dart';
+import 'package:flutter/material.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/category.dart';
 import '../../../data/remote/firebase/public_library_service.dart';

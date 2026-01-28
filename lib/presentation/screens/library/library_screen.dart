@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -19,72 +20,133 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
+  bool _hasError = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PublicLibraryProvider>().initialize();
-      context.read<SyncProvider>().checkForUpdates();
-      context.read<SyncProvider>().loadNotifications();
-    });
+    try {
+      _tabController = TabController(length: 4, vsync: this);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeLibrary();
+      });
+    } catch (e, stack) {
+      debugPrint('Error in initState: $e');
+      debugPrint('Stack: $stack');
+      _hasError = true;
+      _errorMessage = e.toString();
+    }
+  }
+
+  Future<void> _initializeLibrary() async {
+    if (!mounted) return;
+
+    try {
+      debugPrint('Initializing PublicLibraryProvider...');
+      await context.read<PublicLibraryProvider>().initialize();
+      debugPrint('PublicLibraryProvider initialized');
+    } catch (e, stack) {
+      debugPrint('Error initializing library: $e');
+      debugPrint('Stack: $stack');
+    }
+
+    if (!mounted) return;
+
+    try {
+      debugPrint('Checking sync updates...');
+      await context.read<SyncProvider>().checkForUpdates();
+      await context.read<SyncProvider>().loadNotifications();
+      debugPrint('Sync check complete');
+    } catch (e, stack) {
+      debugPrint('Error checking sync: $e');
+      debugPrint('Stack: $stack');
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Library'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const LibrarySearchScreen(),
-                ),
-              );
-            },
+    debugPrint('Building LibraryScreen...');
+
+    if (_hasError) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Library')),
+        body: Center(
+          child: Text('Error: $_errorMessage'),
+        ),
+      );
+    }
+
+    if (_tabController == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Library')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    try {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Library'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LibrarySearchScreen(),
+                  ),
+                );
+              },
+            ),
+            Consumer<SyncProvider>(
+              builder: (context, syncProvider, _) {
+                return SyncNotificationBadge(
+                  unreadCount: syncProvider.unreadCount,
+                  onTap: () => _showSyncNotifications(context),
+                );
+              },
+            ),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            tabs: const [
+              Tab(text: 'Featured'),
+              Tab(text: 'Top Rated'),
+              Tab(text: 'New'),
+              Tab(text: 'Browse'),
+            ],
           ),
-          Consumer<SyncProvider>(
-            builder: (context, syncProvider, _) {
-              return SyncNotificationBadge(
-                unreadCount: syncProvider.unreadCount,
-                onTap: () => _showSyncNotifications(context),
-              );
-            },
-          ),
-        ],
-        bottom: TabBar(
+        ),
+        body: TabBarView(
           controller: _tabController,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'Featured'),
-            Tab(text: 'Top Rated'),
-            Tab(text: 'New'),
-            Tab(text: 'Browse'),
+          children: [
+            _FeaturedTab(),
+            _TopRatedTab(),
+            _NewestTab(),
+            _BrowseTab(),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _FeaturedTab(),
-          _TopRatedTab(),
-          _NewestTab(),
-          _BrowseTab(),
-        ],
-      ),
-    );
+      );
+    } catch (e, stack) {
+      debugPrint('Error building LibraryScreen: $e');
+      debugPrint('Stack: $stack');
+      return Scaffold(
+        appBar: AppBar(title: const Text('Library')),
+        body: Center(
+          child: Text('Build Error: $e'),
+        ),
+      );
+    }
   }
 
   void _showSyncNotifications(BuildContext context) {
@@ -97,6 +159,12 @@ class _FeaturedTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<PublicLibraryProvider>(
       builder: (context, provider, _) {
+        if (provider.error != null) {
+          return _buildErrorState(context, provider.error!, () {
+            provider.initialize();
+          });
+        }
+
         if (provider.isLoading && provider.featuredDecks.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -377,6 +445,44 @@ Widget _buildEmptyState(BuildContext context, String message) {
               ),
         ),
       ],
+    ),
+  );
+}
+
+Widget _buildErrorState(BuildContext context, String error, VoidCallback onRetry) {
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.cloud_off,
+            size: 64,
+            color: AppColors.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Unable to connect to library',
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondaryLight,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+          ),
+        ],
+      ),
     ),
   );
 }

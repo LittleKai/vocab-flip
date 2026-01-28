@@ -1,0 +1,94 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "categoryId", "order": "ASCENDING" },
+        { "fieldPath": "downloadCount", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "categoryId", "order": "ASCENDING" },
+        { "fieldPath": "averageRating", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "categoryId", "order": "ASCENDING" },
+        { "fieldPath": "publishedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "categoryId", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sourceLanguage", "order": "ASCENDING" },
+        { "fieldPath": "downloadCount", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "targetLanguage", "order": "ASCENDING" },
+        { "fieldPath": "downloadCount", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sourceLanguage", "order": "ASCENDING" },
+        { "fieldPath": "targetLanguage", "order": "ASCENDING" },
+        { "fieldPath": "downloadCount", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "authorId", "order": "ASCENDING" },
+        { "fieldPath": "publishedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sync_notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "isRead", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "imported_decks",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "publicDeckId", "order": "ASCENDING" },
+        { "fieldPath": "autoSync", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

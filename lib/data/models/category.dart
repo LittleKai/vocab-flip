@@ -29,6 +29,12 @@ class Category {
     };
   }
 
+  /// Convert to Firestore document
+  Map<String, dynamic> toFirestore() => toMap();
+
+  /// Alias for predefined categories (for seeder compatibility)
+  static List<Category> get predefinedCategories => predefined;
+
   factory Category.fromMap(Map<String, dynamic> map) {
     return Category(
       id: map['id'] as String,

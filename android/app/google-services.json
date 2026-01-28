@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "521663665160",
+    "project_id": "vocal-flip",
+    "storage_bucket": "vocal-flip.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:521663665160:android:4f0d2f5f6193226bebedbd",
+        "android_client_info": {
+          "package_name": "com.vocabflip.vocabflip"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiTSs8VY34uzWaKWVh0rWiYivD3K9E1Bc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

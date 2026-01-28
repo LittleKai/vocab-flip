@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' hide Category;
+import '../../main.dart' show isFirebaseInitialized;
 import '../../data/models/public_deck.dart';
 import '../../data/models/public_flashcard.dart';
 import '../../data/models/deck_rating.dart';
@@ -10,6 +11,9 @@ import '../../data/remote/firebase/public_library_service.dart';
 /// Provider for public library browsing, searching, and importing
 class PublicLibraryProvider extends ChangeNotifier {
   final PublicLibraryRepository _repository = PublicLibraryRepository();
+
+  /// Check if Firebase is available
+  bool get isFirebaseAvailable => isFirebaseInitialized;
 
   // State
   List<PublicDeck> _decks = [];
@@ -51,62 +55,94 @@ class PublicLibraryProvider extends ChangeNotifier {
 
   /// Initialize the library (load categories and featured decks)
   Future<void> initialize() async {
+    debugPrint('PublicLibraryProvider.initialize() called');
+    debugPrint('isFirebaseAvailable: $isFirebaseAvailable');
+
+    if (!isFirebaseAvailable) {
+      debugPrint('Firebase not available, setting error');
+      _error = 'Firebase is not available. Please check your internet connection.';
+      notifyListeners();
+      return;
+    }
+
+    debugPrint('Setting loading state...');
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      await Future.wait([
-        loadCategories(),
-        loadFeaturedDecks(),
-        loadTopRatedDecks(),
-        loadNewestDecks(),
-      ]);
-    } catch (e) {
+      debugPrint('Loading categories...');
+      await loadCategories();
+      debugPrint('Categories loaded');
+
+      debugPrint('Loading featured decks...');
+      await loadFeaturedDecks();
+      debugPrint('Featured decks loaded');
+
+      debugPrint('Loading top rated decks...');
+      await loadTopRatedDecks();
+      debugPrint('Top rated decks loaded');
+
+      debugPrint('Loading newest decks...');
+      await loadNewestDecks();
+      debugPrint('Newest decks loaded');
+    } catch (e, stack) {
+      debugPrint('Error in initialize: $e');
+      debugPrint('Stack: $stack');
       _error = e.toString();
     }
 
+    debugPrint('Setting loading complete');
     _isLoading = false;
     notifyListeners();
+    debugPrint('initialize() completed');
   }
 
   /// Load categories
   Future<void> loadCategories() async {
     try {
+      debugPrint('loadCategories: calling repository...');
       _categories = await _repository.getCategories();
-      notifyListeners();
-    } catch (e) {
+      debugPrint('loadCategories: got ${_categories.length} categories');
+    } catch (e, stack) {
       debugPrint('Error loading categories: $e');
+      debugPrint('Stack: $stack');
     }
   }
 
   /// Load featured decks
   Future<void> loadFeaturedDecks() async {
     try {
+      debugPrint('loadFeaturedDecks: calling repository...');
       _featuredDecks = await _repository.getFeaturedDecks();
-      notifyListeners();
-    } catch (e) {
+      debugPrint('loadFeaturedDecks: got ${_featuredDecks.length} decks');
+    } catch (e, stack) {
       debugPrint('Error loading featured decks: $e');
+      debugPrint('Stack: $stack');
     }
   }
 
   /// Load top rated decks
   Future<void> loadTopRatedDecks() async {
     try {
+      debugPrint('loadTopRatedDecks: calling repository...');
       _topRatedDecks = await _repository.getTopRatedDecks();
-      notifyListeners();
-    } catch (e) {
+      debugPrint('loadTopRatedDecks: got ${_topRatedDecks.length} decks');
+    } catch (e, stack) {
       debugPrint('Error loading top rated decks: $e');
+      debugPrint('Stack: $stack');
     }
   }
 
   /// Load newest decks
   Future<void> loadNewestDecks() async {
     try {
+      debugPrint('loadNewestDecks: calling repository...');
       _newestDecks = await _repository.getNewestDecks();
-      notifyListeners();
-    } catch (e) {
+      debugPrint('loadNewestDecks: got ${_newestDecks.length} decks');
+    } catch (e, stack) {
       debugPrint('Error loading newest decks: $e');
+      debugPrint('Stack: $stack');
     }
   }
 

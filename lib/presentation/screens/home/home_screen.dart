@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
-import '../../providers/sync_provider.dart';
 import '../deck/deck_list_screen.dart';
 import '../statistics/statistics_screen.dart';
 import '../settings/settings_screen.dart';
@@ -20,15 +19,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const _HomeTab(),
-    const DeckListScreen(),
-    const LibraryScreen(),
-    const DictionarySearchScreen(),
-    const StatisticsScreen(),
-    const SettingsScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -38,13 +28,29 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Widget _buildScreen(int index) {
+    switch (index) {
+      case 0:
+        return const _HomeTab();
+      case 1:
+        return const DeckListScreen();
+      case 2:
+        return const LibraryScreen();
+      case 3:
+        return const DictionarySearchScreen();
+      case 4:
+        return const StatisticsScreen();
+      case 5:
+        return const SettingsScreen();
+      default:
+        return const _HomeTab();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: _buildScreen(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),

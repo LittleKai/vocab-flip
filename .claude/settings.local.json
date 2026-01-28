@@ -1,13 +1,46 @@
 {
-  "permissions": {
-    "allow": [
-      "Edit(*)",
-      "Write(*)",
-      "Read(*)",
-      "Bash(flutter clean:*)",
-      "Bash(flutter pub get:*)",
-      "Bash(flutter build:*)"
+  "capabilities": {
+    "edit": {
+      "allowed": true,
+      "requiresApproval": false
+    },
+    "write": {
+      "allowed": true,
+      "requiresApproval": false
+    },
+    "read": {
+      "allowed": true
+    },
+    "bash": {
+      "allowed": true,
+      "requiresApproval": false,
+      "allowedCommands": [
+        "flutter clean",
+        "flutter pub get",
+        "flutter build",
+        "flutter analyze",
+        "flutter run",
+        "flutter test",
+        "flutter gen-l10n",
+        "dart format",
+        "dart fix --apply"
+      ]
+    }
+  },
+  "autoApprove": {
+    "edit": [
+      "**/*.md",
+      "**/*.dart",
+      "**/*.yaml",
+      "**/*.json",
+      "**/*.arb"
     ],
-    "autoApprove": true
+    "write": [
+      "**/*.md",
+      "**/*.dart",
+      "**/*.yaml",
+      "**/*.json",
+      "**/*.arb"
+    ]
   }
 }
