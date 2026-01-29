@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/deck.dart';
 import '../../providers/publish_provider.dart';
@@ -40,9 +41,11 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Publish Deck'),
+        title: Text(l10n.publishDeck),
       ),
       body: Consumer<PublishProvider>(
         builder: (context, provider, _) {
@@ -51,7 +54,7 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
           }
 
           if (_deck == null) {
-            return const Center(child: Text('Deck not found'));
+            return Center(child: Text(l10n.deckNotFound));
           }
 
           return _buildForm(context, provider);
@@ -61,6 +64,8 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
   }
 
   Widget _buildForm(BuildContext context, PublishProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -90,7 +95,7 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
                       Icon(Icons.style, size: 16, color: AppColors.textSecondaryLight),
                       const SizedBox(width: 4),
                       Text(
-                        '${_deck!.cardCount} cards',
+                        l10n.cardsCount(_deck!.cardCount),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondaryLight,
                             ),
@@ -115,7 +120,7 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
 
           // Category selection
           Text(
-            'Category *',
+            '${l10n.category} *',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -123,9 +128,9 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: provider.selectedCategoryId,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Select a category',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: l10n.selectCategory,
             ),
             items: provider.categories.map<DropdownMenuItem<String>>((category) {
               return DropdownMenuItem<String>(
@@ -135,21 +140,21 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
             }).toList(),
             onChanged: (value) => provider.setCategory(value),
             validator: (value) =>
-                value == null ? 'Please select a category' : null,
+                value == null ? l10n.pleaseSelectCategory : null,
           ),
 
           const SizedBox(height: 24),
 
           // Tags
           Text(
-            'Tags',
+            l10n.tags,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
           ),
           const SizedBox(height: 4),
           Text(
-            'Add tags to help users find your deck',
+            l10n.addTagsHelp,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
@@ -181,7 +186,7 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
                       Icon(Icons.info_outline, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Text(
-                        'Publishing Guidelines',
+                        l10n.publishingGuidelines,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
@@ -190,10 +195,10 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildGuideline('Make sure your deck has quality content'),
-                  _buildGuideline('Use appropriate categories and tags'),
-                  _buildGuideline('Avoid copyrighted material'),
-                  _buildGuideline('You can update or unpublish anytime'),
+                  _buildGuideline(l10n.qualityContent),
+                  _buildGuideline(l10n.appropriateCategories),
+                  _buildGuideline(l10n.avoidCopyrighted),
+                  _buildGuideline(l10n.canUpdateAnytime),
                 ],
               ),
             ),
@@ -238,7 +243,7 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Publish to Library'),
+                  : Text(l10n.publishToLibrary),
             ),
           ),
         ],
@@ -284,6 +289,7 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
   }
 
   Future<void> _publishDeck(BuildContext context, PublishProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
     final success = await provider.publishDeck(widget.deckId);
 
     if (success && mounted) {
@@ -291,8 +297,8 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
       context.read<DeckProvider>().loadDecks();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Deck published successfully!'),
+        SnackBar(
+          content: Text(l10n.deckPublished),
           backgroundColor: AppColors.success,
         ),
       );

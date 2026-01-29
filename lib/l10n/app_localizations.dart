@@ -511,6 +511,1506 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All Time'**
   String get allTime;
+
+  /// No description provided for @library.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get library;
+
+  /// No description provided for @dictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictionary'**
+  String get dictionary;
+
+  /// No description provided for @stats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get stats;
+
+  /// No description provided for @featured.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get featured;
+
+  /// No description provided for @topRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Rated'**
+  String get topRated;
+
+  /// No description provided for @newDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newDecks;
+
+  /// No description provided for @browse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse'**
+  String get browse;
+
+  /// No description provided for @goodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning!'**
+  String get goodMorning;
+
+  /// No description provided for @goodAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon!'**
+  String get goodAfternoon;
+
+  /// No description provided for @goodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening!'**
+  String get goodEvening;
+
+  /// No description provided for @readyToLearn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to learn some new words?'**
+  String get readyToLearn;
+
+  /// No description provided for @allCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'All caught up!'**
+  String get allCaughtUp;
+
+  /// No description provided for @noCardsToReviewToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards to review today'**
+  String get noCardsToReviewToday;
+
+  /// No description provided for @due.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get due;
+
+  /// No description provided for @dueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due Today'**
+  String get dueToday;
+
+  /// No description provided for @recentDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Decks'**
+  String get recentDecks;
+
+  /// No description provided for @dayStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} day streak'**
+  String dayStreak(int count);
+
+  /// No description provided for @cardsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cards due'**
+  String cardsDue(int count);
+
+  /// No description provided for @cards.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get cards;
+
+  /// No description provided for @myDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'My Decks'**
+  String get myDecks;
+
+  /// No description provided for @noDecksYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No decks yet'**
+  String get noDecksYet;
+
+  /// No description provided for @createFirstDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first deck to start learning!'**
+  String get createFirstDeck;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get export;
+
+  /// No description provided for @importCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Cards'**
+  String get importCards;
+
+  /// No description provided for @publishToLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish to Library'**
+  String get publishToLibrary;
+
+  /// No description provided for @unlinkFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from Library'**
+  String get unlinkFromLibrary;
+
+  /// No description provided for @managePublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Published'**
+  String get managePublished;
+
+  /// No description provided for @loadingDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading decks...'**
+  String get loadingDecks;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @newCards.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newCards;
+
+  /// No description provided for @learning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get learning;
+
+  /// No description provided for @reviewCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get reviewCards;
+
+  /// No description provided for @published.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get published;
+
+  /// No description provided for @nCards.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cards'**
+  String nCards(int count);
+
+  /// No description provided for @nNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new'**
+  String nNew(int count);
+
+  /// No description provided for @nReview.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} review'**
+  String nReview(int count);
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgain;
+
+  /// No description provided for @anError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred'**
+  String get anError;
+
+  /// No description provided for @cardsStudied.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards Studied'**
+  String get cardsStudied;
+
+  /// No description provided for @time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get time;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @studyAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Again'**
+  String get studyAgain;
+
+  /// No description provided for @endSession.
+  ///
+  /// In en, this message translates to:
+  /// **'End Session'**
+  String get endSession;
+
+  /// No description provided for @continueSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueSession;
+
+  /// No description provided for @progressSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress will be saved.'**
+  String get progressSaved;
+
+  /// No description provided for @studyN.
+  ///
+  /// In en, this message translates to:
+  /// **'Study ({count})'**
+  String studyN(int count);
+
+  /// No description provided for @wordFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Word / Front'**
+  String get wordFront;
+
+  /// No description provided for @enterWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the word to learn'**
+  String get enterWord;
+
+  /// No description provided for @lookUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up'**
+  String get lookUp;
+
+  /// No description provided for @phoneticReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Phonetic / Reading (optional)'**
+  String get phoneticReading;
+
+  /// No description provided for @phoneticHint.
+  ///
+  /// In en, this message translates to:
+  /// **'IPA, Pinyin, Hiragana, etc.'**
+  String get phoneticHint;
+
+  /// No description provided for @meaningBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning / Back'**
+  String get meaningBack;
+
+  /// No description provided for @enterMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the meaning in Vietnamese'**
+  String get enterMeaning;
+
+  /// No description provided for @exampleSentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Example sentence (optional)'**
+  String get exampleSentence;
+
+  /// No description provided for @addExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an example sentence'**
+  String get addExample;
+
+  /// No description provided for @notesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get notesOptional;
+
+  /// No description provided for @addNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add any notes or hints'**
+  String get addNotes;
+
+  /// No description provided for @tagsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags (optional)'**
+  String get tagsOptional;
+
+  /// No description provided for @tagsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'verb, N5, food (comma-separated)'**
+  String get tagsHint;
+
+  /// No description provided for @update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get update;
+
+  /// No description provided for @addFlashcard.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Flashcard'**
+  String get addFlashcard;
+
+  /// No description provided for @addAndCreateAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Add & Create Another'**
+  String get addAndCreateAnother;
+
+  /// No description provided for @autoFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-filled from dictionary'**
+  String get autoFilled;
+
+  /// No description provided for @wordNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Word not found'**
+  String get wordNotFound;
+
+  /// No description provided for @pleaseEnterWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a word'**
+  String get pleaseEnterWord;
+
+  /// No description provided for @pleaseEnterMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the meaning'**
+  String get pleaseEnterMeaning;
+
+  /// No description provided for @pleaseEnterWordFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a word first'**
+  String get pleaseEnterWordFirst;
+
+  /// No description provided for @flashcardAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcard added!'**
+  String get flashcardAdded;
+
+  /// No description provided for @autoFillFromDictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-fill from dictionary'**
+  String get autoFillFromDictionary;
+
+  /// No description provided for @viewCards.
+  ///
+  /// In en, this message translates to:
+  /// **'View Cards'**
+  String get viewCards;
+
+  /// No description provided for @noFlashcards.
+  ///
+  /// In en, this message translates to:
+  /// **'No flashcards'**
+  String get noFlashcards;
+
+  /// No description provided for @sourceLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source Language:'**
+  String get sourceLanguageLabel;
+
+  /// No description provided for @searchForWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a word...'**
+  String get searchForWord;
+
+  /// No description provided for @lookingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking up...'**
+  String get lookingUp;
+
+  /// No description provided for @enterWordToLookUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a word to look up'**
+  String get enterWordToLookUp;
+
+  /// No description provided for @addToDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Deck'**
+  String get addToDeck;
+
+  /// No description provided for @synonyms.
+  ///
+  /// In en, this message translates to:
+  /// **'Synonyms'**
+  String get synonyms;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @useDarkTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Use dark theme'**
+  String get useDarkTheme;
+
+  /// No description provided for @studySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Study'**
+  String get studySettings;
+
+  /// No description provided for @newCardsPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'New cards per day'**
+  String get newCardsPerDay;
+
+  /// No description provided for @reviewCardsPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Review cards per day'**
+  String get reviewCardsPerDay;
+
+  /// No description provided for @showPhonetic.
+  ///
+  /// In en, this message translates to:
+  /// **'Show phonetic'**
+  String get showPhonetic;
+
+  /// No description provided for @displayPronunciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Display pronunciation on cards'**
+  String get displayPronunciation;
+
+  /// No description provided for @autoPlayAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-play audio'**
+  String get autoPlayAudio;
+
+  /// No description provided for @automaticallyPlayPronunciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically play pronunciation'**
+  String get automaticallyPlayPronunciation;
+
+  /// No description provided for @backupSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Sync'**
+  String get backupSync;
+
+  /// No description provided for @backupToCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup to Cloud'**
+  String get backupToCloud;
+
+  /// No description provided for @saveDataToCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your data to the cloud'**
+  String get saveDataToCloud;
+
+  /// No description provided for @restoreFromCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from Cloud'**
+  String get restoreFromCloud;
+
+  /// No description provided for @restoreDataFromCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore your data from the cloud'**
+  String get restoreDataFromCloud;
+
+  /// No description provided for @firebaseNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase not configured'**
+  String get firebaseNotConfigured;
+
+  /// No description provided for @autoSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-sync'**
+  String get autoSync;
+
+  /// No description provided for @autoSyncWhenOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically sync when online'**
+  String get autoSyncWhenOnline;
+
+  /// No description provided for @importExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import & Export'**
+  String get importExport;
+
+  /// No description provided for @importFromJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from JSON file'**
+  String get importFromJson;
+
+  /// No description provided for @exportAllDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Export All Decks'**
+  String get exportAllDecks;
+
+  /// No description provided for @exportToJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to JSON file'**
+  String get exportToJson;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get version;
+
+  /// No description provided for @sendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Feedback'**
+  String get sendFeedback;
+
+  /// No description provided for @rateApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate App'**
+  String get rateApp;
+
+  /// No description provided for @dangerZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger Zone'**
+  String get dangerZone;
+
+  /// No description provided for @resetAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset All Data'**
+  String get resetAllData;
+
+  /// No description provided for @deleteAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all decks and cards'**
+  String get deleteAllData;
+
+  /// No description provided for @resetConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset All Data?'**
+  String get resetConfirmTitle;
+
+  /// No description provided for @resetConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete all your decks, flashcards, and study progress. This action cannot be undone.'**
+  String get resetConfirmMessage;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @dataReset.
+  ///
+  /// In en, this message translates to:
+  /// **'All data has been reset'**
+  String get dataReset;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @numberOfCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of cards'**
+  String get numberOfCards;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @days.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get days;
+
+  /// No description provided for @created.
+  ///
+  /// In en, this message translates to:
+  /// **'created'**
+  String get created;
+
+  /// No description provided for @weeklyActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Activity'**
+  String get weeklyActivity;
+
+  /// No description provided for @deckProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck Progress'**
+  String get deckProgress;
+
+  /// No description provided for @cardsLearnedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{learned} / {total} cards learned'**
+  String cardsLearnedCount(int learned, int total);
+
+  /// No description provided for @dueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} due'**
+  String dueCount(int count);
+
+  /// No description provided for @mon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get mon;
+
+  /// No description provided for @tue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get tue;
+
+  /// No description provided for @wed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get wed;
+
+  /// No description provided for @thu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get thu;
+
+  /// No description provided for @fri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get fri;
+
+  /// No description provided for @sat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get sat;
+
+  /// No description provided for @sun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get sun;
+
+  /// No description provided for @filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get filter;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @noFeaturedDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'No featured decks yet'**
+  String get noFeaturedDecks;
+
+  /// No description provided for @noRatedDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'No rated decks yet'**
+  String get noRatedDecks;
+
+  /// No description provided for @noDecksYetSimple.
+  ///
+  /// In en, this message translates to:
+  /// **'No decks yet'**
+  String get noDecksYetSimple;
+
+  /// No description provided for @noDecksFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No decks found'**
+  String get noDecksFound;
+
+  /// No description provided for @unableToConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to connect to library'**
+  String get unableToConnect;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @searchDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Search decks...'**
+  String get searchDecks;
+
+  /// No description provided for @popularSearches.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular Searches'**
+  String get popularSearches;
+
+  /// No description provided for @browseByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse by Category'**
+  String get browseByCategory;
+
+  /// No description provided for @noResultsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String noResultsFor(String query);
+
+  /// No description provided for @tryDifferentKeywords.
+  ///
+  /// In en, this message translates to:
+  /// **'Try different keywords or browse categories'**
+  String get tryDifferentKeywords;
+
+  /// No description provided for @decksCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} decks'**
+  String decksCount(int count);
+
+  /// No description provided for @resultsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} results for \"{query}\"'**
+  String resultsFor(int count, String query);
+
+  /// No description provided for @deckDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck Details'**
+  String get deckDetails;
+
+  /// No description provided for @ratingsReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Ratings & Reviews'**
+  String get ratingsReviews;
+
+  /// No description provided for @previewCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Cards'**
+  String get previewCards;
+
+  /// No description provided for @editReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Review'**
+  String get editReview;
+
+  /// No description provided for @rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get rate;
+
+  /// No description provided for @yourRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating: '**
+  String get yourRating;
+
+  /// No description provided for @anonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymous'**
+  String get anonymous;
+
+  /// No description provided for @noCardsPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards to preview'**
+  String get noCardsPreview;
+
+  /// No description provided for @alreadyImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Already Imported'**
+  String get alreadyImported;
+
+  /// No description provided for @failedToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load deck'**
+  String get failedToLoad;
+
+  /// No description provided for @shareComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Share feature coming soon'**
+  String get shareComingSoon;
+
+  /// No description provided for @successfullyImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully imported \"{name}\"'**
+  String successfullyImported(String name);
+
+  /// No description provided for @view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get view;
+
+  /// No description provided for @failedToImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to import: {error}'**
+  String failedToImport(String error);
+
+  /// No description provided for @downloadsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} downloads'**
+  String downloadsCount(int count);
+
+  /// No description provided for @reviewsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reviews'**
+  String reviewsCount(int count);
+
+  /// No description provided for @cardsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cards'**
+  String cardsCount(int count);
+
+  /// No description provided for @publishDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish Deck'**
+  String get publishDeck;
+
+  /// No description provided for @deckNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck not found'**
+  String get deckNotFound;
+
+  /// No description provided for @category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// No description provided for @selectCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a category'**
+  String get selectCategory;
+
+  /// No description provided for @pleaseSelectCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a category'**
+  String get pleaseSelectCategory;
+
+  /// No description provided for @addTagsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tags to help users find your deck'**
+  String get addTagsHelp;
+
+  /// No description provided for @publishingGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing Guidelines'**
+  String get publishingGuidelines;
+
+  /// No description provided for @qualityContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure your deck has quality content'**
+  String get qualityContent;
+
+  /// No description provided for @appropriateCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Use appropriate categories and tags'**
+  String get appropriateCategories;
+
+  /// No description provided for @avoidCopyrighted.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid copyrighted material'**
+  String get avoidCopyrighted;
+
+  /// No description provided for @canUpdateAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'You can update or unpublish anytime'**
+  String get canUpdateAnytime;
+
+  /// No description provided for @deckPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck published successfully!'**
+  String get deckPublished;
+
+  /// No description provided for @myPublishedDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'My Published Decks'**
+  String get myPublishedDecks;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @inactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive;
+
+  /// No description provided for @noPublishedDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'No Published Decks'**
+  String get noPublishedDecks;
+
+  /// No description provided for @shareWithCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your decks with the community'**
+  String get shareWithCommunity;
+
+  /// No description provided for @pushUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Update'**
+  String get pushUpdate;
+
+  /// No description provided for @syncChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync changes from local deck'**
+  String get syncChanges;
+
+  /// No description provided for @unpublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpublish'**
+  String get unpublish;
+
+  /// No description provided for @removeFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from public library'**
+  String get removeFromLibrary;
+
+  /// No description provided for @viewAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'View Analytics'**
+  String get viewAnalytics;
+
+  /// No description provided for @analyticsComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics coming soon'**
+  String get analyticsComingSoon;
+
+  /// No description provided for @updatingDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating published deck...'**
+  String get updatingDeck;
+
+  /// No description provided for @unpublishConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpublish Deck?'**
+  String get unpublishConfirm;
+
+  /// No description provided for @unpublishDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove the deck from the public library. Users who already imported it will still have their copies.'**
+  String get unpublishDescription;
+
+  /// No description provided for @deckUnpublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck unpublished'**
+  String get deckUnpublished;
+
+  /// No description provided for @updates.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates'**
+  String get updates;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get markAllRead;
+
+  /// No description provided for @availableUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Updates'**
+  String get availableUpdates;
+
+  /// No description provided for @decksHaveUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} decks have updates'**
+  String decksHaveUpdates(int count);
+
+  /// No description provided for @syncAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync All'**
+  String get syncAll;
+
+  /// No description provided for @sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get sync;
+
+  /// No description provided for @history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// No description provided for @updatedToVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated to v{version}'**
+  String updatedToVersion(int version);
+
+  /// No description provided for @checkForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for Updates'**
+  String get checkForUpdates;
+
+  /// No description provided for @noUpdatesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No updates available'**
+  String get noUpdatesAvailable;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
+
+  /// No description provided for @success.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get success;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @deleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}'**
+  String deleteConfirmTitle(String name);
+
+  /// No description provided for @deleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? This action cannot be undone.'**
+  String deleteConfirmMessage(String name);
+
+  /// No description provided for @actionCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get actionCannotBeUndone;
+
+  /// No description provided for @unlinkDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink Deck'**
+  String get unlinkDeck;
+
+  /// No description provided for @unlinkDeckMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove the connection to the original deck. You will no longer receive updates from the author.'**
+  String get unlinkDeckMessage;
+
+  /// No description provided for @unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get unlink;
+
+  /// No description provided for @deckUnlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck unlinked'**
+  String get deckUnlinked;
+
+  /// No description provided for @noFlashcardsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No flashcards yet'**
+  String get noFlashcardsYet;
+
+  /// No description provided for @addFlashcardsToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Add flashcards to start learning!'**
+  String get addFlashcardsToStart;
+
+  /// No description provided for @descriptionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get descriptionOptional;
+
+  /// No description provided for @describeWhatDeckAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what this deck is about'**
+  String get describeWhatDeckAbout;
+
+  /// No description provided for @pleaseEnterDeckName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a deck name'**
+  String get pleaseEnterDeckName;
+
+  /// No description provided for @deckNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Japanese N5 Vocabulary'**
+  String get deckNameHint;
+
+  /// No description provided for @languageOfWordsToLearn.
+  ///
+  /// In en, this message translates to:
+  /// **'The language of the words you want to learn'**
+  String get languageOfWordsToLearn;
+
+  /// No description provided for @updateDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Deck'**
+  String get updateDeck;
+
+  /// No description provided for @image.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get image;
+
+  /// No description provided for @imageOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Image (optional)'**
+  String get imageOptional;
+
+  /// No description provided for @localFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Local File'**
+  String get localFile;
+
+  /// No description provided for @imageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get imageUrl;
+
+  /// No description provided for @enterImageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter image URL'**
+  String get enterImageUrl;
+
+  /// No description provided for @invalidImageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid image URL'**
+  String get invalidImageUrl;
+
+  /// No description provided for @tapToAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add image'**
+  String get tapToAddImage;
+
+  /// No description provided for @changeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change image'**
+  String get changeImage;
+
+  /// No description provided for @removeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove image'**
+  String get removeImage;
+
+  /// No description provided for @flashcardImageSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcard Image Size'**
+  String get flashcardImageSize;
+
+  /// No description provided for @recommendedForMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for mobile'**
+  String get recommendedForMobile;
+
+  /// No description provided for @recommendedForDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for desktop'**
+  String get recommendedForDesktop;
+
+  /// No description provided for @balanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get balanced;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @signInWithEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Email'**
+  String get signInWithEmail;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPassword;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dontHaveAccount;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @signInGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get signInGoogle;
+
+  /// No description provided for @orContinueWith.
+  ///
+  /// In en, this message translates to:
+  /// **'or continue with'**
+  String get orContinueWith;
+
+  /// No description provided for @pleaseEnterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email'**
+  String get pleaseEnterEmail;
+
+  /// No description provided for @pleaseEnterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email'**
+  String get pleaseEnterValidEmail;
+
+  /// No description provided for @pleaseEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get pleaseEnterPassword;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordMinLength;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @signInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in failed'**
+  String get signInFailed;
+
+  /// No description provided for @signUpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up failed'**
+  String get signUpFailed;
+
+  /// No description provided for @resetPasswordSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent'**
+  String get resetPasswordSent;
+
+  /// No description provided for @signedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {email}'**
+  String signedInAs(String email);
+
+  /// No description provided for @signOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out?'**
+  String get signOutConfirm;
 }
 
 class _AppLocalizationsDelegate

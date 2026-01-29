@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   flutter_tts
   share_plus
+  sqlite3_flutter_libs
   url_launcher_windows
 )
 

@@ -214,4 +214,802 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allTime => 'All Time';
+
+  @override
+  String get library => 'Library';
+
+  @override
+  String get dictionary => 'Dictionary';
+
+  @override
+  String get stats => 'Stats';
+
+  @override
+  String get featured => 'Featured';
+
+  @override
+  String get topRated => 'Top Rated';
+
+  @override
+  String get newDecks => 'New';
+
+  @override
+  String get browse => 'Browse';
+
+  @override
+  String get goodMorning => 'Good morning!';
+
+  @override
+  String get goodAfternoon => 'Good afternoon!';
+
+  @override
+  String get goodEvening => 'Good evening!';
+
+  @override
+  String get readyToLearn => 'Ready to learn some new words?';
+
+  @override
+  String get allCaughtUp => 'All caught up!';
+
+  @override
+  String get noCardsToReviewToday => 'No cards to review today';
+
+  @override
+  String get due => 'Due';
+
+  @override
+  String get dueToday => 'Due Today';
+
+  @override
+  String get recentDecks => 'Recent Decks';
+
+  @override
+  String dayStreak(int count) {
+    return '$count day streak';
+  }
+
+  @override
+  String cardsDue(int count) {
+    return '$count cards due';
+  }
+
+  @override
+  String get cards => 'Cards';
+
+  @override
+  String get myDecks => 'My Decks';
+
+  @override
+  String get noDecksYet => 'No decks yet';
+
+  @override
+  String get createFirstDeck => 'Create your first deck to start learning!';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get export => 'Export';
+
+  @override
+  String get importCards => 'Import Cards';
+
+  @override
+  String get publishToLibrary => 'Publish to Library';
+
+  @override
+  String get unlinkFromLibrary => 'Unlink from Library';
+
+  @override
+  String get managePublished => 'Manage Published';
+
+  @override
+  String get loadingDecks => 'Loading decks...';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get newCards => 'New';
+
+  @override
+  String get learning => 'Learning';
+
+  @override
+  String get reviewCards => 'Review';
+
+  @override
+  String get published => 'Published';
+
+  @override
+  String nCards(int count) {
+    return '$count cards';
+  }
+
+  @override
+  String nNew(int count) {
+    return '$count new';
+  }
+
+  @override
+  String nReview(int count) {
+    return '$count review';
+  }
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get tryAgain => 'Try Again';
+
+  @override
+  String get anError => 'An error occurred';
+
+  @override
+  String get cardsStudied => 'Cards Studied';
+
+  @override
+  String get time => 'Time';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get studyAgain => 'Study Again';
+
+  @override
+  String get endSession => 'End Session';
+
+  @override
+  String get continueSession => 'Continue';
+
+  @override
+  String get progressSaved => 'Your progress will be saved.';
+
+  @override
+  String studyN(int count) {
+    return 'Study ($count)';
+  }
+
+  @override
+  String get wordFront => 'Word / Front';
+
+  @override
+  String get enterWord => 'Enter the word to learn';
+
+  @override
+  String get lookUp => 'Look up';
+
+  @override
+  String get phoneticReading => 'Phonetic / Reading (optional)';
+
+  @override
+  String get phoneticHint => 'IPA, Pinyin, Hiragana, etc.';
+
+  @override
+  String get meaningBack => 'Meaning / Back';
+
+  @override
+  String get enterMeaning => 'Enter the meaning in Vietnamese';
+
+  @override
+  String get exampleSentence => 'Example sentence (optional)';
+
+  @override
+  String get addExample => 'Add an example sentence';
+
+  @override
+  String get notesOptional => 'Notes (optional)';
+
+  @override
+  String get addNotes => 'Add any notes or hints';
+
+  @override
+  String get tagsOptional => 'Tags (optional)';
+
+  @override
+  String get tagsHint => 'verb, N5, food (comma-separated)';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get addFlashcard => 'Add Flashcard';
+
+  @override
+  String get addAndCreateAnother => 'Add & Create Another';
+
+  @override
+  String get autoFilled => 'Auto-filled from dictionary';
+
+  @override
+  String get wordNotFound => 'Word not found';
+
+  @override
+  String get pleaseEnterWord => 'Please enter a word';
+
+  @override
+  String get pleaseEnterMeaning => 'Please enter the meaning';
+
+  @override
+  String get pleaseEnterWordFirst => 'Please enter a word first';
+
+  @override
+  String get flashcardAdded => 'Flashcard added!';
+
+  @override
+  String get autoFillFromDictionary => 'Auto-fill from dictionary';
+
+  @override
+  String get viewCards => 'View Cards';
+
+  @override
+  String get noFlashcards => 'No flashcards';
+
+  @override
+  String get sourceLanguageLabel => 'Source Language:';
+
+  @override
+  String get searchForWord => 'Search for a word...';
+
+  @override
+  String get lookingUp => 'Looking up...';
+
+  @override
+  String get enterWordToLookUp => 'Enter a word to look up';
+
+  @override
+  String get addToDeck => 'Add to Deck';
+
+  @override
+  String get synonyms => 'Synonyms';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get useDarkTheme => 'Use dark theme';
+
+  @override
+  String get studySettings => 'Study';
+
+  @override
+  String get newCardsPerDay => 'New cards per day';
+
+  @override
+  String get reviewCardsPerDay => 'Review cards per day';
+
+  @override
+  String get showPhonetic => 'Show phonetic';
+
+  @override
+  String get displayPronunciation => 'Display pronunciation on cards';
+
+  @override
+  String get autoPlayAudio => 'Auto-play audio';
+
+  @override
+  String get automaticallyPlayPronunciation =>
+      'Automatically play pronunciation';
+
+  @override
+  String get backupSync => 'Backup & Sync';
+
+  @override
+  String get backupToCloud => 'Backup to Cloud';
+
+  @override
+  String get saveDataToCloud => 'Save your data to the cloud';
+
+  @override
+  String get restoreFromCloud => 'Restore from Cloud';
+
+  @override
+  String get restoreDataFromCloud => 'Restore your data from the cloud';
+
+  @override
+  String get firebaseNotConfigured => 'Firebase not configured';
+
+  @override
+  String get autoSync => 'Auto-sync';
+
+  @override
+  String get autoSyncWhenOnline => 'Automatically sync when online';
+
+  @override
+  String get importExport => 'Import & Export';
+
+  @override
+  String get importFromJson => 'Import from JSON file';
+
+  @override
+  String get exportAllDecks => 'Export All Decks';
+
+  @override
+  String get exportToJson => 'Export to JSON file';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get version => 'Version';
+
+  @override
+  String get sendFeedback => 'Send Feedback';
+
+  @override
+  String get rateApp => 'Rate App';
+
+  @override
+  String get dangerZone => 'Danger Zone';
+
+  @override
+  String get resetAllData => 'Reset All Data';
+
+  @override
+  String get deleteAllData => 'Delete all decks and cards';
+
+  @override
+  String get resetConfirmTitle => 'Reset All Data?';
+
+  @override
+  String get resetConfirmMessage =>
+      'This will permanently delete all your decks, flashcards, and study progress. This action cannot be undone.';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get dataReset => 'All data has been reset';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get numberOfCards => 'Number of cards';
+
+  @override
+  String get overview => 'Overview';
+
+  @override
+  String get days => 'days';
+
+  @override
+  String get created => 'created';
+
+  @override
+  String get weeklyActivity => 'Weekly Activity';
+
+  @override
+  String get deckProgress => 'Deck Progress';
+
+  @override
+  String cardsLearnedCount(int learned, int total) {
+    return '$learned / $total cards learned';
+  }
+
+  @override
+  String dueCount(int count) {
+    return '$count due';
+  }
+
+  @override
+  String get mon => 'Mon';
+
+  @override
+  String get tue => 'Tue';
+
+  @override
+  String get wed => 'Wed';
+
+  @override
+  String get thu => 'Thu';
+
+  @override
+  String get fri => 'Fri';
+
+  @override
+  String get sat => 'Sat';
+
+  @override
+  String get sun => 'Sun';
+
+  @override
+  String get filter => 'Filter';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get noFeaturedDecks => 'No featured decks yet';
+
+  @override
+  String get noRatedDecks => 'No rated decks yet';
+
+  @override
+  String get noDecksYetSimple => 'No decks yet';
+
+  @override
+  String get noDecksFound => 'No decks found';
+
+  @override
+  String get unableToConnect => 'Unable to connect to library';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get searchDecks => 'Search decks...';
+
+  @override
+  String get popularSearches => 'Popular Searches';
+
+  @override
+  String get browseByCategory => 'Browse by Category';
+
+  @override
+  String noResultsFor(String query) {
+    return 'No results for \"$query\"';
+  }
+
+  @override
+  String get tryDifferentKeywords =>
+      'Try different keywords or browse categories';
+
+  @override
+  String decksCount(int count) {
+    return '$count decks';
+  }
+
+  @override
+  String resultsFor(int count, String query) {
+    return '$count results for \"$query\"';
+  }
+
+  @override
+  String get deckDetails => 'Deck Details';
+
+  @override
+  String get ratingsReviews => 'Ratings & Reviews';
+
+  @override
+  String get previewCards => 'Preview Cards';
+
+  @override
+  String get editReview => 'Edit Review';
+
+  @override
+  String get rate => 'Rate';
+
+  @override
+  String get yourRating => 'Your rating: ';
+
+  @override
+  String get anonymous => 'Anonymous';
+
+  @override
+  String get noCardsPreview => 'No cards to preview';
+
+  @override
+  String get alreadyImported => 'Already Imported';
+
+  @override
+  String get failedToLoad => 'Failed to load deck';
+
+  @override
+  String get shareComingSoon => 'Share feature coming soon';
+
+  @override
+  String successfullyImported(String name) {
+    return 'Successfully imported \"$name\"';
+  }
+
+  @override
+  String get view => 'View';
+
+  @override
+  String failedToImport(String error) {
+    return 'Failed to import: $error';
+  }
+
+  @override
+  String downloadsCount(int count) {
+    return '$count downloads';
+  }
+
+  @override
+  String reviewsCount(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String cardsCount(int count) {
+    return '$count cards';
+  }
+
+  @override
+  String get publishDeck => 'Publish Deck';
+
+  @override
+  String get deckNotFound => 'Deck not found';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get selectCategory => 'Select a category';
+
+  @override
+  String get pleaseSelectCategory => 'Please select a category';
+
+  @override
+  String get addTagsHelp => 'Add tags to help users find your deck';
+
+  @override
+  String get publishingGuidelines => 'Publishing Guidelines';
+
+  @override
+  String get qualityContent => 'Make sure your deck has quality content';
+
+  @override
+  String get appropriateCategories => 'Use appropriate categories and tags';
+
+  @override
+  String get avoidCopyrighted => 'Avoid copyrighted material';
+
+  @override
+  String get canUpdateAnytime => 'You can update or unpublish anytime';
+
+  @override
+  String get deckPublished => 'Deck published successfully!';
+
+  @override
+  String get myPublishedDecks => 'My Published Decks';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get inactive => 'Inactive';
+
+  @override
+  String get noPublishedDecks => 'No Published Decks';
+
+  @override
+  String get shareWithCommunity => 'Share your decks with the community';
+
+  @override
+  String get pushUpdate => 'Push Update';
+
+  @override
+  String get syncChanges => 'Sync changes from local deck';
+
+  @override
+  String get unpublish => 'Unpublish';
+
+  @override
+  String get removeFromLibrary => 'Remove from public library';
+
+  @override
+  String get viewAnalytics => 'View Analytics';
+
+  @override
+  String get analyticsComingSoon => 'Analytics coming soon';
+
+  @override
+  String get updatingDeck => 'Updating published deck...';
+
+  @override
+  String get unpublishConfirm => 'Unpublish Deck?';
+
+  @override
+  String get unpublishDescription =>
+      'This will remove the deck from the public library. Users who already imported it will still have their copies.';
+
+  @override
+  String get deckUnpublished => 'Deck unpublished';
+
+  @override
+  String get updates => 'Updates';
+
+  @override
+  String get markAllRead => 'Mark all read';
+
+  @override
+  String get availableUpdates => 'Available Updates';
+
+  @override
+  String decksHaveUpdates(int count) {
+    return '$count decks have updates';
+  }
+
+  @override
+  String get syncAll => 'Sync All';
+
+  @override
+  String get sync => 'Sync';
+
+  @override
+  String get history => 'History';
+
+  @override
+  String updatedToVersion(int version) {
+    return 'Updated to v$version';
+  }
+
+  @override
+  String get checkForUpdates => 'Check for Updates';
+
+  @override
+  String get noUpdatesAvailable => 'No updates available';
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get error => 'Error';
+
+  @override
+  String get success => 'Success';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String deleteConfirmTitle(String name) {
+    return 'Delete $name';
+  }
+
+  @override
+  String deleteConfirmMessage(String name) {
+    return 'Are you sure you want to delete \"$name\"? This action cannot be undone.';
+  }
+
+  @override
+  String get actionCannotBeUndone => 'This action cannot be undone.';
+
+  @override
+  String get unlinkDeck => 'Unlink Deck';
+
+  @override
+  String get unlinkDeckMessage =>
+      'This will remove the connection to the original deck. You will no longer receive updates from the author.';
+
+  @override
+  String get unlink => 'Unlink';
+
+  @override
+  String get deckUnlinked => 'Deck unlinked';
+
+  @override
+  String get noFlashcardsYet => 'No flashcards yet';
+
+  @override
+  String get addFlashcardsToStart => 'Add flashcards to start learning!';
+
+  @override
+  String get descriptionOptional => 'Description (optional)';
+
+  @override
+  String get describeWhatDeckAbout => 'Describe what this deck is about';
+
+  @override
+  String get pleaseEnterDeckName => 'Please enter a deck name';
+
+  @override
+  String get deckNameHint => 'e.g., Japanese N5 Vocabulary';
+
+  @override
+  String get languageOfWordsToLearn =>
+      'The language of the words you want to learn';
+
+  @override
+  String get updateDeck => 'Update Deck';
+
+  @override
+  String get image => 'Image';
+
+  @override
+  String get imageOptional => 'Image (optional)';
+
+  @override
+  String get localFile => 'Local File';
+
+  @override
+  String get imageUrl => 'Image URL';
+
+  @override
+  String get enterImageUrl => 'Enter image URL';
+
+  @override
+  String get invalidImageUrl => 'Invalid image URL';
+
+  @override
+  String get tapToAddImage => 'Tap to add image';
+
+  @override
+  String get changeImage => 'Change image';
+
+  @override
+  String get removeImage => 'Remove image';
+
+  @override
+  String get flashcardImageSize => 'Flashcard Image Size';
+
+  @override
+  String get recommendedForMobile => 'Recommended for mobile';
+
+  @override
+  String get recommendedForDesktop => 'Recommended for desktop';
+
+  @override
+  String get balanced => 'Balanced';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get signInWithEmail => 'Sign in with Email';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get forgotPassword => 'Forgot Password?';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get dontHaveAccount => 'Don\'t have an account?';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get signInGoogle => 'Sign in with Google';
+
+  @override
+  String get orContinueWith => 'or continue with';
+
+  @override
+  String get pleaseEnterEmail => 'Please enter your email';
+
+  @override
+  String get pleaseEnterValidEmail => 'Please enter a valid email';
+
+  @override
+  String get pleaseEnterPassword => 'Please enter your password';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 6 characters';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get signInFailed => 'Sign in failed';
+
+  @override
+  String get signUpFailed => 'Sign up failed';
+
+  @override
+  String get resetPasswordSent => 'Password reset email sent';
+
+  @override
+  String signedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get signOutConfirm => 'Are you sure you want to sign out?';
 }

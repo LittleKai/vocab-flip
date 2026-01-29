@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/flashcard.dart';
 import '../../../data/remote/firebase/firebase_service.dart';
@@ -36,6 +37,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer2<DeckProvider, FlashcardProvider>(
       builder: (context, deckProvider, flashcardProvider, child) {
         final deck = deckProvider.selectedDeck;
@@ -60,16 +63,16 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
               PopupMenuButton<String>(
                 onSelected: (value) => _handleMenuAction(context, value, deck),
                 itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit Deck')),
-                  const PopupMenuItem(value: 'export', child: Text('Export')),
-                  const PopupMenuItem(value: 'import', child: Text('Import Cards')),
+                  PopupMenuItem(value: 'edit', child: Text(l10n.editDeck)),
+                  PopupMenuItem(value: 'export', child: Text(l10n.export)),
+                  PopupMenuItem(value: 'import', child: Text(l10n.importCards)),
                   const PopupMenuDivider(),
                   if (deck.isPublished)
-                    const PopupMenuItem(value: 'manage-published', child: Text('Manage Published'))
+                    PopupMenuItem(value: 'manage-published', child: Text(l10n.managePublished))
                   else if (!deck.isLinked && FirebaseService().isSignedIn)
-                    const PopupMenuItem(value: 'publish', child: Text('Publish to Library')),
+                    PopupMenuItem(value: 'publish', child: Text(l10n.publishToLibrary)),
                   if (deck.isLinked)
-                    const PopupMenuItem(value: 'unlink', child: Text('Unlink from Library')),
+                    PopupMenuItem(value: 'unlink', child: Text(l10n.unlinkFromLibrary)),
                 ],
               ),
             ],
@@ -90,7 +93,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                             ? null
                             : () => _navigateToViewer(context),
                         icon: const Icon(Icons.visibility),
-                        label: const Text('Browse'),
+                        label: Text(l10n.browse),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -100,7 +103,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                             ? null
                             : () => _navigateToStudy(context),
                         icon: const Icon(Icons.school),
-                        label: Text('Study (${deck.dueCount})'),
+                        label: Text(l10n.studyN(deck.dueCount)),
                       ),
                     ),
                   ],
@@ -111,13 +114,13 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
               Expanded(
                 child: flashcardProvider.flashcards.isEmpty
                     ? EmptyStateWidget(
-                        title: 'No flashcards yet',
-                        subtitle: 'Add flashcards to start learning!',
+                        title: l10n.noFlashcardsYet,
+                        subtitle: l10n.addFlashcardsToStart,
                         icon: Icons.style,
                         action: ElevatedButton.icon(
                           onPressed: () => _navigateToAddCard(context),
                           icon: const Icon(Icons.add),
-                          label: const Text('Add Flashcard'),
+                          label: Text(l10n.addFlashcard),
                         ),
                       )
                     : RefreshIndicator(
@@ -148,6 +151,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
             ],
           ),
           floatingActionButton: FloatingActionButton(
+            heroTag: 'deck_detail_fab',
             onPressed: () => _navigateToAddCard(context),
             child: const Icon(Icons.add),
           ),
@@ -180,28 +184,27 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   }
 
   void _confirmUnlink(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unlink Deck'),
-        content: const Text(
-          'This will remove the connection to the original deck. '
-          'You will no longer receive updates from the author.',
-        ),
+        title: Text(l10n.unlinkDeck),
+        content: Text(l10n.unlinkDeckMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               context.read<SyncProvider>().unlinkDeck(widget.deckId);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Deck unlinked')),
+                SnackBar(content: Text(l10n.deckUnlinked)),
               );
             },
-            child: const Text('Unlink'),
+            child: Text(l10n.unlink),
           ),
         ],
       ),
@@ -252,15 +255,17 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   }
 
   void _confirmDeleteCard(BuildContext context, Flashcard card) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Flashcard'),
-        content: Text('Are you sure you want to delete "${card.front}"?'),
+        title: Text(l10n.deleteFlashcard),
+        content: Text(l10n.deleteConfirmMessage(card.front)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -268,7 +273,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -283,6 +288,8 @@ class _DeckHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -346,7 +353,7 @@ class _DeckHeader extends StatelessWidget {
                   Icon(Icons.public, size: 14, color: AppColors.success),
                   const SizedBox(width: 4),
                   Text(
-                    'Published',
+                    l10n.published,
                     style: TextStyle(
                       color: AppColors.success,
                       fontWeight: FontWeight.w500,
@@ -371,22 +378,22 @@ class _DeckHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _StatItem(
-                label: 'Total',
+                label: l10n.total,
                 value: '${deck.cardCount}',
                 color: AppColors.primary,
               ),
               _StatItem(
-                label: 'New',
+                label: l10n.newCards,
                 value: '${deck.newCount}',
                 color: AppColors.info,
               ),
               _StatItem(
-                label: 'Learning',
+                label: l10n.learning,
                 value: '${deck.learningCount}',
                 color: AppColors.warning,
               ),
               _StatItem(
-                label: 'Review',
+                label: l10n.reviewCards,
                 value: '${deck.reviewCount}',
                 color: AppColors.secondary,
               ),
@@ -446,6 +453,8 @@ class _FlashcardListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
@@ -491,11 +500,11 @@ class _FlashcardListItem extends StatelessWidget {
                   if (value == 'edit') onEdit();
                   if (value == 'delete') onDelete();
                 },
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                itemBuilder: (context) => [
+                  PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
                   PopupMenuItem(
                     value: 'delete',
-                    child: Text('Delete', style: TextStyle(color: AppColors.error)),
+                    child: Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
                   ),
                 ],
               ),
@@ -507,21 +516,22 @@ class _FlashcardListItem extends StatelessWidget {
   }
 
   Widget _buildStatusIndicator(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     Color color;
     String label;
 
     if (flashcard.isNew) {
       color = AppColors.info;
-      label = 'New';
+      label = l10n.newCards;
     } else if (flashcard.isLearning) {
       color = AppColors.warning;
-      label = 'Learning';
+      label = l10n.learning;
     } else if (flashcard.isDue) {
       color = AppColors.error;
-      label = 'Due';
+      label = l10n.due;
     } else {
       color = AppColors.success;
-      label = 'Done';
+      label = l10n.done;
     }
 
     return Container(

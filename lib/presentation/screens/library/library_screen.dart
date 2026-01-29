@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/public_library_provider.dart';
 import '../../providers/sync_provider.dart';
@@ -74,19 +75,20 @@ class _LibraryScreenState extends State<LibraryScreen>
   @override
   Widget build(BuildContext context) {
     debugPrint('Building LibraryScreen...');
+    final l10n = AppLocalizations.of(context)!;
 
     if (_hasError) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Library')),
+        appBar: AppBar(title: Text(l10n.library)),
         body: Center(
-          child: Text('Error: $_errorMessage'),
+          child: Text('${l10n.error}: $_errorMessage'),
         ),
       );
     }
 
     if (_tabController == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Library')),
+        appBar: AppBar(title: Text(l10n.library)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -94,7 +96,7 @@ class _LibraryScreenState extends State<LibraryScreen>
     try {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Library'),
+          title: Text(l10n.library),
           actions: [
             IconButton(
               icon: const Icon(Icons.search),
@@ -119,11 +121,11 @@ class _LibraryScreenState extends State<LibraryScreen>
           bottom: TabBar(
             controller: _tabController,
             isScrollable: true,
-            tabs: const [
-              Tab(text: 'Featured'),
-              Tab(text: 'Top Rated'),
-              Tab(text: 'New'),
-              Tab(text: 'Browse'),
+            tabs: [
+              Tab(text: l10n.featured),
+              Tab(text: l10n.topRated),
+              Tab(text: l10n.newDecks),
+              Tab(text: l10n.browse),
             ],
           ),
         ),
@@ -141,9 +143,9 @@ class _LibraryScreenState extends State<LibraryScreen>
       debugPrint('Error building LibraryScreen: $e');
       debugPrint('Stack: $stack');
       return Scaffold(
-        appBar: AppBar(title: const Text('Library')),
+        appBar: AppBar(title: Text(l10n.library)),
         body: Center(
-          child: Text('Build Error: $e'),
+          child: Text('${l10n.error}: $e'),
         ),
       );
     }
@@ -157,6 +159,8 @@ class _LibraryScreenState extends State<LibraryScreen>
 class _FeaturedTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<PublicLibraryProvider>(
       builder: (context, provider, _) {
         if (provider.error != null) {
@@ -170,7 +174,7 @@ class _FeaturedTab extends StatelessWidget {
         }
 
         if (provider.featuredDecks.isEmpty) {
-          return _buildEmptyState(context, 'No featured decks yet');
+          return _buildEmptyState(context, l10n.noFeaturedDecks);
         }
 
         return RefreshIndicator(
@@ -198,6 +202,8 @@ class _FeaturedTab extends StatelessWidget {
 class _TopRatedTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<PublicLibraryProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading && provider.topRatedDecks.isEmpty) {
@@ -205,7 +211,7 @@ class _TopRatedTab extends StatelessWidget {
         }
 
         if (provider.topRatedDecks.isEmpty) {
-          return _buildEmptyState(context, 'No rated decks yet');
+          return _buildEmptyState(context, l10n.noRatedDecks);
         }
 
         return RefreshIndicator(
@@ -233,6 +239,8 @@ class _TopRatedTab extends StatelessWidget {
 class _NewestTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<PublicLibraryProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading && provider.newestDecks.isEmpty) {
@@ -240,7 +248,7 @@ class _NewestTab extends StatelessWidget {
         }
 
         if (provider.newestDecks.isEmpty) {
-          return _buildEmptyState(context, 'No decks yet');
+          return _buildEmptyState(context, l10n.noDecksFound);
         }
 
         return RefreshIndicator(
@@ -325,13 +333,15 @@ class _BrowseTabState extends State<_BrowseTab> {
   }
 
   Widget _buildFilterBar(BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              '${provider.decks.length} decks',
+              l10n.decksCount(provider.decks.length),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondaryLight,
                   ),
@@ -339,7 +349,7 @@ class _BrowseTabState extends State<_BrowseTab> {
           ),
           OutlinedButton.icon(
             icon: const Icon(Icons.filter_list, size: 18),
-            label: const Text('Filter'),
+            label: Text(l10n.filter),
             onPressed: () {
               FilterSheet.show(
                 context: context,
@@ -356,6 +366,8 @@ class _BrowseTabState extends State<_BrowseTab> {
 
   Widget _buildCategoryChips(
       BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return SizedBox(
       height: 50,
       child: ListView.builder(
@@ -367,7 +379,7 @@ class _BrowseTabState extends State<_BrowseTab> {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ChoiceChip(
-                label: const Text('All'),
+                label: Text(l10n.all),
                 selected: provider.filter.categoryId == null,
                 onSelected: (_) => provider.setCategory(null),
               ),
@@ -389,12 +401,14 @@ class _BrowseTabState extends State<_BrowseTab> {
   }
 
   Widget _buildDeckList(BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (provider.isLoading && provider.decks.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (provider.decks.isEmpty) {
-      return _buildEmptyState(context, 'No decks found');
+      return _buildEmptyState(context, l10n.noDecksFound);
     }
 
     return RefreshIndicator(
@@ -450,6 +464,8 @@ Widget _buildEmptyState(BuildContext context, String message) {
 }
 
 Widget _buildErrorState(BuildContext context, String error, VoidCallback onRetry) {
+  final l10n = AppLocalizations.of(context)!;
+
   return Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -463,7 +479,7 @@ Widget _buildErrorState(BuildContext context, String error, VoidCallback onRetry
           ),
           const SizedBox(height: 16),
           Text(
-            'Unable to connect to library',
+            l10n.unableToConnect,
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -479,7 +495,7 @@ Widget _buildErrorState(BuildContext context, String error, VoidCallback onRetry
           ElevatedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
+            label: Text(l10n.retry),
           ),
         ],
       ),

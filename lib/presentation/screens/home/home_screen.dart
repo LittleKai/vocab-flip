@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/deck_navigation.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../deck/deck_list_screen.dart';
@@ -49,42 +51,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: _buildScreen(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home),
+            label: l10n.home,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.folder_outlined),
-            activeIcon: Icon(Icons.folder),
-            label: 'Decks',
+            icon: const Icon(Icons.folder_outlined),
+            activeIcon: const Icon(Icons.folder),
+            label: l10n.decks,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.public_outlined),
-            activeIcon: Icon(Icons.public),
-            label: 'Library',
+            icon: const Icon(Icons.public_outlined),
+            activeIcon: const Icon(Icons.public),
+            label: l10n.library,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            activeIcon: Icon(Icons.search),
-            label: 'Dictionary',
+            icon: const Icon(Icons.search),
+            activeIcon: const Icon(Icons.search),
+            label: l10n.dictionary,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart),
-            label: 'Stats',
+            icon: const Icon(Icons.bar_chart_outlined),
+            activeIcon: const Icon(Icons.bar_chart),
+            label: l10n.stats,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            activeIcon: const Icon(Icons.settings),
+            label: l10n.settings,
           ),
         ],
       ),
@@ -97,9 +101,11 @@ class _HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('VocabFlip'),
+        title: Text(l10n.appTitle),
       ),
       body: Consumer2<DeckProvider, SettingsProvider>(
         builder: (context, deckProvider, settingsProvider, child) {
@@ -138,14 +144,15 @@ class _HomeTab extends StatelessWidget {
   }
 
   Widget _buildWelcomeCard(BuildContext context, SettingsProvider settings) {
+    final l10n = AppLocalizations.of(context)!;
     final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {
-      greeting = 'Good morning!';
+      greeting = l10n.goodMorning;
     } else if (hour < 17) {
-      greeting = 'Good afternoon!';
+      greeting = l10n.goodAfternoon;
     } else {
-      greeting = 'Good evening!';
+      greeting = l10n.goodEvening;
     }
 
     return Container(
@@ -171,7 +178,7 @@ class _HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Ready to learn some new words?',
+            l10n.readyToLearn,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.white.withOpacity(0.1),
                 ),
@@ -186,7 +193,7 @@ class _HomeTab extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '${settings.streak} day streak',
+                l10n.dayStreak(settings.streak),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -204,12 +211,14 @@ class _HomeTab extends StatelessWidget {
     DeckProvider deckProvider,
     SettingsProvider settings,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Row(
       children: [
         Expanded(
           child: _StatCard(
             icon: Icons.folder,
-            label: 'Decks',
+            label: l10n.decks,
             value: '${deckProvider.totalDecks}',
             color: AppColors.primary,
           ),
@@ -218,7 +227,7 @@ class _HomeTab extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: Icons.style,
-            label: 'Cards',
+            label: l10n.cards,
             value: '${deckProvider.totalCards}',
             color: AppColors.secondary,
           ),
@@ -227,7 +236,7 @@ class _HomeTab extends StatelessWidget {
         Expanded(
           child: _StatCard(
             icon: Icons.schedule,
-            label: 'Due',
+            label: l10n.due,
             value: '${deckProvider.totalDueCards}',
             color: AppColors.accent,
           ),
@@ -237,13 +246,14 @@ class _HomeTab extends StatelessWidget {
   }
 
   Widget _buildDueTodaySection(BuildContext context, DeckProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final dueDecks = provider.decks.where((d) => d.dueCount > 0).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Due Today',
+          l10n.dueToday,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -266,13 +276,13 @@ class _HomeTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'All caught up!',
+                  l10n.allCaughtUp,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                 ),
                 Text(
-                  'No cards to review today',
+                  l10n.noCardsToReviewToday,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondaryLight,
                       ),
@@ -287,13 +297,15 @@ class _HomeTab extends StatelessWidget {
   }
 
   Widget _buildRecentDecks(BuildContext context, DeckProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (provider.decks.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Decks',
+          l10n.recentDecks,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -356,6 +368,8 @@ class _DueDeckCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -364,12 +378,12 @@ class _DueDeckCard extends StatelessWidget {
           child: const Icon(Icons.schedule, color: AppColors.accent),
         ),
         title: Text(deck.name),
-        subtitle: Text('${deck.dueCount} cards due'),
+        subtitle: Text(l10n.cardsDue(deck.dueCount)),
         trailing: ElevatedButton(
           onPressed: () {
             Navigator.pushNamed(context, '/study', arguments: deck.id);
           },
-          child: const Text('Study'),
+          child: Text(l10n.study),
         ),
       ),
     );
@@ -383,6 +397,8 @@ class _RecentDeckCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -391,11 +407,9 @@ class _RecentDeckCard extends StatelessWidget {
           child: const Icon(Icons.folder, color: AppColors.primary),
         ),
         title: Text(deck.name),
-        subtitle: Text('${deck.cardCount} cards'),
+        subtitle: Text(l10n.nCards(deck.cardCount)),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          Navigator.pushNamed(context, '/deck', arguments: deck.id);
-        },
+        onTap: () => DeckNavigation.navigateToBrowse(context, deck.id),
       ),
     );
   }

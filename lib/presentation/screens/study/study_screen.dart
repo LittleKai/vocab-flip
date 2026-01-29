@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/spaced_repetition.dart';
 import '../../../data/services/tts_service.dart';
@@ -39,13 +40,15 @@ class _StudyScreenState extends State<StudyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer2<StudyProvider, DeckProvider>(
       builder: (context, studyProvider, deckProvider, child) {
         final deck = deckProvider.selectedDeck;
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(deck?.name ?? 'Study'),
+            title: Text(deck?.name ?? l10n.study),
             leading: IconButton(
               icon: const Icon(Icons.close),
               onPressed: () => _confirmExit(context, studyProvider),
@@ -56,7 +59,7 @@ class _StudyScreenState extends State<StudyScreen> {
                 IconButton(
                   icon: const Icon(Icons.skip_next),
                   onPressed: () => studyProvider.skipCard(),
-                  tooltip: 'Skip',
+                  tooltip: l10n.skip,
                 ),
             ],
           ),
@@ -71,6 +74,8 @@ class _StudyScreenState extends State<StudyScreen> {
     StudyProvider provider,
     dynamic deck,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+
     switch (provider.state) {
       case StudyState.idle:
       case StudyState.loading:
@@ -90,11 +95,11 @@ class _StudyScreenState extends State<StudyScreen> {
             children: [
               const Icon(Icons.error_outline, size: 64, color: AppColors.error),
               const SizedBox(height: 16),
-              const Text('An error occurred'),
+              Text(l10n.anError),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => provider.startStudySession(widget.deckId),
-                child: const Text('Try Again'),
+                child: Text(l10n.tryAgain),
               ),
             ],
           ),
@@ -107,6 +112,7 @@ class _StudyScreenState extends State<StudyScreen> {
     StudyProvider provider,
     dynamic deck,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final card = provider.currentCard;
     if (card == null) return const SizedBox.shrink();
 
@@ -159,6 +165,7 @@ class _StudyScreenState extends State<StudyScreen> {
               front: FlashcardFace(
                 text: card.front,
                 phonetic: card.frontPhonetic,
+                imageUrl: card.imageUrl,
                 isFront: true,
                 onAudioPlay: () => _speakWord(
                   card.front,
@@ -168,6 +175,7 @@ class _StudyScreenState extends State<StudyScreen> {
               back: FlashcardFace(
                 text: card.back,
                 subtitle: card.example,
+                imageUrl: card.imageUrl,
                 isFront: false,
                 onAudioPlay: () => _speakWord(card.back, 'vi'),
               ),
@@ -183,9 +191,9 @@ class _StudyScreenState extends State<StudyScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => provider.showAnswer(),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('Show Answer'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(l10n.showAnswer),
                     ),
                   ),
                 )
@@ -196,13 +204,14 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   Widget _buildRatingButtons(BuildContext context, StudyProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final intervals = provider.getIntervalPreviews();
 
     return Row(
       children: [
         Expanded(
           child: _RatingButton(
-            label: 'Again',
+            label: l10n.again,
             interval: intervals[ReviewRating.again] ?? 1,
             color: AppColors.ratingAgain,
             onPressed: () => _rateCard(provider, ReviewRating.again),
@@ -211,7 +220,7 @@ class _StudyScreenState extends State<StudyScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _RatingButton(
-            label: 'Hard',
+            label: l10n.hard,
             interval: intervals[ReviewRating.hard] ?? 1,
             color: AppColors.ratingHard,
             onPressed: () => _rateCard(provider, ReviewRating.hard),
@@ -220,7 +229,7 @@ class _StudyScreenState extends State<StudyScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _RatingButton(
-            label: 'Good',
+            label: l10n.good,
             interval: intervals[ReviewRating.good] ?? 1,
             color: AppColors.ratingGood,
             onPressed: () => _rateCard(provider, ReviewRating.good),
@@ -229,7 +238,7 @@ class _StudyScreenState extends State<StudyScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _RatingButton(
-            label: 'Easy',
+            label: l10n.easy,
             interval: intervals[ReviewRating.easy] ?? 1,
             color: AppColors.ratingEasy,
             onPressed: () => _rateCard(provider, ReviewRating.easy),
@@ -245,6 +254,7 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   Widget _buildCompletedView(BuildContext context, StudyProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final session = provider.currentSession;
 
     return Center(
@@ -268,20 +278,20 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Study Complete!',
+              l10n.studyComplete,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 32),
             _ResultCard(
-              label: 'Cards Studied',
+              label: l10n.cardsStudied,
               value: '${provider.cardsStudied}',
               icon: Icons.style,
             ),
             const SizedBox(height: 12),
             _ResultCard(
-              label: 'Accuracy',
+              label: l10n.accuracy,
               value: '${provider.accuracy.toStringAsFixed(1)}%',
               icon: Icons.check_circle,
               color: AppColors.success,
@@ -289,7 +299,7 @@ class _StudyScreenState extends State<StudyScreen> {
             const SizedBox(height: 12),
             if (session != null)
               _ResultCard(
-                label: 'Time',
+                label: l10n.time,
                 value: _formatDuration(session.duration),
                 icon: Icons.timer,
               ),
@@ -302,14 +312,14 @@ class _StudyScreenState extends State<StudyScreen> {
                     provider.reset();
                     Navigator.pop(context);
                   },
-                  child: const Text('Done'),
+                  child: Text(l10n.done),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: () {
                     provider.startStudySession(widget.deckId);
                   },
-                  child: const Text('Study Again'),
+                  child: Text(l10n.studyAgain),
                 ),
               ],
             ),
@@ -333,6 +343,8 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   void _confirmExit(BuildContext context, StudyProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (provider.cardsStudied == 0) {
       provider.reset();
       Navigator.pop(context);
@@ -342,12 +354,12 @@ class _StudyScreenState extends State<StudyScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('End Session?'),
-        content: const Text('Your progress will be saved.'),
+        title: Text(l10n.endSession),
+        content: Text(l10n.progressSaved),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Continue'),
+            child: Text(l10n.continueSession),
           ),
           ElevatedButton(
             onPressed: () {
@@ -355,7 +367,7 @@ class _StudyScreenState extends State<StudyScreen> {
               provider.reset();
               Navigator.pop(context);
             },
-            child: const Text('End Session'),
+            child: Text(l10n.endSession),
           ),
         ],
       ),

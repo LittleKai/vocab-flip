@@ -9,6 +9,7 @@ class Flashcard {
   final String back;
   final String? example;
   final String? notes;
+  final String? imageUrl; // URL or local file path for image
   final List<String> tags;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -28,6 +29,7 @@ class Flashcard {
     required this.back,
     this.example,
     this.notes,
+    this.imageUrl,
     List<String>? tags,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -40,6 +42,16 @@ class Flashcard {
         tags = tags ?? [],
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
+
+  /// Check if image is a URL (http/https)
+  bool get isImageUrl => imageUrl != null &&
+      (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'));
+
+  /// Check if image is a local file
+  bool get isLocalImage => imageUrl != null && !isImageUrl;
+
+  /// Check if this card has an image
+  bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
 
   /// Check if this card is due for review
   bool get isDue {
@@ -64,6 +76,8 @@ class Flashcard {
     String? back,
     String? example,
     String? notes,
+    String? imageUrl,
+    bool clearImage = false,
     List<String>? tags,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -81,6 +95,7 @@ class Flashcard {
       back: back ?? this.back,
       example: example ?? this.example,
       notes: notes ?? this.notes,
+      imageUrl: clearImage ? null : (imageUrl ?? this.imageUrl),
       tags: tags ?? this.tags,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
@@ -101,6 +116,7 @@ class Flashcard {
       'back': back,
       'example': example,
       'notes': notes,
+      'image_url': imageUrl,
       'tags': tags.join(','),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -121,6 +137,7 @@ class Flashcard {
       back: map['back'] as String,
       example: map['example'] as String?,
       notes: map['notes'] as String?,
+      imageUrl: map['image_url'] as String?,
       tags: (map['tags'] as String?)?.split(',').where((t) => t.isNotEmpty).toList() ?? [],
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
@@ -143,6 +160,7 @@ class Flashcard {
       'front_phonetic': frontPhonetic,
       'back': back,
       'examples': example != null ? [example] : [],
+      'image_url': imageUrl,
       'tags': tags,
       'created_at': createdAt.toIso8601String(),
       'review_data': {
@@ -166,6 +184,7 @@ class Flashcard {
       back: json['back'] as String,
       example: examples.isNotEmpty ? examples.first as String : null,
       notes: json['notes'] as String?,
+      imageUrl: json['image_url'] as String?,
       tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)

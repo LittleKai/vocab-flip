@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../../core/constants/app_constants.dart';
 
 class AppDatabase {
@@ -16,18 +19,37 @@ class AppDatabase {
   }
 
   Future<Database> _initDatabase() async {
+    debugPrint('AppDatabase: Initializing database...');
+
+    // Initialize FFI for desktop platforms
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      debugPrint('AppDatabase: Using sqflite_ffi for desktop platform');
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, AppConstants.databaseName);
+    debugPrint('AppDatabase: Database path: $path');
 
-    return await openDatabase(
-      path,
-      version: AppConstants.databaseVersion,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+    try {
+      final db = await openDatabase(
+        path,
+        version: AppConstants.databaseVersion,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+      );
+      debugPrint('AppDatabase: Database opened successfully, version: ${AppConstants.databaseVersion}');
+      return db;
+    } catch (e, stackTrace) {
+      debugPrint('AppDatabase: Error opening database: $e');
+      debugPrint('AppDatabase: Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    debugPrint('AppDatabase: Creating database tables (version: $version)...');
     // Create decks table
     await db.execute('''
       CREATE TABLE ${AppConstants.tableDecks} (
@@ -55,6 +77,7 @@ class AppDatabase {
         back TEXT NOT NULL,
         example TEXT,
         notes TEXT,
+        image_url TEXT,
         tags TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
@@ -146,8 +169,11 @@ class AppDatabase {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    debugPrint('AppDatabase: Upgrading database from v$oldVersion to v$newVersion');
+
     // Handle database migrations here
     if (oldVersion < 2) {
+      debugPrint('AppDatabase: Applying migration v1 -> v2');
       // Add public library fields to decks table
       await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN linked_public_deck_id TEXT');
       await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN linked_version INTEGER');
@@ -176,6 +202,12 @@ class AppDatabase {
       await db.execute('''
         CREATE INDEX idx_imported_links_public_deck ON ${AppConstants.tableImportedDeckLinks}(public_deck_id)
       ''');
+    }
+
+    if (oldVersion < 3) {
+      debugPrint('AppDatabase: Applying migration v2 -> v3 (adding image_url to flashcards)');
+      // Add image_url column to flashcards table
+      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN image_url TEXT');
     }
   }
 

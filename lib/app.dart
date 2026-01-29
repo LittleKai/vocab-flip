@@ -11,6 +11,7 @@ import 'presentation/providers/settings_provider.dart';
 import 'presentation/providers/public_library_provider.dart';
 import 'presentation/providers/publish_provider.dart';
 import 'presentation/providers/sync_provider.dart';
+import 'presentation/providers/auth_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/deck/deck_detail_screen.dart';
 import 'presentation/screens/study/study_screen.dart';
@@ -29,6 +30,7 @@ class VocabFlipApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DeckProvider()),
         ChangeNotifierProvider(create: (_) => FlashcardProvider()),
         ChangeNotifierProvider(

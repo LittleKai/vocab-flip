@@ -49,24 +49,35 @@ class DeckProvider extends ChangeNotifier {
 
   Future<void> createDeck(Deck deck) async {
     try {
+      debugPrint('DeckProvider: Creating deck: ${deck.name}');
       await _repository.createDeck(deck);
+      debugPrint('DeckProvider: Deck created successfully');
       await loadDecks();
-    } catch (e) {
+      debugPrint('DeckProvider: Decks reloaded, total: ${_decks.length}');
+    } catch (e, stackTrace) {
+      debugPrint('DeckProvider: Error creating deck: $e');
+      debugPrint('DeckProvider: Stack trace: $stackTrace');
       _error = e.toString();
       notifyListeners();
+      rethrow;
     }
   }
 
   Future<void> updateDeck(Deck deck) async {
     try {
+      debugPrint('DeckProvider: Updating deck: ${deck.name}');
       await _repository.updateDeck(deck);
+      debugPrint('DeckProvider: Deck updated successfully');
       await loadDecks();
       if (_selectedDeck?.id == deck.id) {
         _selectedDeck = deck;
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('DeckProvider: Error updating deck: $e');
+      debugPrint('DeckProvider: Stack trace: $stackTrace');
       _error = e.toString();
       notifyListeners();
+      rethrow;
     }
   }
 

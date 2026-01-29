@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/services/tts_service.dart';
 import '../../../core/constants/supported_languages.dart';
@@ -51,6 +52,8 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer2<FlashcardProvider, DeckProvider>(
       builder: (context, flashcardProvider, deckProvider, child) {
         final flashcards = flashcardProvider.flashcards;
@@ -58,8 +61,8 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
 
         if (flashcards.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: const Text('View Cards')),
-            body: const Center(child: Text('No flashcards')),
+            appBar: AppBar(title: Text(l10n.viewCards)),
+            body: Center(child: Text(l10n.noFlashcards)),
           );
         }
 
@@ -109,6 +112,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                         front: FlashcardFace(
                           text: card.front,
                           phonetic: card.frontPhonetic,
+                          imageUrl: card.imageUrl,
                           isFront: true,
                           onAudioPlay: () => _speakWord(
                             card.front,
@@ -118,6 +122,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                         back: FlashcardFace(
                           text: card.back,
                           subtitle: card.example,
+                          imageUrl: card.imageUrl,
                           isFront: false,
                           onAudioPlay: () => _speakWord(card.back, 'vi'),
                         ),
@@ -140,15 +145,16 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                     ),
                     IconButton(
                       onPressed: () {
-                        setState(() => _isFlipped = !_isFlipped);
+                        final card = flashcards[_currentIndex];
                         if (_isFlipped) {
-                          _flipController.flipToBack();
+                          _speakWord(card.back, 'vi');
                         } else {
-                          _flipController.flipToFront();
+                          _speakWord(card.front, deck?.sourceLanguage ?? 'en');
                         }
                       },
-                      icon: Icon(_isFlipped ? Icons.flip_to_front : Icons.flip_to_back),
+                      icon: const Icon(Icons.volume_up),
                       iconSize: 32,
+                      color: AppColors.primary,
                     ),
                     IconButton(
                       onPressed: _currentIndex < flashcards.length - 1

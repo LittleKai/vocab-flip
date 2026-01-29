@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/deck_navigation.dart';
 import '../../../data/models/deck.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import 'create_deck_screen.dart';
-import 'deck_detail_screen.dart';
 
 class DeckListScreen extends StatelessWidget {
   const DeckListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Decks'),
+        title: Text(l10n.myDecks),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -29,18 +32,18 @@ class DeckListScreen extends StatelessWidget {
       body: Consumer<DeckProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const LoadingWidget(message: 'Loading decks...');
+            return LoadingWidget(message: l10n.loadingDecks);
           }
 
           if (provider.decks.isEmpty) {
             return EmptyStateWidget(
-              title: 'No decks yet',
-              subtitle: 'Create your first deck to start learning!',
+              title: l10n.noDecksYet,
+              subtitle: l10n.createFirstDeck,
               icon: Icons.folder_open,
               action: ElevatedButton.icon(
                 onPressed: () => _navigateToCreateDeck(context),
                 icon: const Icon(Icons.add),
-                label: const Text('Create Deck'),
+                label: Text(l10n.createDeck),
               ),
             );
           }
@@ -58,6 +61,7 @@ class DeckListScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'deck_list_fab',
         onPressed: () => _navigateToCreateDeck(context),
         child: const Icon(Icons.add),
       ),
@@ -79,68 +83,20 @@ class _DeckCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final langColor = _getLanguageColor(deck.sourceLanguage);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onTap: () => _navigateToDeckDetail(context),
+        onTap: () => _navigateToBrowse(context),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: langColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      deck.sourceLanguage.toUpperCase(),
-                      style: TextStyle(
-                        color: langColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.vietnameseBadge.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'VI',
-                      style: TextStyle(
-                        color: AppColors.vietnameseBadge,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  PopupMenuButton<String>(
-                    onSelected: (value) => _handleMenuAction(context, value),
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(value: 'export', child: Text('Export')),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Delete', style: TextStyle(color: AppColors.error)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+              // First row: Deck name, language, linked icon, menu
               Row(
                 children: [
                   Expanded(
@@ -149,38 +105,96 @@ class _DeckCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  // Show linked/published indicators
+                  const SizedBox(width: 8),
+                  // Language badges
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: langColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      deck.sourceLanguage.toUpperCase(),
+                      style: TextStyle(
+                        color: langColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 2),
+                    child: Icon(Icons.arrow_forward, size: 12, color: Colors.grey),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.vietnameseBadge.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'VI',
+                      style: TextStyle(
+                        color: AppColors.vietnameseBadge,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                  // Linked/Published indicators
                   if (deck.isLinked)
                     Consumer<SyncProvider>(
                       builder: (context, syncProvider, _) {
                         final hasUpdate = syncProvider.hasUpdateForDeck(deck.id);
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.link, size: 16, color: AppColors.secondary),
-                            if (hasUpdate) ...[
-                              const SizedBox(width: 4),
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: AppColors.accent,
-                                  shape: BoxShape.circle,
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.link, size: 16, color: AppColors.secondary),
+                              if (hasUpdate) ...[
+                                const SizedBox(width: 2),
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accent,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
+                          ),
                         );
                       },
                     ),
                   if (deck.isPublished)
-                    Icon(Icons.public, size: 16, color: AppColors.success),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Icon(Icons.public, size: 16, color: AppColors.success),
+                    ),
+                  // Menu button
+                  PopupMenuButton<String>(
+                    onSelected: (value) => _handleMenuAction(context, value),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(value: 'info', child: Text(l10n.deckDetails)),
+                      PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+                      PopupMenuItem(value: 'export', child: Text(l10n.export)),
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
+                      ),
+                    ],
+                  ),
                 ],
               ),
               if (deck.description != null && deck.description!.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
                   deck.description!,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -190,25 +204,25 @@ class _DeckCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   _StatChip(
                     icon: Icons.style,
-                    label: '${deck.cardCount} cards',
+                    label: l10n.nCards(deck.cardCount),
                   ),
                   const SizedBox(width: 12),
                   if (deck.newCount > 0)
                     _StatChip(
                       icon: Icons.fiber_new,
-                      label: '${deck.newCount} new',
+                      label: l10n.nNew(deck.newCount),
                       color: AppColors.info,
                     ),
                   if (deck.reviewCount > 0) ...[
                     const SizedBox(width: 12),
                     _StatChip(
                       icon: Icons.replay,
-                      label: '${deck.reviewCount} review',
+                      label: l10n.nReview(deck.reviewCount),
                       color: AppColors.warning,
                     ),
                   ],
@@ -216,7 +230,7 @@ class _DeckCard extends StatelessWidget {
                   if (deck.dueCount > 0)
                     ElevatedButton(
                       onPressed: () => _navigateToStudy(context),
-                      child: const Text('Study'),
+                      child: Text(l10n.study),
                     ),
                 ],
               ),
@@ -240,21 +254,23 @@ class _DeckCard extends StatelessWidget {
     }
   }
 
+  void _navigateToBrowse(BuildContext context) {
+    DeckNavigation.navigateToBrowse(context, deck.id);
+  }
+
   void _navigateToDeckDetail(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DeckDetailScreen(deckId: deck.id),
-      ),
-    );
+    DeckNavigation.navigateToDeckDetail(context, deck.id);
   }
 
   void _navigateToStudy(BuildContext context) {
-    Navigator.pushNamed(context, '/study', arguments: deck.id);
+    DeckNavigation.navigateToStudy(context, deck.id);
   }
 
   void _handleMenuAction(BuildContext context, String action) {
     switch (action) {
+      case 'info':
+        _navigateToDeckDetail(context);
+        break;
       case 'edit':
         Navigator.push(
           context,
@@ -273,15 +289,17 @@ class _DeckCard extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Deck'),
-        content: Text('Are you sure you want to delete "${deck.name}"? This action cannot be undone.'),
+        title: Text(l10n.deleteDeck),
+        content: Text(l10n.deleteConfirmMessage(deck.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -289,7 +307,7 @@ class _DeckCard extends StatelessWidget {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),

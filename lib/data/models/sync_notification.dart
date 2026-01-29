@@ -76,6 +76,22 @@ class SyncNotification {
     );
   }
 
+  factory SyncNotification.fromMap(Map<String, dynamic> data) {
+    return SyncNotification(
+      id: data['id'] as String,
+      userId: data['user_id'] as String,
+      publicDeckId: data['public_deck_id'] as String,
+      deckName: data['deck_name'] as String,
+      oldVersion: data['old_version'] as int,
+      newVersion: data['new_version'] as int,
+      changeDescription: data['change_description'] as String?,
+      isRead: data['is_read'] as bool? ?? false,
+      createdAt: data['created_at'] is DateTime
+          ? data['created_at'] as DateTime
+          : DateTime.now(),
+    );
+  }
+
   @override
   String toString() =>
       'SyncNotification(id: $id, deckName: $deckName, v$oldVersion -> v$newVersion)';

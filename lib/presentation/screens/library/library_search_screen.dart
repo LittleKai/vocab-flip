@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/public_library_provider.dart';
 import '../../widgets/library/public_deck_card.dart';
@@ -34,6 +35,8 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
@@ -41,7 +44,7 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
           controller: _searchController,
           focusNode: _focusNode,
           decoration: InputDecoration(
-            hintText: 'Search decks...',
+            hintText: l10n.searchDecks,
             border: InputBorder.none,
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
@@ -68,7 +71,7 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
                   .read<PublicLibraryProvider>()
                   .search(_searchController.text);
             },
-            child: const Text('Search'),
+            child: Text(l10n.search),
           ),
         ],
       ),
@@ -93,6 +96,7 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
   }
 
   Widget _buildSearchSuggestions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final suggestions = [
       'TOEIC vocabulary',
       'IELTS speaking',
@@ -107,7 +111,7 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Popular Searches',
+            l10n.popularSearches,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -128,7 +132,7 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
           ),
           const SizedBox(height: 32),
           Text(
-            'Browse by Category',
+            l10n.browseByCategory,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -161,6 +165,8 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
   }
 
   Widget _buildNoResults(BuildContext context, String query) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -172,12 +178,12 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No results for "$query"',
+            l10n.noResultsFor(query),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Try different keywords or browse categories',
+            l10n.tryDifferentKeywords,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
@@ -188,13 +194,15 @@ class _LibrarySearchScreenState extends State<LibrarySearchScreen> {
   }
 
   Widget _buildSearchResults(BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            '${provider.decks.length} results for "${provider.searchQuery}"',
+            l10n.resultsFor(provider.decks.length, provider.searchQuery),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),

@@ -68,5 +68,431 @@
   "today": "Today",
   "thisWeek": "This Week",
   "thisMonth": "This Month",
-  "allTime": "All Time"
+  "allTime": "All Time",
+
+  "library": "Library",
+  "dictionary": "Dictionary",
+  "stats": "Stats",
+  "featured": "Featured",
+  "topRated": "Top Rated",
+  "newDecks": "New",
+  "browse": "Browse",
+
+  "goodMorning": "Good morning!",
+  "goodAfternoon": "Good afternoon!",
+  "goodEvening": "Good evening!",
+  "readyToLearn": "Ready to learn some new words?",
+  "allCaughtUp": "All caught up!",
+  "noCardsToReviewToday": "No cards to review today",
+
+  "due": "Due",
+  "dueToday": "Due Today",
+  "recentDecks": "Recent Decks",
+  "dayStreak": "{count} day streak",
+  "@dayStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardsDue": "{count} cards due",
+  "@cardsDue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cards": "Cards",
+
+  "myDecks": "My Decks",
+  "noDecksYet": "No decks yet",
+  "createFirstDeck": "Create your first deck to start learning!",
+  "edit": "Edit",
+  "export": "Export",
+  "importCards": "Import Cards",
+  "publishToLibrary": "Publish to Library",
+  "unlinkFromLibrary": "Unlink from Library",
+  "managePublished": "Manage Published",
+  "loadingDecks": "Loading decks...",
+
+  "total": "Total",
+  "newCards": "New",
+  "learning": "Learning",
+  "reviewCards": "Review",
+  "published": "Published",
+  "nCards": "{count} cards",
+  "@nCards": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nNew": "{count} new",
+  "@nNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nReview": "{count} review",
+  "@nReview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "skip": "Skip",
+  "tryAgain": "Try Again",
+  "anError": "An error occurred",
+  "cardsStudied": "Cards Studied",
+  "time": "Time",
+  "done": "Done",
+  "studyAgain": "Study Again",
+  "endSession": "End Session",
+  "continueSession": "Continue",
+  "progressSaved": "Your progress will be saved.",
+  "studyN": "Study ({count})",
+  "@studyN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "wordFront": "Word / Front",
+  "enterWord": "Enter the word to learn",
+  "lookUp": "Look up",
+  "phoneticReading": "Phonetic / Reading (optional)",
+  "phoneticHint": "IPA, Pinyin, Hiragana, etc.",
+  "meaningBack": "Meaning / Back",
+  "enterMeaning": "Enter the meaning in Vietnamese",
+  "exampleSentence": "Example sentence (optional)",
+  "addExample": "Add an example sentence",
+  "notesOptional": "Notes (optional)",
+  "addNotes": "Add any notes or hints",
+  "tagsOptional": "Tags (optional)",
+  "tagsHint": "verb, N5, food (comma-separated)",
+  "update": "Update",
+  "addFlashcard": "Add Flashcard",
+  "addAndCreateAnother": "Add & Create Another",
+  "autoFilled": "Auto-filled from dictionary",
+  "wordNotFound": "Word not found",
+  "pleaseEnterWord": "Please enter a word",
+  "pleaseEnterMeaning": "Please enter the meaning",
+  "pleaseEnterWordFirst": "Please enter a word first",
+  "flashcardAdded": "Flashcard added!",
+  "autoFillFromDictionary": "Auto-fill from dictionary",
+
+  "viewCards": "View Cards",
+  "noFlashcards": "No flashcards",
+
+  "sourceLanguageLabel": "Source Language:",
+  "searchForWord": "Search for a word...",
+  "lookingUp": "Looking up...",
+  "enterWordToLookUp": "Enter a word to look up",
+  "addToDeck": "Add to Deck",
+  "synonyms": "Synonyms",
+
+  "appearance": "Appearance",
+  "useDarkTheme": "Use dark theme",
+  "studySettings": "Study",
+  "newCardsPerDay": "New cards per day",
+  "reviewCardsPerDay": "Review cards per day",
+  "showPhonetic": "Show phonetic",
+  "displayPronunciation": "Display pronunciation on cards",
+  "autoPlayAudio": "Auto-play audio",
+  "automaticallyPlayPronunciation": "Automatically play pronunciation",
+  "backupSync": "Backup & Sync",
+  "backupToCloud": "Backup to Cloud",
+  "saveDataToCloud": "Save your data to the cloud",
+  "restoreFromCloud": "Restore from Cloud",
+  "restoreDataFromCloud": "Restore your data from the cloud",
+  "firebaseNotConfigured": "Firebase not configured",
+  "autoSync": "Auto-sync",
+  "autoSyncWhenOnline": "Automatically sync when online",
+  "importExport": "Import & Export",
+  "importFromJson": "Import from JSON file",
+  "exportAllDecks": "Export All Decks",
+  "exportToJson": "Export to JSON file",
+  "about": "About",
+  "version": "Version",
+  "sendFeedback": "Send Feedback",
+  "rateApp": "Rate App",
+  "dangerZone": "Danger Zone",
+  "resetAllData": "Reset All Data",
+  "deleteAllData": "Delete all decks and cards",
+  "resetConfirmTitle": "Reset All Data?",
+  "resetConfirmMessage": "This will permanently delete all your decks, flashcards, and study progress. This action cannot be undone.",
+  "reset": "Reset",
+  "dataReset": "All data has been reset",
+  "selectLanguage": "Select Language",
+  "numberOfCards": "Number of cards",
+
+  "overview": "Overview",
+  "days": "days",
+  "created": "created",
+  "weeklyActivity": "Weekly Activity",
+  "deckProgress": "Deck Progress",
+  "cardsLearnedCount": "{learned} / {total} cards learned",
+  "@cardsLearnedCount": {
+    "placeholders": {
+      "learned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dueCount": "{count} due",
+  "@dueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mon": "Mon",
+  "tue": "Tue",
+  "wed": "Wed",
+  "thu": "Thu",
+  "fri": "Fri",
+  "sat": "Sat",
+  "sun": "Sun",
+
+  "filter": "Filter",
+  "all": "All",
+  "noFeaturedDecks": "No featured decks yet",
+  "noRatedDecks": "No rated decks yet",
+  "noDecksYetSimple": "No decks yet",
+  "noDecksFound": "No decks found",
+  "unableToConnect": "Unable to connect to library",
+  "retry": "Retry",
+  "searchDecks": "Search decks...",
+  "popularSearches": "Popular Searches",
+  "browseByCategory": "Browse by Category",
+  "noResultsFor": "No results for \"{query}\"",
+  "@noResultsFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "tryDifferentKeywords": "Try different keywords or browse categories",
+  "decksCount": "{count} decks",
+  "@decksCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resultsFor": "{count} results for \"{query}\"",
+  "@resultsFor": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+
+  "deckDetails": "Deck Details",
+  "ratingsReviews": "Ratings & Reviews",
+  "previewCards": "Preview Cards",
+  "editReview": "Edit Review",
+  "rate": "Rate",
+  "yourRating": "Your rating: ",
+  "anonymous": "Anonymous",
+  "noCardsPreview": "No cards to preview",
+  "alreadyImported": "Already Imported",
+  "failedToLoad": "Failed to load deck",
+  "shareComingSoon": "Share feature coming soon",
+  "successfullyImported": "Successfully imported \"{name}\"",
+  "@successfullyImported": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "view": "View",
+  "failedToImport": "Failed to import: {error}",
+  "@failedToImport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadsCount": "{count} downloads",
+  "@downloadsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewsCount": "{count} reviews",
+  "@reviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cardsCount": "{count} cards",
+  "@cardsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "publishDeck": "Publish Deck",
+  "deckNotFound": "Deck not found",
+  "category": "Category",
+  "selectCategory": "Select a category",
+  "pleaseSelectCategory": "Please select a category",
+  "addTagsHelp": "Add tags to help users find your deck",
+  "publishingGuidelines": "Publishing Guidelines",
+  "qualityContent": "Make sure your deck has quality content",
+  "appropriateCategories": "Use appropriate categories and tags",
+  "avoidCopyrighted": "Avoid copyrighted material",
+  "canUpdateAnytime": "You can update or unpublish anytime",
+  "deckPublished": "Deck published successfully!",
+
+  "myPublishedDecks": "My Published Decks",
+  "active": "Active",
+  "inactive": "Inactive",
+  "noPublishedDecks": "No Published Decks",
+  "shareWithCommunity": "Share your decks with the community",
+  "pushUpdate": "Push Update",
+  "syncChanges": "Sync changes from local deck",
+  "unpublish": "Unpublish",
+  "removeFromLibrary": "Remove from public library",
+  "viewAnalytics": "View Analytics",
+  "analyticsComingSoon": "Analytics coming soon",
+  "updatingDeck": "Updating published deck...",
+  "unpublishConfirm": "Unpublish Deck?",
+  "unpublishDescription": "This will remove the deck from the public library. Users who already imported it will still have their copies.",
+  "deckUnpublished": "Deck unpublished",
+
+  "updates": "Updates",
+  "markAllRead": "Mark all read",
+  "availableUpdates": "Available Updates",
+  "decksHaveUpdates": "{count} decks have updates",
+  "@decksHaveUpdates": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncAll": "Sync All",
+  "sync": "Sync",
+  "history": "History",
+  "updatedToVersion": "Updated to v{version}",
+  "@updatedToVersion": {
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "checkForUpdates": "Check for Updates",
+  "noUpdatesAvailable": "No updates available",
+
+  "loading": "Loading...",
+  "error": "Error",
+  "success": "Success",
+  "confirm": "Confirm",
+  "deleteConfirmTitle": "Delete {name}",
+  "@deleteConfirmTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteConfirmMessage": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deleteConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "actionCannotBeUndone": "This action cannot be undone.",
+
+  "unlinkDeck": "Unlink Deck",
+  "unlinkDeckMessage": "This will remove the connection to the original deck. You will no longer receive updates from the author.",
+  "unlink": "Unlink",
+  "deckUnlinked": "Deck unlinked",
+
+  "noFlashcardsYet": "No flashcards yet",
+  "addFlashcardsToStart": "Add flashcards to start learning!",
+
+  "descriptionOptional": "Description (optional)",
+  "describeWhatDeckAbout": "Describe what this deck is about",
+  "pleaseEnterDeckName": "Please enter a deck name",
+  "deckNameHint": "e.g., Japanese N5 Vocabulary",
+  "languageOfWordsToLearn": "The language of the words you want to learn",
+  "updateDeck": "Update Deck",
+
+  "image": "Image",
+  "imageOptional": "Image (optional)",
+  "localFile": "Local File",
+  "imageUrl": "Image URL",
+  "enterImageUrl": "Enter image URL",
+  "invalidImageUrl": "Invalid image URL",
+  "tapToAddImage": "Tap to add image",
+  "changeImage": "Change image",
+  "removeImage": "Remove image",
+
+  "flashcardImageSize": "Flashcard Image Size",
+  "recommendedForMobile": "Recommended for mobile",
+  "recommendedForDesktop": "Recommended for desktop",
+  "balanced": "Balanced",
+
+  "account": "Account",
+  "signInWithEmail": "Sign in with Email",
+  "createAccount": "Create Account",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "forgotPassword": "Forgot Password?",
+  "alreadyHaveAccount": "Already have an account?",
+  "dontHaveAccount": "Don't have an account?",
+  "signUp": "Sign Up",
+  "signInGoogle": "Sign in with Google",
+  "orContinueWith": "or continue with",
+  "pleaseEnterEmail": "Please enter your email",
+  "pleaseEnterValidEmail": "Please enter a valid email",
+  "pleaseEnterPassword": "Please enter your password",
+  "passwordMinLength": "Password must be at least 6 characters",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "signInFailed": "Sign in failed",
+  "signUpFailed": "Sign up failed",
+  "resetPasswordSent": "Password reset email sent",
+  "signedInAs": "Signed in as {email}",
+  "@signedInAs": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "signOutConfirm": "Are you sure you want to sign out?"
 }

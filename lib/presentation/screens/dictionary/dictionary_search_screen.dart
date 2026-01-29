@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/dictionary_result.dart';
@@ -26,9 +27,11 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dictionary'),
+        title: Text(l10n.dictionary),
       ),
       body: Consumer<DictionaryProvider>(
         builder: (context, provider, child) {
@@ -42,7 +45,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                     // Language selector
                     Row(
                       children: [
-                        const Text('Source Language:'),
+                        Text(l10n.sourceLanguageLabel),
                         const SizedBox(width: 12),
                         DropdownButton<SupportedLanguage>(
                           value: provider.selectedLanguage,
@@ -71,7 +74,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                       controller: _searchController,
                       focusNode: _focusNode,
                       decoration: InputDecoration(
-                        hintText: 'Search for a word...',
+                        hintText: l10n.searchForWord,
                         prefixIcon: const Icon(Icons.search),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
@@ -104,7 +107,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.search),
-                    label: const Text('Look Up'),
+                    label: Text(l10n.lookUp),
                   ),
                 ),
               ),
@@ -130,8 +133,10 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
   }
 
   Widget _buildResults(BuildContext context, DictionaryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (provider.isLoading) {
-      return const LoadingWidget(message: 'Looking up...');
+      return LoadingWidget(message: l10n.lookingUp);
     }
 
     if (provider.error != null) {
@@ -169,9 +174,9 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
               color: AppColors.primary.withOpacity(0.1),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Enter a word to look up',
-              style: TextStyle(color: AppColors.textSecondaryLight),
+            Text(
+              l10n.enterWordToLookUp,
+              style: const TextStyle(color: AppColors.textSecondaryLight),
             ),
           ],
         ),
@@ -189,6 +194,8 @@ class _DictionaryResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -234,7 +241,7 @@ class _DictionaryResultView extends StatelessWidget {
                           // TODO: Add to deck
                         },
                         icon: const Icon(Icons.add),
-                        label: const Text('Add to Deck'),
+                        label: Text(l10n.addToDeck),
                       ),
                     ],
                   ),
@@ -259,6 +266,8 @@ class _MeaningCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -328,7 +337,7 @@ class _MeaningCard extends StatelessWidget {
               const Divider(),
               const SizedBox(height: 8),
               Text(
-                'Synonyms',
+                l10n.synonyms,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: AppColors.textSecondaryLight,
                     ),

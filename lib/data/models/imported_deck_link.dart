@@ -90,17 +90,31 @@ class ImportedDeckLink {
   }
 
   factory ImportedDeckLink.fromMap(Map<String, dynamic> map) {
+    DateTime parseDate(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.parse(value);
+      return DateTime.now();
+    }
+
+    DateTime? parseDateNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.parse(value);
+      return null;
+    }
+
     return ImportedDeckLink(
       id: map['id'] as String,
       publicDeckId: map['public_deck_id'] as String,
       localDeckId: map['local_deck_id'] as String,
       userId: map['user_id'] as String,
       importedVersion: map['imported_version'] as int,
-      importedAt: DateTime.parse(map['imported_at'] as String),
-      lastSyncedAt: map['last_synced_at'] != null
-          ? DateTime.parse(map['last_synced_at'] as String)
-          : null,
-      autoSync: (map['auto_sync'] as int?) == 1,
+      importedAt: parseDate(map['imported_at']),
+      lastSyncedAt: parseDateNullable(map['last_synced_at']),
+      autoSync: map['auto_sync'] is int
+          ? (map['auto_sync'] as int) == 1
+          : map['auto_sync'] as bool? ?? true,
     );
   }
 

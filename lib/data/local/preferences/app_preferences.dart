@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferences {
@@ -13,6 +15,16 @@ class AppPreferences {
   static const String _keyLastStudyDate = 'last_study_date';
   static const String _keyTotalStudyTime = 'total_study_time';
   static const String _keyUserId = 'user_id';
+  static const String _keyFlashcardImageMaxWidth = 'flashcard_image_max_width';
+
+  /// Default image max width based on platform
+  static int get defaultFlashcardImageMaxWidth {
+    if (kIsWeb) return 800;
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      return 1000; // Desktop
+    }
+    return 600; // Mobile
+  }
 
   late SharedPreferences _prefs;
 
@@ -77,6 +89,12 @@ class AppPreferences {
     }
     return _prefs.setString(_keyUserId, value);
   }
+
+  // Flashcard image max width
+  int get flashcardImageMaxWidth =>
+      _prefs.getInt(_keyFlashcardImageMaxWidth) ?? defaultFlashcardImageMaxWidth;
+  Future<bool> setFlashcardImageMaxWidth(int value) =>
+      _prefs.setInt(_keyFlashcardImageMaxWidth, value);
 
   // Update streak
   Future<void> updateStreak() async {

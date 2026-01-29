@@ -4,7 +4,11 @@
       "Bash(flutter analyze:*)",
       "Bash(flutter clean:*)",
       "Bash(flutter pub get:*)",
-      "Bash(flutter run:*)"
+      "Bash(flutter run:*)",
+      "Bash(tree:*)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(powershell -Command \"Get-ChildItem -Recurse -Filter ''*.dart'' lib/presentation/screens | ForEach-Object { \\(Get-Content $_FullName\\) -replace \"\"import ''package:flutter_gen/gen_l10n/app_localizations.dart''\"\", \"\"import ''package:vocabflip/l10n/app_localizations.dart''\"\" | Set-Content $_FullName }\")",
+      "Bash(dir:*)"
     ]
   },
   "capabilities": {

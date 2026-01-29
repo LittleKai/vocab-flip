@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/publish_provider.dart';
 import '../../widgets/library/rating_widget.dart';
@@ -23,9 +24,11 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Published Decks'),
+        title: Text(l10n.myPublishedDecks),
       ),
       body: Consumer<PublishProvider>(
         builder: (context, provider, _) {
@@ -79,7 +82,7 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    deck.isActive ? 'Active' : 'Inactive',
+                                    deck.isActive ? l10n.active : l10n.inactive,
                                     style: TextStyle(
                                       color: deck.isActive
                                           ? AppColors.success
@@ -127,7 +130,7 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${deck.downloadCount} downloads',
+                                  l10n.downloadsCount(deck.downloadCount),
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
@@ -165,6 +168,8 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -176,12 +181,12 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No Published Decks',
+            l10n.noPublishedDecks,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Share your decks with the community',
+            l10n.shareWithCommunity,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
@@ -192,6 +197,8 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
   }
 
   void _showDeckOptions(BuildContext context, String publicDeckId) {
+    final l10n = AppLocalizations.of(context)!;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -213,8 +220,8 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.sync),
-                title: const Text('Push Update'),
-                subtitle: const Text('Sync changes from local deck'),
+                title: Text(l10n.pushUpdate),
+                subtitle: Text(l10n.syncChanges),
                 onTap: () {
                   Navigator.pop(context);
                   _pushUpdate(context, publicDeckId);
@@ -222,8 +229,8 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.visibility_off),
-                title: const Text('Unpublish'),
-                subtitle: const Text('Remove from public library'),
+                title: Text(l10n.unpublish),
+                subtitle: Text(l10n.removeFromLibrary),
                 onTap: () {
                   Navigator.pop(context);
                   _confirmUnpublish(context, publicDeckId);
@@ -231,12 +238,12 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.analytics),
-                title: const Text('View Analytics'),
-                subtitle: const Text('See download and rating stats'),
+                title: Text(l10n.viewAnalytics),
+                subtitle: Text(l10n.analyticsComingSoon),
                 onTap: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Analytics coming soon')),
+                    SnackBar(content: Text(l10n.analyticsComingSoon)),
                   );
                 },
               ),
@@ -249,36 +256,36 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
   }
 
   void _pushUpdate(BuildContext context, String publicDeckId) {
+    final l10n = AppLocalizations.of(context)!;
     // TODO: Implement push update
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Updating published deck...')),
+      SnackBar(content: Text(l10n.updatingDeck)),
     );
   }
 
   void _confirmUnpublish(BuildContext context, String publicDeckId) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unpublish Deck?'),
-        content: const Text(
-          'This will remove the deck from the public library. '
-          'Users who already imported it will still have their copies.',
-        ),
+        title: Text(l10n.unpublishConfirm),
+        content: Text(l10n.unpublishDescription),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               // TODO: Implement unpublish with local deck ID
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Deck unpublished')),
+                SnackBar(content: Text(l10n.deckUnpublished)),
               );
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Unpublish'),
+            child: Text(l10n.unpublish),
           ),
         ],
       ),

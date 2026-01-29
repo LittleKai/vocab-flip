@@ -6,7 +6,7 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'vocabflip.db';
-  static const int databaseVersion = 2;
+  static const int databaseVersion = 3;
 
   // Tables
   static const String tableDecks = 'decks';

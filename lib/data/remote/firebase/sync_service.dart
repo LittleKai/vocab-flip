@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../models/imported_deck_link.dart';
@@ -7,12 +8,20 @@ import '../../models/public_deck.dart';
 import '../../models/public_flashcard.dart';
 import '../../local/database/app_database.dart';
 import 'firebase_service.dart';
+import 'firestore_rest_client.dart';
 
 /// Service for managing deck imports and sync
 class SyncService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseService _authService = FirebaseService();
+  final FirestoreRestClient _restClient = FirestoreRestClient();
   final AppDatabase _localDb = AppDatabase();
+
+  /// Check if we should use REST API (Windows)
+  bool get _useRest => FirestoreRestClient.shouldUseRest;
+
+  String _userImportedDecksPath(String userId) =>
+      'users/$userId/${AppConstants.collectionImportedDecks}';
 
   CollectionReference<Map<String, dynamic>> get _publicDecksRef =>
       _firestore.collection(AppConstants.collectionPublicDecks);
@@ -43,7 +52,15 @@ class SyncService {
     );
 
     // Save to Firestore (for cross-device sync)
-    await _userImportedDecksRef(userId).doc(link.id).set(link.toFirestore());
+    if (_useRest) {
+      await _restClient.setDocument(
+        _userImportedDecksPath(userId),
+        link.id,
+        link.toMap(),
+      );
+    } else {
+      await _userImportedDecksRef(userId).doc(link.id).set(link.toFirestore());
+    }
 
     // Save to local SQLite
     final db = await _localDb.database;
@@ -87,6 +104,18 @@ class SyncService {
 
   /// Check if a public deck version has been updated
   Future<bool> hasUpdate(String publicDeckId, int currentVersion) async {
+    if (_useRest) {
+      try {
+        final doc = await _restClient.getDocument(AppConstants.collectionPublicDecks, publicDeckId);
+        if (doc == null) return false;
+        final deck = PublicDeck.fromMap(doc);
+        return deck.version > currentVersion;
+      } catch (e) {
+        debugPrint('hasUpdate REST error: $e');
+        return false;
+      }
+    }
+
     final doc = await _publicDecksRef.doc(publicDeckId).get();
     if (!doc.exists) return false;
 
@@ -100,10 +129,23 @@ class SyncService {
     final updates = <({ImportedDeckLink link, PublicDeck deck})>[];
 
     for (final link in links) {
-      final doc = await _publicDecksRef.doc(link.publicDeckId).get();
-      if (!doc.exists) continue;
+      PublicDeck? deck;
 
-      final deck = PublicDeck.fromFirestore(doc);
+      if (_useRest) {
+        try {
+          final doc = await _restClient.getDocument(AppConstants.collectionPublicDecks, link.publicDeckId);
+          if (doc == null) continue;
+          deck = PublicDeck.fromMap(doc);
+        } catch (e) {
+          debugPrint('checkAllUpdates REST error: $e');
+          continue;
+        }
+      } else {
+        final doc = await _publicDecksRef.doc(link.publicDeckId).get();
+        if (!doc.exists) continue;
+        deck = PublicDeck.fromFirestore(doc);
+      }
+
       if (deck.version > link.importedVersion) {
         updates.add((link: link, deck: deck));
       }
@@ -114,6 +156,20 @@ class SyncService {
 
   /// Get flashcards from public deck for sync
   Future<List<PublicFlashcard>> getPublicFlashcards(String publicDeckId) async {
+    if (_useRest) {
+      try {
+        final collectionPath = '${AppConstants.collectionPublicDecks}/$publicDeckId/${AppConstants.collectionPublicFlashcards}';
+        final docs = await _restClient.getCollection(
+          collectionPath,
+          orderBy: [OrderBy('order')],
+        );
+        return docs.map((doc) => PublicFlashcard.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('getPublicFlashcards REST error: $e');
+        return [];
+      }
+    }
+
     final snapshot = await _publicDecksRef
         .doc(publicDeckId)
         .collection(AppConstants.collectionPublicFlashcards)
@@ -145,10 +201,21 @@ class SyncService {
 
     // Update Firestore if signed in
     if (userId != null) {
-      await _userImportedDecksRef(userId).doc(linkId).update({
-        'imported_version': newVersion,
-        'last_synced_at': Timestamp.fromDate(now),
-      });
+      if (_useRest) {
+        await _restClient.updateDocument(
+          _userImportedDecksPath(userId),
+          linkId,
+          {
+            'imported_version': newVersion,
+            'last_synced_at': now,
+          },
+        );
+      } else {
+        await _userImportedDecksRef(userId).doc(linkId).update({
+          'imported_version': newVersion,
+          'last_synced_at': Timestamp.fromDate(now),
+        });
+      }
     }
   }
 
@@ -166,7 +233,11 @@ class SyncService {
 
     // Delete from Firestore if signed in
     if (userId != null) {
-      await _userImportedDecksRef(userId).doc(linkId).delete();
+      if (_useRest) {
+        await _restClient.deleteDocument(_userImportedDecksPath(userId), linkId);
+      } else {
+        await _userImportedDecksRef(userId).doc(linkId).delete();
+      }
     }
   }
 
@@ -185,9 +256,17 @@ class SyncService {
 
     // Update Firestore if signed in
     if (userId != null) {
-      await _userImportedDecksRef(userId).doc(linkId).update({
-        'auto_sync': enabled,
-      });
+      if (_useRest) {
+        await _restClient.updateDocument(
+          _userImportedDecksPath(userId),
+          linkId,
+          {'auto_sync': enabled},
+        );
+      } else {
+        await _userImportedDecksRef(userId).doc(linkId).update({
+          'auto_sync': enabled,
+        });
+      }
     }
   }
 
@@ -197,6 +276,23 @@ class SyncService {
   Future<List<SyncNotification>> getUnreadNotifications() async {
     final userId = _authService.userId;
     if (userId == null) return [];
+
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionSyncNotifications,
+          where: [
+            QueryFilter.isEqualTo('user_id', userId),
+            QueryFilter.isEqualTo('is_read', false),
+          ],
+          orderBy: [OrderBy('created_at', descending: true)],
+        );
+        return docs.map((doc) => SyncNotification.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('getUnreadNotifications REST error: $e');
+        return [];
+      }
+    }
 
     final snapshot = await _syncNotificationsRef
         .where('user_id', isEqualTo: userId)
@@ -212,6 +308,21 @@ class SyncService {
     final userId = _authService.userId;
     if (userId == null) return [];
 
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionSyncNotifications,
+          where: [QueryFilter.isEqualTo('user_id', userId)],
+          orderBy: [OrderBy('created_at', descending: true)],
+          limit: limit,
+        );
+        return docs.map((doc) => SyncNotification.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('getAllNotifications REST error: $e');
+        return [];
+      }
+    }
+
     final snapshot = await _syncNotificationsRef
         .where('user_id', isEqualTo: userId)
         .orderBy('created_at', descending: true)
@@ -223,6 +334,15 @@ class SyncService {
 
   /// Mark notification as read
   Future<void> markNotificationRead(String notificationId) async {
+    if (_useRest) {
+      await _restClient.updateDocument(
+        AppConstants.collectionSyncNotifications,
+        notificationId,
+        {'is_read': true},
+      );
+      return;
+    }
+
     await _syncNotificationsRef.doc(notificationId).update({
       'is_read': true,
     });
@@ -232,6 +352,29 @@ class SyncService {
   Future<void> markAllNotificationsRead() async {
     final userId = _authService.userId;
     if (userId == null) return;
+
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionSyncNotifications,
+          where: [
+            QueryFilter.isEqualTo('user_id', userId),
+            QueryFilter.isEqualTo('is_read', false),
+          ],
+        );
+        for (final doc in docs) {
+          await _restClient.updateDocument(
+            AppConstants.collectionSyncNotifications,
+            doc['id'],
+            {'is_read': true},
+          );
+        }
+        return;
+      } catch (e) {
+        debugPrint('markAllNotificationsRead REST error: $e');
+        return;
+      }
+    }
 
     final snapshot = await _syncNotificationsRef
         .where('user_id', isEqualTo: userId)
@@ -251,6 +394,30 @@ class SyncService {
     if (userId == null) return;
 
     final cutoffDate = DateTime.now().subtract(Duration(days: daysOld));
+
+    if (_useRest) {
+      try {
+        // REST API doesn't support lessThan easily, get all and filter
+        final docs = await _restClient.getCollection(
+          AppConstants.collectionSyncNotifications,
+          where: [QueryFilter.isEqualTo('user_id', userId)],
+        );
+        for (final doc in docs) {
+          final createdAt = doc['created_at'] as DateTime?;
+          if (createdAt != null && createdAt.isBefore(cutoffDate)) {
+            await _restClient.deleteDocument(
+              AppConstants.collectionSyncNotifications,
+              doc['id'],
+            );
+          }
+        }
+        return;
+      } catch (e) {
+        debugPrint('deleteOldNotifications REST error: $e');
+        return;
+      }
+    }
+
     final snapshot = await _syncNotificationsRef
         .where('user_id', isEqualTo: userId)
         .where('created_at', isLessThan: Timestamp.fromDate(cutoffDate))
@@ -268,10 +435,22 @@ class SyncService {
     final userId = _authService.userId;
     if (userId == null) return;
 
-    final snapshot = await _userImportedDecksRef(userId).get();
-    final cloudLinks = snapshot.docs
-        .map((doc) => ImportedDeckLink.fromFirestore(doc))
-        .toList();
+    List<ImportedDeckLink> cloudLinks;
+
+    if (_useRest) {
+      try {
+        final docs = await _restClient.getCollection(_userImportedDecksPath(userId));
+        cloudLinks = docs.map((doc) => ImportedDeckLink.fromMap(doc)).toList();
+      } catch (e) {
+        debugPrint('syncImportLinksFromCloud REST error: $e');
+        return;
+      }
+    } else {
+      final snapshot = await _userImportedDecksRef(userId).get();
+      cloudLinks = snapshot.docs
+          .map((doc) => ImportedDeckLink.fromFirestore(doc))
+          .toList();
+    }
 
     final db = await _localDb.database;
 

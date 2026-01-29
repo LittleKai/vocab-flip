@@ -1,6 +1,6 @@
 # Project Summary
-**Last Updated:** 2026-01-28
-**Updated By:** Claude Code - Windows REST API & Localization
+**Last Updated:** 2026-01-29
+**Updated By:** Claude Code - Auth System, Image Settings, Navigation Improvements
 
 ---
 
@@ -31,7 +31,8 @@ lib/
 │   │   ├── app_colors.dart      # Color palette (primary, status, badges)
 │   │   └── app_theme.dart       # Material 3 light/dark themes
 │   ├── utils/
-│   │   └── spaced_repetition.dart # SM-2 algorithm implementation
+│   │   ├── spaced_repetition.dart # SM-2 algorithm implementation
+│   │   └── deck_navigation.dart   # Reusable deck navigation helper
 │   └── extensions/
 │       └── string_extensions.dart # String utilities
 │
@@ -73,29 +74,34 @@ lib/
 │   │   └── public_library_repository.dart # Public library operations
 │   └── services/
 │       ├── tts_service.dart     # Text-to-speech wrapper
-│       └── import_export_service.dart # JSON handling
+│       ├── import_export_service.dart # JSON handling
+│       └── image_service.dart   # Image picking & local storage
 │
 ├── presentation/
 │   ├── providers/               # ChangeNotifier state management
+│   │   ├── auth_provider.dart   # Authentication state (Firebase Auth)
 │   │   ├── deck_provider.dart
 │   │   ├── flashcard_provider.dart
 │   │   ├── study_provider.dart  # StudyState enum
 │   │   ├── dictionary_provider.dart
-│   │   ├── settings_provider.dart # Theme, locale, preferences
+│   │   ├── settings_provider.dart # Theme, locale, image size, preferences
 │   │   ├── public_library_provider.dart # Browse/search/import
 │   │   ├── publish_provider.dart # Publish workflow
 │   │   └── sync_provider.dart   # Sync/notifications
 │   ├── screens/
 │   │   ├── home/home_screen.dart        # Main navigation + stats (6 tabs)
+│   │   ├── auth/                        # Authentication screens
+│   │   │   ├── login_screen.dart        # Email + Google sign in
+│   │   │   └── signup_screen.dart       # Account creation
 │   │   ├── deck/                        # Deck CRUD screens
-│   │   │   ├── deck_list_screen.dart    # List with sync badges
+│   │   │   ├── deck_list_screen.dart    # List with sync badges, tap→browse
 │   │   │   ├── deck_detail_screen.dart  # Detail + publish/sync
 │   │   │   └── create_deck_screen.dart  # Create/edit with language selection
 │   │   ├── flashcard/                   # Card editor/viewer
 │   │   ├── study/study_screen.dart      # Study session UI
 │   │   ├── dictionary/                  # Word lookup
 │   │   ├── statistics/                  # Charts & progress
-│   │   ├── settings/                    # User preferences
+│   │   ├── settings/                    # User preferences + account
 │   │   ├── library/                     # Public library
 │   │   │   ├── library_screen.dart      # Browse with tabs
 │   │   │   ├── public_deck_detail_screen.dart # Deck details + import
@@ -117,12 +123,15 @@ lib/
 │       └── sync/
 │           └── sync_badge.dart  # Sync status indicators
 │
-└── l10n/                        # Localization
-    ├── app_en.arb               # English strings
-    ├── app_vi.arb               # Vietnamese strings
-    ├── app_localizations.dart   # Generated delegate
-    ├── app_localizations_en.dart
-    └── app_localizations_vi.dart
+├── l10n/                        # Localization
+│   ├── app_en.arb               # English strings
+│   ├── app_vi.arb               # Vietnamese strings
+│   ├── app_localizations.dart   # Generated delegate
+│   ├── app_localizations_en.dart
+│   └── app_localizations_vi.dart
+│
+tools/
+└── firebase_setup.dart          # Firebase CLI tool for indexes/rules
 ```
 
 ### Component Dependencies
@@ -225,11 +234,13 @@ return _methodNative();  // Firestore SDK
 |---------|--------|----------------|
 | Deck Management | ✅ Complete | All platforms |
 | Flashcard CRUD | ✅ Complete | Auto-fill from dictionary |
+| **Flashcard Images** | ✅ Complete | URL or local file, auto-resize |
+| **Image Size Settings** | ✅ Complete | 1000px desktop, 600px mobile |
 | SM-2 Spaced Repetition | ✅ Complete | All platforms |
 | Study Session | ✅ Complete | Flip, rate, progress |
 | Dictionary Lookup (EN) | ✅ Complete | Free Dictionary API |
 | Dictionary Lookup (JA) | ✅ Complete | Jisho API |
-| Text-to-Speech | ✅ Complete | Multi-language |
+| Text-to-Speech | ✅ Complete | Multi-language (graceful fail on Windows) |
 | Statistics | ✅ Complete | Charts with fl_chart |
 | Import/Export (JSON) | ✅ Complete | All platforms |
 | Dark Mode | ✅ Complete | Toggle in settings |
@@ -237,10 +248,10 @@ return _methodNative();  // Firestore SDK
 | **Public Library** | ✅ Complete | REST on Windows |
 | **Deck Import** | ✅ Complete | With sync link |
 | **Deck Publishing** | ✅ Complete | Category/tags |
-| **Deck Rating** | ✅ Complete | 5-star + reviews |
-| **Deck Sync** | ✅ Complete | Auto-detect updates |
-| Firebase Auth | ✅ Complete | Google, Email/Pass |
-| **Windows Support** | ✅ Complete | Via REST API |
+| **Deck Rating** | ✅ Complete | 5-star + reviews (REST) |
+| **Deck Sync** | ✅ Complete | Auto-detect updates (REST) |
+| **Firebase Auth** | ✅ Complete | Google, Email/Pass, Account UI |
+| **Windows Support** | ✅ Complete | Via REST API (all services) |
 | Google Translate | 🚧 Framework | Needs API key |
 | Quiz Modes | ⏳ Planned | Multiple choice |
 
@@ -267,9 +278,10 @@ return _methodNative();  // Firestore SDK
 ## 7. Known Issues & TODOs
 
 ### High Priority
-- [ ] Update SyncService and RatingService with REST API support
+- [x] ~~Update SyncService and RatingService with REST API support~~ (fixed 2026-01-29)
 - [ ] Set up Firestore security rules for public_decks collection
 - [ ] Add offline caching for Windows using local storage
+- [x] ~~Fix Firestore index field names~~ (fixed 2026-01-29, use `deploy_indexes.bat`)
 
 ### Medium Priority
 - [ ] Update all screens to use AppLocalizations consistently
@@ -305,8 +317,13 @@ return _methodNative();  // Firestore SDK
 ### Database Schema Note:
 **SQLite Tables:** `decks`, `flashcards`, `study_sessions`, `review_logs`, `imported_deck_links`
 - Flashcards have SM-2 fields: `easiness_factor`, `interval`, `repetitions`, `next_review_date`
+- Flashcards have image field: `image_url` (URL or local file path)
 - Decks have library fields: `linked_public_deck_id`, `linked_version`, `is_published`, `published_deck_id`
-- **Database Version:** 2
+- **Database Version:** 3
+
+### SQLite on Windows:
+- **Required packages:** `sqflite_common_ffi`, `sqlite3_flutter_libs`
+- **Initialization:** FFI factory must be set in `app_database.dart` before opening DB
 
 **Firestore Collections:**
 - `public_decks/{deckId}` - Published decks
@@ -320,7 +337,31 @@ return _methodNative();  // Firestore SDK
 
 ## 9. Recent Changes (Last 3 Sessions)
 
-1. **2026-01-28** - Windows Platform Support & Localization
+1. **2026-01-29 (Session 2)** - Auth System, Image Settings, Navigation Improvements
+   - Added authentication system: AuthProvider, LoginScreen, SignupScreen
+   - Added flashcard image size setting in Settings (1000px Windows, 600px mobile)
+   - Added image resize on save to optimize storage (uses `image` package)
+   - Fixed TTS service for Windows (setSharedInstance iOS/macOS only)
+   - Updated RatingService and SyncService with REST API support for Windows
+   - Created DeckNavigation helper for consistent deck browsing
+   - Deck tap now goes to Browse (flashcards) instead of Detail screen
+   - Replaced flip button with audio play button in flashcard viewer
+   - Fixed Hero tag conflict on FloatingActionButtons
+   - Fixed image URL display ratio in flip card
+   - Created tools/firebase_setup.dart for Firebase CLI operations
+   - Added 20+ localization keys for auth and settings
+
+2. **2026-01-29 (Session 1)** - Flashcard Images & SQLite Windows Fix
+   - Fixed SQLite on Windows: added sqflite_common_ffi + sqlite3_flutter_libs
+   - Added FFI initialization in app_database.dart for desktop platforms
+   - Database migration v2→v3 adding image_url column to flashcards
+   - Created ImageService for image picking and local storage
+   - Updated FlashcardEditorScreen with image UI (URL/local file toggle)
+   - Updated FlashcardFace and CardContent widgets to display images
+   - Fixed firestore.indexes.json field names (camelCase → snake_case)
+   - Created deploy_indexes.bat script for deploying Firestore indexes
+
+3. **2026-01-28** - Windows Platform Support & Localization
    - Created FirestoreRestClient for Windows (bypasses crashing C++ SDK)
    - Updated PublicLibraryService, CategorySeeder, PublicDeckSeeder with dual-mode
    - Added fromMap() constructors to PublicDeck and PublicFlashcard
@@ -328,19 +369,6 @@ return _methodNative();  // Firestore SDK
    - Extended supported language pairs (bidirectional)
    - Fixed structured query type casting bug
    - Updated create_deck_screen with improved language selector UI
-
-2. **2026-01-27 16:00** - Public Library Feature Implementation
-   - Added 6 new data models for public library
-   - Created 3 Firebase services (public_library, rating, sync)
-   - Added 3 new providers (public_library, publish, sync)
-   - Created 6 new screens (library, publish, manage, notifications)
-   - Database migration v1→v2 with library linking fields
-   - Updated home_screen with Library tab (6 tabs total)
-
-3. **2026-01-27 14:30** - Initial project creation
-   - Created complete Flutter project structure (51 Dart files)
-   - Implemented all Phase 1-6 features from plan
-   - Set up .claude documentation
 
 ---
 
@@ -376,6 +404,12 @@ flutter gen-l10n
 
 # Clean build
 flutter clean && flutter pub get
+
+# Firebase tools (requires Firebase CLI)
+dart run tools/firebase_setup.dart generate  # Generate indexes/rules files
+dart run tools/firebase_setup.dart indexes   # Deploy Firestore indexes
+dart run tools/firebase_setup.dart rules     # Deploy security rules
+dart run tools/firebase_setup.dart all       # Deploy everything
 ```
 
 ---
@@ -409,3 +443,4 @@ Read this file FIRST before making any changes.
 Update Section 5, 7, 9 after each session.
 Create history entry with details of changes made.
 For Firestore changes, always implement both REST and Native versions.
+**If adding new Firestore indexes**, update `tools/firebase_setup.dart` in the `generateIndexes()` function.

@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../providers/settings_provider.dart';
 
 class FlipCard extends StatefulWidget {
   final Widget front;
@@ -149,6 +152,7 @@ class FlashcardFace extends StatelessWidget {
   final String text;
   final String? phonetic;
   final String? subtitle;
+  final String? imageUrl;
   final bool isFront;
   final VoidCallback? onAudioPlay;
   final Color? backgroundColor;
@@ -158,10 +162,14 @@ class FlashcardFace extends StatelessWidget {
     required this.text,
     this.phonetic,
     this.subtitle,
+    this.imageUrl,
     this.isFront = true,
     this.onAudioPlay,
     this.backgroundColor,
   });
+
+  bool get _hasImage => imageUrl != null && imageUrl!.isNotEmpty;
+  bool get _isImageUrl => _hasImage && (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'));
 
   @override
   Widget build(BuildContext context) {
@@ -215,6 +223,46 @@ class FlashcardFace extends StatelessWidget {
               ),
             ),
           const Spacer(),
+          if (_hasImage) ...[
+            Builder(
+              builder: (context) {
+                final maxWidth = context.watch<SettingsProvider>().flashcardImageMaxWidth.toDouble();
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: maxWidth,
+                      maxHeight: maxWidth * 0.75, // 4:3 aspect ratio max
+                    ),
+                    child: _isImageUrl
+                        ? Image.network(
+                            imageUrl!,
+                            width: maxWidth,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return SizedBox(
+                                width: maxWidth,
+                                height: 100,
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            },
+                          )
+                        : Image.file(
+                            File(imageUrl!),
+                            width: maxWidth,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
           Text(
             text,
             textAlign: TextAlign.center,
@@ -249,14 +297,6 @@ class FlashcardFace extends StatelessWidget {
             ),
           ],
           const Spacer(),
-          if (onAudioPlay != null)
-            IconButton(
-              onPressed: onAudioPlay,
-              icon: const Icon(Icons.volume_up),
-              iconSize: 32,
-              color: AppColors.primary,
-            ),
-          const SizedBox(height: 8),
           Text(
             'Tap to flip',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(

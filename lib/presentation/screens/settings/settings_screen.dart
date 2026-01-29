@@ -1,33 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settings),
       ),
-      body: Consumer<SettingsProvider>(
-        builder: (context, settings, child) {
+      body: Consumer2<SettingsProvider, AuthProvider>(
+        builder: (context, settings, auth, child) {
           return ListView(
             children: [
+              // Account section
+              _SectionHeader(title: l10n.account),
+              if (auth.isAuthenticated) ...[
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary,
+                    child: Text(
+                      (auth.email?.isNotEmpty == true)
+                          ? auth.email![0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  title: Text(auth.displayName ?? auth.email ?? 'User'),
+                  subtitle: auth.displayName != null ? Text(auth.email ?? '') : null,
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showAccountDialog(context, auth, l10n),
+                ),
+              ] else ...[
+                ListTile(
+                  leading: const Icon(Icons.login),
+                  title: Text(l10n.signIn),
+                  subtitle: Text(l10n.signInWithEmail),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  },
+                ),
+              ],
+
+              const Divider(),
+
               // Appearance section
-              _SectionHeader(title: 'Appearance'),
+              _SectionHeader(title: l10n.appearance),
               SwitchListTile(
-                title: const Text('Dark Mode'),
-                subtitle: const Text('Use dark theme'),
+                title: Text(l10n.darkMode),
+                subtitle: Text(l10n.useDarkTheme),
                 value: settings.isDarkMode,
                 onChanged: (value) => settings.setDarkMode(value),
                 secondary: const Icon(Icons.dark_mode),
               ),
               ListTile(
                 leading: const Icon(Icons.language),
-                title: const Text('Language'),
+                title: Text(l10n.language),
                 subtitle: Text(settings.locale == 'vi' ? 'Tiếng Việt' : 'English'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showLanguageDialog(context, settings),
@@ -36,77 +76,84 @@ class SettingsScreen extends StatelessWidget {
               const Divider(),
 
               // Study settings
-              _SectionHeader(title: 'Study'),
+              _SectionHeader(title: l10n.studySettings),
               ListTile(
                 leading: const Icon(Icons.fiber_new),
-                title: const Text('New cards per day'),
-                subtitle: Text('${settings.newCardsPerDay} cards'),
+                title: Text(l10n.newCardsPerDay),
+                subtitle: Text(l10n.nCards(settings.newCardsPerDay)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showNumberPicker(
                   context,
-                  'New cards per day',
+                  l10n.newCardsPerDay,
                   settings.newCardsPerDay,
                   (value) => settings.setNewCardsPerDay(value),
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.replay),
-                title: const Text('Review cards per day'),
-                subtitle: Text('${settings.reviewCardsPerDay} cards'),
+                title: Text(l10n.reviewCardsPerDay),
+                subtitle: Text(l10n.nCards(settings.reviewCardsPerDay)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showNumberPicker(
                   context,
-                  'Review cards per day',
+                  l10n.reviewCardsPerDay,
                   settings.reviewCardsPerDay,
                   (value) => settings.setReviewCardsPerDay(value),
                 ),
               ),
               SwitchListTile(
-                title: const Text('Show phonetic'),
-                subtitle: const Text('Display pronunciation on cards'),
+                title: Text(l10n.showPhonetic),
+                subtitle: Text(l10n.displayPronunciation),
                 value: settings.showPhonetic,
                 onChanged: (value) => settings.setShowPhonetic(value),
                 secondary: const Icon(Icons.record_voice_over),
               ),
               SwitchListTile(
-                title: const Text('Auto-play audio'),
-                subtitle: const Text('Automatically play pronunciation'),
+                title: Text(l10n.autoPlayAudio),
+                subtitle: Text(l10n.automaticallyPlayPronunciation),
                 value: settings.autoPlayAudio,
                 onChanged: (value) => settings.setAutoPlayAudio(value),
                 secondary: const Icon(Icons.volume_up),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_size_select_large),
+                title: Text(l10n.flashcardImageSize),
+                subtitle: Text('${settings.flashcardImageMaxWidth}px'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showImageSizePicker(context, settings),
               ),
 
               const Divider(),
 
               // Backup section
-              _SectionHeader(title: 'Backup & Sync'),
+              _SectionHeader(title: l10n.backupSync),
               ListTile(
                 leading: const Icon(Icons.cloud_upload),
-                title: const Text('Backup to Cloud'),
-                subtitle: const Text('Save your data to the cloud'),
+                title: Text(l10n.backupToCloud),
+                subtitle: Text(l10n.saveDataToCloud),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   // TODO: Implement backup
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Firebase not configured')),
+                    SnackBar(content: Text(l10n.firebaseNotConfigured)),
                   );
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.cloud_download),
-                title: const Text('Restore from Cloud'),
-                subtitle: const Text('Restore your data from the cloud'),
+                title: Text(l10n.restoreFromCloud),
+                subtitle: Text(l10n.restoreDataFromCloud),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   // TODO: Implement restore
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Firebase not configured')),
+                    SnackBar(content: Text(l10n.firebaseNotConfigured)),
                   );
                 },
               ),
               SwitchListTile(
-                title: const Text('Auto-sync'),
-                subtitle: const Text('Automatically sync when online'),
+                title: Text(l10n.autoSync),
+                subtitle: Text(l10n.autoSyncWhenOnline),
                 value: settings.autoSync,
                 onChanged: (value) => settings.setAutoSync(value),
                 secondary: const Icon(Icons.sync),
@@ -115,11 +162,11 @@ class SettingsScreen extends StatelessWidget {
               const Divider(),
 
               // Import/Export section
-              _SectionHeader(title: 'Import & Export'),
+              _SectionHeader(title: l10n.importExport),
               ListTile(
                 leading: const Icon(Icons.file_download),
-                title: const Text('Import Deck'),
-                subtitle: const Text('Import from JSON file'),
+                title: Text(l10n.importDeck),
+                subtitle: Text(l10n.importFromJson),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   // TODO: Implement import
@@ -127,8 +174,8 @@ class SettingsScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.file_upload),
-                title: const Text('Export All Decks'),
-                subtitle: const Text('Export to JSON file'),
+                title: Text(l10n.exportAllDecks),
+                subtitle: Text(l10n.exportToJson),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   // TODO: Implement export
@@ -138,15 +185,15 @@ class SettingsScreen extends StatelessWidget {
               const Divider(),
 
               // About section
-              _SectionHeader(title: 'About'),
+              _SectionHeader(title: l10n.about),
               ListTile(
                 leading: const Icon(Icons.info),
-                title: const Text('Version'),
+                title: Text(l10n.version),
                 subtitle: const Text('1.0.0'),
               ),
               ListTile(
                 leading: const Icon(Icons.feedback),
-                title: const Text('Send Feedback'),
+                title: Text(l10n.sendFeedback),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   // TODO: Implement feedback
@@ -154,7 +201,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.star),
-                title: const Text('Rate App'),
+                title: Text(l10n.rateApp),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   // TODO: Implement rate app
@@ -164,14 +211,14 @@ class SettingsScreen extends StatelessWidget {
               const Divider(),
 
               // Danger zone
-              _SectionHeader(title: 'Danger Zone', color: AppColors.error),
+              _SectionHeader(title: l10n.dangerZone, color: AppColors.error),
               ListTile(
                 leading: const Icon(Icons.delete_forever, color: AppColors.error),
-                title: const Text(
-                  'Reset All Data',
-                  style: TextStyle(color: AppColors.error),
+                title: Text(
+                  l10n.resetAllData,
+                  style: const TextStyle(color: AppColors.error),
                 ),
-                subtitle: const Text('Delete all decks and cards'),
+                subtitle: Text(l10n.deleteAllData),
                 onTap: () => _confirmReset(context),
               ),
 
@@ -184,10 +231,12 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showLanguageDialog(BuildContext context, SettingsProvider settings) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Language'),
+        title: Text(l10n.selectLanguage),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -215,12 +264,43 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showImageSizePicker(BuildContext context, SettingsProvider settings) {
+    final l10n = AppLocalizations.of(context)!;
+    final sizes = [400, 600, 800, 1000, 1200, 1500];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.flashcardImageSize),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: sizes.map((size) {
+            return RadioListTile<int>(
+              title: Text('${size}px'),
+              subtitle: Text(size <= 600 ? l10n.recommendedForMobile :
+                           size >= 1000 ? l10n.recommendedForDesktop : l10n.balanced),
+              value: size,
+              groupValue: settings.flashcardImageMaxWidth,
+              onChanged: (value) {
+                if (value != null) {
+                  settings.setFlashcardImageMaxWidth(value);
+                  Navigator.pop(context);
+                }
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   void _showNumberPicker(
     BuildContext context,
     String title,
     int currentValue,
     Function(int) onChanged,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: currentValue.toString());
 
     showDialog(
@@ -230,14 +310,14 @@ class SettingsScreen extends StatelessWidget {
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Number of cards',
+          decoration: InputDecoration(
+            labelText: l10n.numberOfCards,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -247,7 +327,75 @@ class SettingsScreen extends StatelessWidget {
                 Navigator.pop(context);
               }
             },
-            child: const Text('Save'),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAccountDialog(BuildContext context, AuthProvider auth, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.account),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: AppColors.primary,
+                radius: 24,
+                child: Text(
+                  (auth.email?.isNotEmpty == true)
+                      ? auth.email![0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(color: Colors.white, fontSize: 20),
+                ),
+              ),
+              title: Text(auth.displayName ?? 'User'),
+              subtitle: Text(auth.email ?? ''),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              _confirmSignOut(context, auth, l10n);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text(l10n.signOut),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmSignOut(BuildContext context, AuthProvider auth, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.signOut),
+        content: Text(l10n.signOutConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await auth.signOut();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: Text(l10n.signOut),
           ),
         ],
       ),
@@ -255,28 +403,28 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _confirmReset(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset All Data?'),
-        content: const Text(
-          'This will permanently delete all your decks, flashcards, and study progress. This action cannot be undone.',
-        ),
+        title: Text(l10n.resetConfirmTitle),
+        content: Text(l10n.resetConfirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               // TODO: Implement reset
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('All data has been reset')),
+                SnackBar(content: Text(l10n.dataReset)),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Reset'),
+            child: Text(l10n.reset),
           ),
         ],
       ),

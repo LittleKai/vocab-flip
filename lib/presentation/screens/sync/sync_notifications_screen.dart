@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/sync_provider.dart';
 
@@ -24,16 +25,18 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Updates'),
+        title: Text(l10n.updates),
         actions: [
           Consumer<SyncProvider>(
             builder: (context, provider, _) {
               if (provider.unreadCount > 0) {
                 return TextButton(
                   onPressed: () => provider.markAllNotificationsRead(),
-                  child: const Text('Mark all read'),
+                  child: Text(l10n.markAllRead),
                 );
               }
               return const SizedBox.shrink();
@@ -64,6 +67,8 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
   }
 
   Widget _buildUpdatesList(BuildContext context, SyncProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return RefreshIndicator(
       onRefresh: () async {
         await provider.checkForUpdates();
@@ -74,14 +79,14 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
         children: [
           // Available updates section
           Text(
-            'Available Updates',
+            l10n.availableUpdates,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            '${provider.availableUpdates.length} decks have updates',
+            l10n.decksHaveUpdates(provider.availableUpdates.length),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
@@ -94,7 +99,7 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
               padding: const EdgeInsets.only(bottom: 16),
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.sync),
-                label: const Text('Sync All'),
+                label: Text(l10n.syncAll),
                 onPressed:
                     provider.isSyncing ? null : () => provider.syncAll(),
               ),
@@ -123,7 +128,7 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
                       )
                     : ElevatedButton(
                         onPressed: () => provider.syncDeck(update.link.localDeckId),
-                        child: const Text('Sync'),
+                        child: Text(l10n.sync),
                       ),
               ),
             );
@@ -133,7 +138,7 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
           if (provider.notifications.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(
-              'History',
+              l10n.history,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -161,6 +166,8 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
 
   List<Widget> _buildNotificationItems(
       BuildContext context, SyncProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return provider.notifications.map((notification) {
       final dateFormat = DateFormat.yMMMd().add_jm();
 
@@ -184,7 +191,7 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Updated to v${notification.newVersion}',
+                l10n.updatedToVersion(notification.newVersion),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               Text(
@@ -208,6 +215,8 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -219,12 +228,12 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'All caught up!',
+            l10n.allCaughtUp,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'No updates available',
+            l10n.noUpdatesAvailable,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondaryLight,
                 ),
@@ -232,7 +241,7 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
           const SizedBox(height: 24),
           OutlinedButton.icon(
             icon: const Icon(Icons.refresh),
-            label: const Text('Check for Updates'),
+            label: Text(l10n.checkForUpdates),
             onPressed: () => context.read<SyncProvider>().checkForUpdates(),
           ),
         ],

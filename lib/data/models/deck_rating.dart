@@ -72,6 +72,23 @@ class DeckRating {
     );
   }
 
+  factory DeckRating.fromMap(Map<String, dynamic> data) {
+    return DeckRating(
+      id: data['id'] as String,
+      publicDeckId: data['public_deck_id'] as String,
+      userId: data['user_id'] as String,
+      userName: data['user_name'] as String?,
+      rating: data['rating'] as int,
+      review: data['review'] as String?,
+      createdAt: data['created_at'] is DateTime
+          ? data['created_at'] as DateTime
+          : DateTime.now(),
+      updatedAt: data['updated_at'] is DateTime
+          ? data['updated_at'] as DateTime
+          : DateTime.now(),
+    );
+  }
+
   @override
   String toString() => 'DeckRating(id: $id, rating: $rating)';
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/deck_navigation.dart';
 import '../../../data/models/category.dart';
 import '../../providers/public_library_provider.dart';
 import '../../providers/deck_provider.dart';
@@ -43,13 +45,15 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<PublicLibraryProvider>(
       builder: (context, provider, _) {
         final deck = provider.selectedDeck;
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(deck?.name ?? 'Deck Details'),
+            title: Text(deck?.name ?? l10n.deckDetails),
             actions: [
               if (deck != null)
                 IconButton(
@@ -70,6 +74,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   }
 
   Widget _buildContent(BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final deck = provider.selectedDeck!;
     final category = Category.getById(deck.categoryId);
 
@@ -134,12 +139,12 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                       children: [
                         _StatChip(
                           icon: Icons.style,
-                          label: '${deck.cardCount} cards',
+                          label: l10n.cardsCount(deck.cardCount),
                         ),
                         const SizedBox(width: 12),
                         _StatChip(
                           icon: Icons.download,
-                          label: '${deck.downloadCount} downloads',
+                          label: l10n.downloadsCount(deck.downloadCount),
                         ),
                       ],
                     ),
@@ -202,7 +207,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
             // Rating section
             Text(
-              'Ratings & Reviews',
+              l10n.ratingsReviews,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -214,7 +219,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
             // Preview section
             Text(
-              'Preview Cards',
+              l10n.previewCards,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -229,6 +234,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   Widget _buildRatingSection(
       BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final deck = provider.selectedDeck!;
 
     return Card(
@@ -251,7 +257,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                   children: [
                     RatingWidget(rating: deck.averageRating, size: 18),
                     Text(
-                      '${deck.ratingCount} reviews',
+                      l10n.reviewsCount(deck.ratingCount),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondaryLight,
                           ),
@@ -262,7 +268,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                 OutlinedButton(
                   onPressed: () => _showRatingDialog(context, provider),
                   child: Text(
-                    provider.userRating != null ? 'Edit Review' : 'Rate',
+                    provider.userRating != null ? l10n.editReview : l10n.rate,
                   ),
                 ),
               ],
@@ -273,7 +279,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
               const Divider(height: 24),
               Row(
                 children: [
-                  const Text('Your rating: '),
+                  Text('${l10n.yourRating}: '),
                   RatingWidget(
                     rating: provider.userRating!.rating.toDouble(),
                     size: 16,
@@ -301,7 +307,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                       Row(
                         children: [
                           Text(
-                            rating.userName ?? 'Anonymous',
+                            rating.userName ?? l10n.anonymous,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -334,6 +340,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   Widget _buildPreviewSection(
       BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final flashcards = provider.previewFlashcards;
 
     if (flashcards.isEmpty) {
@@ -342,7 +349,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
           padding: const EdgeInsets.all(24),
           child: Center(
             child: Text(
-              'No cards to preview',
+              l10n.noCardsPreview,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondaryLight,
                   ),
@@ -370,6 +377,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   }
 
   Widget _buildBottomBar(BuildContext context, PublicLibraryProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -397,7 +406,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                     width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(_isImported ? 'Already Imported' : 'Import Deck'),
+                : Text(_isImported ? l10n.alreadyImported : l10n.importDeck),
           ),
         ),
       ),
@@ -405,6 +414,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   }
 
   Widget _buildErrorState(BuildContext context, String? error) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -416,7 +427,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            error ?? 'Failed to load deck',
+            error ?? l10n.failedToLoad,
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -425,7 +436,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
             onPressed: () {
               context.read<PublicLibraryProvider>().selectDeck(widget.deckId);
             },
-            child: const Text('Retry'),
+            child: Text(l10n.retry),
           ),
         ],
       ),
@@ -433,9 +444,10 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   }
 
   void _shareDeck(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // TODO: Implement share functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Share feature coming soon')),
+      SnackBar(content: Text(l10n.shareComingSoon)),
     );
   }
 
@@ -454,6 +466,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   Future<void> _importDeck(
       BuildContext context, PublicLibraryProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
     final deck = await provider.importDeck(widget.deckId);
 
     if (deck != null && mounted) {
@@ -464,16 +477,12 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Successfully imported "${deck.name}"'),
+          content: Text(l10n.successfullyImported(deck.name)),
           action: SnackBarAction(
-            label: 'View',
+            label: l10n.view,
             onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/deck',
-                (route) => route.isFirst,
-                arguments: deck.id,
-              );
+              Navigator.popUntil(context, (route) => route.isFirst);
+              DeckNavigation.navigateToBrowse(context, deck.id);
             },
           ),
         ),
@@ -481,7 +490,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
     } else if (provider.error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to import: ${provider.error}'),
+          content: Text(l10n.failedToImport(provider.error!)),
           backgroundColor: AppColors.error,
         ),
       );

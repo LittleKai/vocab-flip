@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/deck.dart';
@@ -43,9 +44,11 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Deck' : 'Create Deck'),
+        title: Text(_isEditing ? l10n.editDeck : l10n.createDeck),
       ),
       body: Form(
         key: _formKey,
@@ -55,15 +58,15 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
             // Deck name
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Deck Name',
-                hintText: 'e.g., Japanese N5 Vocabulary',
-                prefixIcon: Icon(Icons.folder),
+              decoration: InputDecoration(
+                labelText: l10n.deckName,
+                hintText: l10n.deckNameHint,
+                prefixIcon: const Icon(Icons.folder),
               ),
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a deck name';
+                  return l10n.pleaseEnterDeckName;
                 }
                 return null;
               },
@@ -73,10 +76,10 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                hintText: 'Describe what this deck is about',
-                prefixIcon: Icon(Icons.description),
+              decoration: InputDecoration(
+                labelText: l10n.descriptionOptional,
+                hintText: l10n.describeWhatDeckAbout,
+                prefixIcon: const Icon(Icons.description),
               ),
               maxLines: 3,
               textCapitalization: TextCapitalization.sentences,
@@ -85,14 +88,14 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
 
             // Source language
             Text(
-              'Source Language',
+              l10n.sourceLanguage,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'The language of the words you want to learn',
+              l10n.languageOfWordsToLearn,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.textSecondaryLight,
                   ),
@@ -109,7 +112,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
 
             // Target language (fixed to Vietnamese)
             Text(
-              'Target Language',
+              l10n.targetLanguage,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -139,15 +142,15 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Vietnamese',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          l10n.vietnamese,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        Text(
+                        const Text(
                           'Tiếng Việt',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
@@ -176,7 +179,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(_isEditing ? 'Update Deck' : 'Create Deck'),
+                      : Text(_isEditing ? l10n.updateDeck : l10n.createDeck),
                 ),
               ),
             ),
@@ -212,8 +215,31 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> {
         await provider.createDeck(newDeck);
       }
 
+      // Check if there was an error in the provider
+      if (provider.error != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(provider.error!),
+              backgroundColor: Colors.red,
+            ),
+          );
+          provider.clearError();
+        }
+        return;
+      }
+
       if (mounted) {
         Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) {

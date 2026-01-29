@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -10,9 +11,11 @@ class StatisticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistics'),
+        title: Text(l10n.stats),
       ),
       body: Consumer2<DeckProvider, SettingsProvider>(
         builder: (context, deckProvider, settingsProvider, child) {
@@ -61,11 +64,13 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Overview',
+          l10n.overview,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -76,9 +81,9 @@ class _SummarySection extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.local_fire_department,
-                label: 'Streak',
+                label: l10n.streak,
                 value: '${settingsProvider.streak}',
-                unit: 'days',
+                unit: l10n.days,
                 color: Colors.orange,
               ),
             ),
@@ -86,9 +91,9 @@ class _SummarySection extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.timer,
-                label: 'Study Time',
+                label: l10n.studyTime,
                 value: settingsProvider.formattedStudyTime,
-                unit: 'total',
+                unit: l10n.total,
                 color: AppColors.primary,
               ),
             ),
@@ -100,9 +105,9 @@ class _SummarySection extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.folder,
-                label: 'Decks',
+                label: l10n.decks,
                 value: '${deckProvider.totalDecks}',
-                unit: 'created',
+                unit: l10n.created,
                 color: AppColors.secondary,
               ),
             ),
@@ -110,9 +115,9 @@ class _SummarySection extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.style,
-                label: 'Cards',
+                label: l10n.cards,
                 value: '${deckProvider.totalCards}',
-                unit: 'total',
+                unit: l10n.total,
                 color: AppColors.accent,
               ),
             ),
@@ -173,11 +178,13 @@ class _StatCard extends StatelessWidget {
 class _ProgressChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Weekly Activity',
+          l10n.weeklyActivity,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -207,7 +214,15 @@ class _ProgressChart extends StatelessWidget {
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
-                      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                      final days = [
+                        l10n.mon,
+                        l10n.tue,
+                        l10n.wed,
+                        l10n.thu,
+                        l10n.fri,
+                        l10n.sat,
+                        l10n.sun
+                      ];
                       return Text(
                         days[value.toInt()],
                         style: const TextStyle(
@@ -269,11 +284,13 @@ class _DeckBreakdown extends StatelessWidget {
   Widget build(BuildContext context) {
     if (decks.isEmpty) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Deck Progress',
+          l10n.deckProgress,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -292,6 +309,7 @@ class _DeckProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final total = deck.cardCount;
     final learned = total - deck.newCount;
     final progress = total > 0 ? learned / total : 0.0;
@@ -337,14 +355,14 @@ class _DeckProgressCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '$learned / $total cards learned',
+                  l10n.cardsLearnedCount(learned, total),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondaryLight,
                       ),
                 ),
                 if (deck.dueCount > 0)
                   Text(
-                    '${deck.dueCount} due',
+                    l10n.dueCount(deck.dueCount),
                     style: TextStyle(
                       color: AppColors.warning,
                       fontSize: 12,

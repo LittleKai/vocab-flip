@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../models/deck.dart';
@@ -11,12 +12,23 @@ class DeckDao {
   Future<Database> get _db => _appDatabase.database;
 
   Future<int> insert(Deck deck) async {
-    final db = await _db;
-    return await db.insert(
-      AppConstants.tableDecks,
-      deck.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    debugPrint('DeckDao: Inserting deck: ${deck.name}, id: ${deck.id}');
+    debugPrint('DeckDao: Deck data: ${deck.toMap()}');
+    try {
+      final db = await _db;
+      debugPrint('DeckDao: Got database instance');
+      final result = await db.insert(
+        AppConstants.tableDecks,
+        deck.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      debugPrint('DeckDao: Insert result: $result');
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('DeckDao: Error inserting deck: $e');
+      debugPrint('DeckDao: Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   Future<int> update(Deck deck) async {

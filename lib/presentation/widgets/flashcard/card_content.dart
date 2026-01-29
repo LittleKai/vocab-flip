@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/flashcard.dart';
+import '../../providers/settings_provider.dart';
 
 class CardContent extends StatelessWidget {
   final Flashcard flashcard;
@@ -33,6 +36,36 @@ class CardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Image (if available)
+          if (flashcard.hasImage) ...[
+            Builder(
+              builder: (context) {
+                final maxWidth = context.watch<SettingsProvider>().flashcardImageMaxWidth.toDouble();
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: maxWidth,
+                      maxHeight: maxWidth * 0.75, // 4:3 aspect ratio max
+                    ),
+                    child: flashcard.isImageUrl
+                        ? Image.network(
+                            flashcard.imageUrl!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          )
+                        : Image.file(
+                            File(flashcard.imageUrl!),
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
           // Front content (always visible)
           _buildSection(
             context,
