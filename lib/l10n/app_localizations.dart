@@ -2431,6 +2431,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailable;
+
+  /// No description provided for @updateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This update is required to continue using the app.'**
+  String get updateRequired;
+
+  /// No description provided for @autoCheckUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-check for updates'**
+  String get autoCheckUpdates;
+
+  /// No description provided for @autoCheckUpdatesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically check for updates when app starts'**
+  String get autoCheckUpdatesDesc;
+
+  /// No description provided for @downloadUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Update'**
+  String get downloadUpdate;
+
+  /// No description provided for @downloadingUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading Update...'**
+  String get downloadingUpdate;
+
+  /// No description provided for @extractingUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting Update...'**
+  String get extractingUpdate;
+
+  /// No description provided for @installing.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing...'**
+  String get installing;
+
+  /// No description provided for @restartToApply.
+  ///
+  /// In en, this message translates to:
+  /// **'The update is ready. Restart the app to apply changes.'**
+  String get restartToApply;
+
+  /// No description provided for @restartNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart Now'**
+  String get restartNow;
+
+  /// No description provided for @currentVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get currentVersion;
+
+  /// No description provided for @newVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newVersion;
+
+  /// No description provided for @newLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get newLabel;
+
+  /// No description provided for @whatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get whatsNew;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// No description provided for @skipVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip This Version'**
+  String get skipVersion;
+
+  /// No description provided for @checkingForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to check for updates'**
+  String get checkingForUpdates;
+
+  /// No description provided for @updateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Failed'**
+  String get updateFailed;
+
+  /// No description provided for @updateAvailableVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} available'**
+  String updateAvailableVersion(String version);
 }
 
 class _AppLocalizationsDelegate

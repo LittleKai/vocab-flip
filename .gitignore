@@ -12,6 +12,8 @@ migrate_working_dir/
 test/
 nul
 .env
+CLAUDE.md
+/.claude
 
 # IntelliJ related
 *.iml

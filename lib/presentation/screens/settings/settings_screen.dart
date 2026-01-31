@@ -1,10 +1,14 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/update_provider.dart';
 import '../../widgets/dialogs/helper_dialog.dart';
+import '../../widgets/dialogs/update_dialog.dart';
 import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -25,8 +29,15 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Consumer2<SettingsProvider, AuthProvider>(
-        builder: (context, settings, auth, child) {
+      body: Consumer3<SettingsProvider, AuthProvider, UpdateProvider>(
+        builder: (context, settings, auth, updateProvider, child) {
+          // Initialize update provider if needed
+          if (!updateProvider.isAutoUpdateSupported) {
+            // Skip update UI on non-Windows platforms
+          } else {
+            // Ensure provider is initialized
+            updateProvider.init(settings.preferences);
+          }
           return ListView(
             children: [
               // Account section
@@ -204,7 +215,7 @@ class SettingsScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.info),
                 title: Text(l10n.version),
-                subtitle: const Text('1.0.0'),
+                subtitle: Text(updateProvider.currentVersion),
               ),
               ListTile(
                 leading: const Icon(Icons.feedback),
@@ -222,6 +233,91 @@ class SettingsScreen extends StatelessWidget {
                   // TODO: Implement rate app
                 },
               ),
+
+              const Divider(),
+
+              // Support / Donate section
+              _SectionHeader(title: l10n.support),
+              ListTile(
+                leading: const Icon(Icons.favorite, color: Colors.pink),
+                title: Text(l10n.donate),
+                subtitle: Text(l10n.donateDesc),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showDonateDialog(context, l10n),
+              ),
+
+              // Updates section (Windows only)
+              if (!kIsWeb && Platform.isWindows) ...[
+                const Divider(),
+                _SectionHeader(title: l10n.updates),
+                SwitchListTile(
+                  title: Text(l10n.autoCheckUpdates),
+                  subtitle: Text(l10n.autoCheckUpdatesDesc),
+                  value: updateProvider.autoCheckUpdates,
+                  onChanged: (value) => updateProvider.setAutoCheckUpdates(value),
+                  secondary: const Icon(Icons.update),
+                ),
+                ListTile(
+                  leading: updateProvider.isChecking
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh),
+                  title: Text(l10n.checkForUpdates),
+                  subtitle: Text(
+                    updateProvider.hasUpdate
+                        ? l10n.updateAvailableVersion(
+                            updateProvider.availableUpdate!.version)
+                        : l10n.checkingForUpdates,
+                  ),
+                  trailing: updateProvider.hasUpdate
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            l10n.newLabel,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    if (updateProvider.hasUpdate) {
+                      UpdateDialog.show(
+                        context,
+                        version: updateProvider.availableUpdate!,
+                        isMandatory: updateProvider.availableUpdate!.isMandatory,
+                      );
+                    } else {
+                      await updateProvider.checkForUpdates();
+                      if (context.mounted) {
+                        if (updateProvider.hasUpdate) {
+                          UpdateDialog.show(
+                            context,
+                            version: updateProvider.availableUpdate!,
+                            isMandatory:
+                                updateProvider.availableUpdate!.isMandatory,
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.noUpdatesAvailable)),
+                          );
+                        }
+                      }
+                    }
+                  },
+                ),
+              ],
 
               const Divider(),
 

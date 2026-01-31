@@ -574,5 +574,33 @@
   "resetTtsWarning": "Reset TTS Warning",
   "resetTtsWarningDesc": "Show TTS installation warning again when entering decks",
   "ttsWarningReset": "TTS warning has been reset",
-  "close": "Close"
+  "close": "Close",
+
+  "updates": "Updates",
+  "updateAvailable": "Update Available",
+  "updateRequired": "This update is required to continue using the app.",
+  "autoCheckUpdates": "Auto-check for updates",
+  "autoCheckUpdatesDesc": "Automatically check for updates when app starts",
+  "downloadUpdate": "Download Update",
+  "downloadingUpdate": "Downloading Update...",
+  "extractingUpdate": "Extracting Update...",
+  "installing": "Installing...",
+  "restartToApply": "The update is ready. Restart the app to apply changes.",
+  "restartNow": "Restart Now",
+  "currentVersion": "Current",
+  "newVersion": "New",
+  "newLabel": "NEW",
+  "whatsNew": "What's New",
+  "updateLater": "Later",
+  "skipVersion": "Skip This Version",
+  "checkingForUpdates": "Tap to check for updates",
+  "updateFailed": "Update Failed",
+  "updateAvailableVersion": "Version {version} available",
+  "@updateAvailableVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  }
 }

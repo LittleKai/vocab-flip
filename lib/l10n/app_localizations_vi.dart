@@ -1231,4 +1231,66 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get close => 'Đóng';
+
+  @override
+  String get updateAvailable => 'Có bản cập nhật';
+
+  @override
+  String get updateRequired =>
+      'Bản cập nhật này là bắt buộc để tiếp tục sử dụng ứng dụng.';
+
+  @override
+  String get autoCheckUpdates => 'Tự động kiểm tra cập nhật';
+
+  @override
+  String get autoCheckUpdatesDesc =>
+      'Tự động kiểm tra cập nhật khi mở ứng dụng';
+
+  @override
+  String get downloadUpdate => 'Tải cập nhật';
+
+  @override
+  String get downloadingUpdate => 'Đang tải cập nhật...';
+
+  @override
+  String get extractingUpdate => 'Đang giải nén...';
+
+  @override
+  String get installing => 'Đang cài đặt...';
+
+  @override
+  String get restartToApply =>
+      'Cập nhật đã sẵn sàng. Khởi động lại ứng dụng để áp dụng.';
+
+  @override
+  String get restartNow => 'Khởi động lại';
+
+  @override
+  String get currentVersion => 'Hiện tại';
+
+  @override
+  String get newVersion => 'Mới';
+
+  @override
+  String get newLabel => 'MỚI';
+
+  @override
+  String get whatsNew => 'Có gì mới';
+
+  @override
+  String get updateLater => 'Để sau';
+
+  @override
+  String get skipVersion => 'Bỏ qua phiên bản này';
+
+  @override
+  String get checkingForUpdates => 'Chạm để kiểm tra cập nhật';
+
+  @override
+  String get updateFailed => 'Cập nhật thất bại';
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'Phiên bản $version có sẵn';
+  }
 }

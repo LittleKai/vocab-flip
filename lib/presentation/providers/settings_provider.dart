@@ -21,6 +21,9 @@ class SettingsProvider extends ChangeNotifier {
   SettingsProvider({AppPreferences? preferences})
       : _preferences = preferences ?? AppPreferences();
 
+  /// Expose preferences for other providers that need it
+  AppPreferences get preferences => _preferences;
+
   bool get isDarkMode => _isDarkMode;
   String get locale => _locale;
   bool get autoSync => _autoSync;

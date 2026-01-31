@@ -1236,4 +1236,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
+
+  @override
+  String get updateAvailable => 'Update Available';
+
+  @override
+  String get updateRequired =>
+      'This update is required to continue using the app.';
+
+  @override
+  String get autoCheckUpdates => 'Auto-check for updates';
+
+  @override
+  String get autoCheckUpdatesDesc =>
+      'Automatically check for updates when app starts';
+
+  @override
+  String get downloadUpdate => 'Download Update';
+
+  @override
+  String get downloadingUpdate => 'Downloading Update...';
+
+  @override
+  String get extractingUpdate => 'Extracting Update...';
+
+  @override
+  String get installing => 'Installing...';
+
+  @override
+  String get restartToApply =>
+      'The update is ready. Restart the app to apply changes.';
+
+  @override
+  String get restartNow => 'Restart Now';
+
+  @override
+  String get currentVersion => 'Current';
+
+  @override
+  String get newVersion => 'New';
+
+  @override
+  String get newLabel => 'NEW';
+
+  @override
+  String get whatsNew => 'What\'s New';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get skipVersion => 'Skip This Version';
+
+  @override
+  String get checkingForUpdates => 'Tap to check for updates';
+
+  @override
+  String get updateFailed => 'Update Failed';
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'Version $version available';
+  }
 }

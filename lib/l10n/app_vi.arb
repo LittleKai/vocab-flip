@@ -414,5 +414,26 @@
   "resetTtsWarning": "Đặt lại cảnh báo TTS",
   "resetTtsWarningDesc": "Hiển thị lại cảnh báo cài đặt TTS khi vào bộ thẻ",
   "ttsWarningReset": "Đã đặt lại cảnh báo TTS",
-  "close": "Đóng"
+  "close": "Đóng",
+
+  "updates": "Cập nhật",
+  "updateAvailable": "Có bản cập nhật",
+  "updateRequired": "Bản cập nhật này là bắt buộc để tiếp tục sử dụng ứng dụng.",
+  "autoCheckUpdates": "Tự động kiểm tra cập nhật",
+  "autoCheckUpdatesDesc": "Tự động kiểm tra cập nhật khi mở ứng dụng",
+  "downloadUpdate": "Tải cập nhật",
+  "downloadingUpdate": "Đang tải cập nhật...",
+  "extractingUpdate": "Đang giải nén...",
+  "installing": "Đang cài đặt...",
+  "restartToApply": "Cập nhật đã sẵn sàng. Khởi động lại ứng dụng để áp dụng.",
+  "restartNow": "Khởi động lại",
+  "currentVersion": "Hiện tại",
+  "newVersion": "Mới",
+  "newLabel": "MỚI",
+  "whatsNew": "Có gì mới",
+  "updateLater": "Để sau",
+  "skipVersion": "Bỏ qua phiên bản này",
+  "checkingForUpdates": "Chạm để kiểm tra cập nhật",
+  "updateFailed": "Cập nhật thất bại",
+  "updateAvailableVersion": "Phiên bản {version} có sẵn"
 }

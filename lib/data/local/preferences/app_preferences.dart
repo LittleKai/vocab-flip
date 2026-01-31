@@ -23,6 +23,9 @@ class AppPreferences {
   static const String _keyFlashcardPhoneticFontSize = 'flashcard_phonetic_font_size';
   static const String _keyFlashcardDetailFontSize = 'flashcard_detail_font_size';
   static const String _keyHideTtsWarning = 'hide_tts_warning';
+  static const String _keyLastUpdateCheck = 'last_update_check';
+  static const String _keySkippedVersion = 'skipped_version';
+  static const String _keyAutoCheckUpdates = 'auto_check_updates';
 
   // Default font sizes
   static const int defaultMainFontSize = 32;
@@ -149,6 +152,24 @@ class AppPreferences {
   bool get hideTtsWarning => _prefs.getBool(_keyHideTtsWarning) ?? false;
   Future<bool> setHideTtsWarning(bool value) =>
       _prefs.setBool(_keyHideTtsWarning, value);
+
+  // Last update check
+  DateTime? get lastUpdateCheck {
+    final timestamp = _prefs.getString(_keyLastUpdateCheck);
+    return timestamp != null ? DateTime.parse(timestamp) : null;
+  }
+  Future<bool> setLastUpdateCheck(DateTime value) =>
+      _prefs.setString(_keyLastUpdateCheck, value.toIso8601String());
+
+  // Skipped version
+  String? get skippedVersion => _prefs.getString(_keySkippedVersion);
+  Future<bool> setSkippedVersion(String value) =>
+      _prefs.setString(_keySkippedVersion, value);
+
+  // Auto check updates
+  bool get autoCheckUpdates => _prefs.getBool(_keyAutoCheckUpdates) ?? true;
+  Future<bool> setAutoCheckUpdates(bool value) =>
+      _prefs.setBool(_keyAutoCheckUpdates, value);
 
   // Update streak
   Future<void> updateStreak() async {
