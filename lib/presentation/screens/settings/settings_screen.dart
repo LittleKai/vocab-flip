@@ -4,7 +4,7 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/dialogs/tts_help_dialog.dart';
+import '../../widgets/dialogs/helper_dialog.dart';
 import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -17,6 +17,13 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.settings),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: l10n.helper,
+            onPressed: () => HelperDialog.show(context),
+          ),
+        ],
       ),
       body: Consumer2<SettingsProvider, AuthProvider>(
         builder: (context, settings, auth, child) {
@@ -129,17 +136,6 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: Text(l10n.fontSizePixels(settings.flashcardMainFontSize)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showFontSizePicker(context, settings, l10n),
-              ),
-              ListTile(
-                leading: const Icon(Icons.record_voice_over),
-                title: Text(l10n.ttsSettings),
-                subtitle: Text(l10n.ttsHelp),
-                trailing: IconButton(
-                  icon: const Icon(Icons.help_outline),
-                  color: AppColors.primary,
-                  onPressed: () => TtsHelpDialog.show(context),
-                ),
-                onTap: () => TtsHelpDialog.show(context),
               ),
 
               const Divider(),

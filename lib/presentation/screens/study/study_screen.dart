@@ -172,10 +172,10 @@ class _StudyScreenState extends State<StudyScreen> {
               onFlip: () {
                 if (provider.state == StudyState.studying) {
                   provider.showAnswer();
-                  // Auto-play TTS when showing answer (flipping to back)
-                  if (deck?.autoPlayTtsOnFlip == true) {
-                    _speakWord(card.front, deck?.sourceLanguage ?? 'en');
-                  }
+                }
+                // Auto-play TTS on every flip
+                if (deck?.autoPlayTtsOnFlip == true) {
+                  _speakWord(card.front, deck?.sourceLanguage ?? 'en');
                 }
               },
               front: FlashcardFace(

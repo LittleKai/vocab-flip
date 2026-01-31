@@ -60,9 +60,13 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   mockito: ^5.4.4
+  sqlite3: ^3.1.4  # For building Chinese dictionary
 
 flutter:
   uses-material-design: true
 
   # Localization
   generate: true
+
+  assets:
+    - assets/chinese_dict.db

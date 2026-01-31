@@ -132,6 +132,16 @@ class FlashcardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reorder flashcards in the list (local only, UI ordering)
+  void reorderFlashcards(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final item = _flashcards.removeAt(oldIndex);
+    _flashcards.insert(newIndex, item);
+    notifyListeners();
+  }
+
   void reset() {
     _flashcards = [];
     _dueFlashcards = [];

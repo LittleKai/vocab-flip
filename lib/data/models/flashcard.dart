@@ -9,7 +9,10 @@ class Flashcard {
   final String back;
   final String? example;
   final String? notes;
-  final String? imageUrl; // URL or local file path for image
+  final String? imageUrl; // Legacy field - maps to frontImageUrl
+  final String? frontImageUrl; // URL or local file path for front image
+  final String? backImageUrl; // URL or local file path for back image
+  final bool shareImage; // If true, show frontImageUrl on both sides
   final List<String> tags;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -30,6 +33,9 @@ class Flashcard {
     this.example,
     this.notes,
     this.imageUrl,
+    this.frontImageUrl,
+    this.backImageUrl,
+    this.shareImage = true, // Default: share image on both sides
     List<String>? tags,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -43,15 +49,36 @@ class Flashcard {
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
-  /// Check if image is a URL (http/https)
+  /// Check if legacy image is a URL (http/https)
   bool get isImageUrl => imageUrl != null &&
       (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'));
 
-  /// Check if image is a local file
+  /// Check if legacy image is a local file
   bool get isLocalImage => imageUrl != null && !isImageUrl;
 
-  /// Check if this card has an image
+  /// Check if this card has a legacy image
   bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
+
+  /// Get the effective front image URL (frontImageUrl or legacy imageUrl)
+  String? get effectiveFrontImageUrl => frontImageUrl ?? imageUrl;
+
+  /// Get the effective back image URL (backImageUrl, or frontImageUrl if shareImage is true)
+  String? get effectiveBackImageUrl =>
+      backImageUrl ?? (shareImage ? effectiveFrontImageUrl : null);
+
+  /// Check if front has an image
+  bool get hasFrontImage => effectiveFrontImageUrl != null && effectiveFrontImageUrl!.isNotEmpty;
+
+  /// Check if back has an image
+  bool get hasBackImage => effectiveBackImageUrl != null && effectiveBackImageUrl!.isNotEmpty;
+
+  /// Check if front image is a URL
+  bool get isFrontImageUrl => hasFrontImage &&
+      (effectiveFrontImageUrl!.startsWith('http://') || effectiveFrontImageUrl!.startsWith('https://'));
+
+  /// Check if back image is a URL
+  bool get isBackImageUrl => hasBackImage &&
+      (effectiveBackImageUrl!.startsWith('http://') || effectiveBackImageUrl!.startsWith('https://'));
 
   /// Check if this card is due for review
   bool get isDue {
@@ -77,7 +104,12 @@ class Flashcard {
     String? example,
     String? notes,
     String? imageUrl,
+    String? frontImageUrl,
+    String? backImageUrl,
+    bool? shareImage,
     bool clearImage = false,
+    bool clearFrontImage = false,
+    bool clearBackImage = false,
     List<String>? tags,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -96,6 +128,9 @@ class Flashcard {
       example: example ?? this.example,
       notes: notes ?? this.notes,
       imageUrl: clearImage ? null : (imageUrl ?? this.imageUrl),
+      frontImageUrl: clearFrontImage ? null : (frontImageUrl ?? this.frontImageUrl),
+      backImageUrl: clearBackImage ? null : (backImageUrl ?? this.backImageUrl),
+      shareImage: shareImage ?? this.shareImage,
       tags: tags ?? this.tags,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
@@ -117,6 +152,9 @@ class Flashcard {
       'example': example,
       'notes': notes,
       'image_url': imageUrl,
+      'front_image_url': frontImageUrl,
+      'back_image_url': backImageUrl,
+      'share_image': shareImage ? 1 : 0,
       'tags': tags.join(','),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -138,6 +176,9 @@ class Flashcard {
       example: map['example'] as String?,
       notes: map['notes'] as String?,
       imageUrl: map['image_url'] as String?,
+      frontImageUrl: map['front_image_url'] as String?,
+      backImageUrl: map['back_image_url'] as String?,
+      shareImage: map['share_image'] == null ? true : (map['share_image'] as int) == 1,
       tags: (map['tags'] as String?)?.split(',').where((t) => t.isNotEmpty).toList() ?? [],
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
@@ -161,6 +202,9 @@ class Flashcard {
       'back': back,
       'examples': example != null ? [example] : [],
       'image_url': imageUrl,
+      'front_image_url': frontImageUrl,
+      'back_image_url': backImageUrl,
+      'share_image': shareImage,
       'tags': tags,
       'created_at': createdAt.toIso8601String(),
       'review_data': {
@@ -185,6 +229,9 @@ class Flashcard {
       example: examples.isNotEmpty ? examples.first as String : null,
       notes: json['notes'] as String?,
       imageUrl: json['image_url'] as String?,
+      frontImageUrl: json['front_image_url'] as String?,
+      backImageUrl: json['back_image_url'] as String?,
+      shareImage: json['share_image'] as bool? ?? true,
       tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)

@@ -1,28 +1,60 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/dictionary_result.dart';
 import '../../data/repositories/dictionary_repository.dart';
+import '../../data/local/preferences/app_preferences.dart';
 import '../../core/constants/supported_languages.dart';
 
 class DictionaryProvider extends ChangeNotifier {
   final DictionaryRepository _repository;
+  final AppPreferences _prefs;
 
-  DictionaryResult? _result;
-  List<DictionaryResult> _searchResults = [];
+  List<DictionaryResult> _results = [];
   bool _isLoading = false;
   String? _error;
   SupportedLanguage _selectedLanguage = SupportedLanguage.english;
+  String _filterMode = 'exact_first';
+  bool _fallbackToEnglish = true;
+  bool _usedFallback = false;
+  String? _fallbackSource;
 
-  DictionaryProvider({DictionaryRepository? repository})
-      : _repository = repository ?? DictionaryRepository();
+  DictionaryProvider({
+    DictionaryRepository? repository,
+    required AppPreferences prefs,
+  })  : _repository = repository ?? DictionaryRepository(),
+        _prefs = prefs {
+    _loadSavedSettings();
+  }
 
-  DictionaryResult? get result => _result;
-  List<DictionaryResult> get searchResults => _searchResults;
+  void _loadSavedSettings() {
+    _selectedLanguage = SupportedLanguage.fromCode(_prefs.dictionarySourceLanguage);
+    _filterMode = _prefs.dictionaryFilterMode;
+    _fallbackToEnglish = _prefs.dictionaryFallbackToEnglish;
+  }
+
+  List<DictionaryResult> get results => _results;
   bool get isLoading => _isLoading;
   String? get error => _error;
   SupportedLanguage get selectedLanguage => _selectedLanguage;
+  String get filterMode => _filterMode;
+  bool get fallbackToEnglish => _fallbackToEnglish;
+  bool get usedFallback => _usedFallback;
+  String? get fallbackSource => _fallbackSource;
 
   void setLanguage(SupportedLanguage language) {
     _selectedLanguage = language;
+    _prefs.setDictionarySourceLanguage(language.code);
+    notifyListeners();
+  }
+
+  void setFilterMode(String mode) {
+    _filterMode = mode;
+    _prefs.setDictionaryFilterMode(mode);
+    notifyListeners();
+  }
+
+  void setFallbackToEnglish(bool value) {
+    _fallbackToEnglish = value;
+    _prefs.setDictionaryFallbackToEnglish(value);
     notifyListeners();
   }
 
@@ -35,11 +67,21 @@ class DictionaryProvider extends ChangeNotifier {
 
     _isLoading = true;
     _error = null;
+    _results = [];
+    _usedFallback = false;
+    _fallbackSource = null;
     notifyListeners();
 
     try {
-      _result = await _repository.lookup(word.trim(), _selectedLanguage);
-      if (_result == null) {
+      final lookupResult = await _repository.lookupAll(
+        word.trim(),
+        _selectedLanguage,
+        fallbackToEnglish: _fallbackToEnglish,
+      );
+      _results = lookupResult.results;
+      _usedFallback = lookupResult.usedFallback;
+      _fallbackSource = lookupResult.fallbackSource;
+      if (_results.isEmpty) {
         _error = 'No results found for "$word"';
       }
     } catch (e) {
@@ -50,36 +92,29 @@ class DictionaryProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> search(String query) async {
-    if (query.trim().isEmpty) {
-      _searchResults = [];
-      notifyListeners();
-      return;
-    }
-
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      _searchResults = await _repository.search(query.trim(), _selectedLanguage);
-    } catch (e) {
-      _error = 'Search failed: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
   void clearResults() {
-    _result = null;
-    _searchResults = [];
+    _results = [];
     _error = null;
+    _usedFallback = false;
+    _fallbackSource = null;
     notifyListeners();
   }
 
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  /// Search for Kanji suggestions based on hiragana/katakana input
+  Future<List<String>> searchKanjiSuggestions(String query, {int limit = 10}) async {
+    if (query.trim().isEmpty) return [];
+
+    try {
+      final results = await _repository.searchKanjiSuggestions(query.trim(), limit: limit);
+      return results;
+    } catch (e) {
+      debugPrint('Kanji suggestion error: $e');
+      return [];
+    }
   }
 }

@@ -1,17 +1,23 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/deck.dart';
+import '../../data/models/flashcard.dart';
 import '../../data/repositories/deck_repository.dart';
+import '../../data/repositories/flashcard_repository.dart';
 
 class DeckProvider extends ChangeNotifier {
   final DeckRepository _repository;
+  final FlashcardRepository _flashcardRepository;
 
   List<Deck> _decks = [];
   Deck? _selectedDeck;
   bool _isLoading = false;
   String? _error;
 
-  DeckProvider({DeckRepository? repository})
-      : _repository = repository ?? DeckRepository();
+  DeckProvider({
+    DeckRepository? repository,
+    FlashcardRepository? flashcardRepository,
+  })  : _repository = repository ?? DeckRepository(),
+        _flashcardRepository = flashcardRepository ?? FlashcardRepository();
 
   List<Deck> get decks => _decks;
   Deck? get selectedDeck => _selectedDeck;
@@ -101,5 +107,38 @@ class DeckProvider extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  /// Add a flashcard to a deck from dictionary lookup
+  Future<void> addFlashcard({
+    required String deckId,
+    required String front,
+    required String back,
+    String? phonetic,
+    String? example,
+    String? notes,
+  }) async {
+    try {
+      debugPrint('DeckProvider: Adding flashcard to deck $deckId');
+      final flashcard = Flashcard(
+        deckId: deckId,
+        front: front,
+        back: back,
+        frontPhonetic: phonetic,
+        example: example,
+        notes: notes,
+      );
+      await _flashcardRepository.createFlashcard(flashcard);
+      debugPrint('DeckProvider: Flashcard added successfully');
+
+      // Reload decks to update card counts
+      await loadDecks();
+    } catch (e, stackTrace) {
+      debugPrint('DeckProvider: Error adding flashcard: $e');
+      debugPrint('DeckProvider: Stack trace: $stackTrace');
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
   }
 }

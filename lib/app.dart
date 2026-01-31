@@ -14,6 +14,7 @@ import 'presentation/providers/sync_provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/deck/deck_detail_screen.dart';
+import 'presentation/screens/deck/create_deck_screen.dart';
 import 'presentation/screens/study/study_screen.dart';
 import 'presentation/screens/library/public_deck_detail_screen.dart';
 import 'presentation/screens/publish/publish_deck_screen.dart';
@@ -36,7 +37,9 @@ class VocabFlipApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => StudyProvider(preferences: preferences),
         ),
-        ChangeNotifierProvider(create: (_) => DictionaryProvider()),
+        ChangeNotifierProvider(
+          create: (_) => DictionaryProvider(prefs: preferences),
+        ),
         ChangeNotifierProvider(
           create: (_) => SettingsProvider(preferences: preferences),
         ),
@@ -101,6 +104,10 @@ class VocabFlipApp extends StatelessWidget {
       case '/sync-notifications':
         return MaterialPageRoute(
           builder: (_) => const SyncNotificationsScreen(),
+        );
+      case '/create-deck':
+        return MaterialPageRoute(
+          builder: (_) => const CreateDeckScreen(),
         );
       default:
         return null;

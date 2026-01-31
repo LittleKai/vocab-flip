@@ -5,6 +5,7 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/flashcard.dart';
+import '../../../data/models/deck.dart';
 import '../../../data/models/dictionary_result.dart';
 import '../../../data/services/image_service.dart';
 import '../../providers/flashcard_provider.dart';
@@ -34,14 +35,16 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   final _exampleController = TextEditingController();
   final _notesController = TextEditingController();
   final _tagsController = TextEditingController();
-  final _imageUrlController = TextEditingController();
 
   final _imageService = ImageService();
 
   bool _isLoading = false;
   bool _isLookingUp = false;
-  String? _localImagePath; // Local file path for picked image
-  bool _useImageUrl = false; // Toggle between URL and local image
+
+  // Image state
+  String? _localImagePath;
+  bool _useImageUrl = false;
+  final _imageUrlController = TextEditingController();
 
   bool get _isEditing => widget.flashcard != null;
 
@@ -57,12 +60,13 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
       _tagsController.text = widget.flashcard!.tags.join(', ');
 
       // Load existing image
-      if (widget.flashcard!.hasImage) {
-        if (widget.flashcard!.isImageUrl) {
+      final imageUrl = widget.flashcard!.frontImageUrl ?? widget.flashcard!.imageUrl;
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
           _useImageUrl = true;
-          _imageUrlController.text = widget.flashcard!.imageUrl!;
+          _imageUrlController.text = imageUrl;
         } else {
-          _localImagePath = widget.flashcard!.imageUrl;
+          _localImagePath = imageUrl;
         }
       }
     }
@@ -83,6 +87,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final deck = context.watch<DeckProvider>().selectedDeck;
 
     return Scaffold(
       appBar: AppBar(
@@ -101,96 +106,14 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Front (Word)
-            TextFormField(
-              controller: _frontController,
-              decoration: InputDecoration(
-                labelText: l10n.wordFront,
-                hintText: l10n.enterWord,
-                prefixIcon: const Icon(Icons.text_fields),
-                suffixIcon: _isLookingUp
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: _autoFill,
-                        tooltip: l10n.lookUp,
-                      ),
-              ),
-              textCapitalization: TextCapitalization.none,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return l10n.pleaseEnterWord;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
+            // Build fields based on deck structure
+            ..._buildFieldsFromStructure(l10n, deck),
 
-            // Phonetic
-            TextFormField(
-              controller: _phoneticController,
-              decoration: InputDecoration(
-                labelText: l10n.phoneticReading,
-                hintText: l10n.phoneticHint,
-                prefixIcon: const Icon(Icons.record_voice_over),
-              ),
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            Divider(color: Colors.grey.shade300),
+            const SizedBox(height: 12),
 
-            // Back (Meaning)
-            TextFormField(
-              controller: _backController,
-              decoration: InputDecoration(
-                labelText: l10n.meaningBack,
-                hintText: l10n.enterMeaning,
-                prefixIcon: const Icon(Icons.translate),
-              ),
-              maxLines: 2,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return l10n.pleaseEnterMeaning;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Image Section
-            _buildImageSection(l10n),
-            const SizedBox(height: 16),
-
-            // Example
-            TextFormField(
-              controller: _exampleController,
-              decoration: InputDecoration(
-                labelText: l10n.exampleSentence,
-                hintText: l10n.addExample,
-                prefixIcon: const Icon(Icons.format_quote),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-
-            // Notes
-            TextFormField(
-              controller: _notesController,
-              decoration: InputDecoration(
-                labelText: l10n.notesOptional,
-                hintText: l10n.addNotes,
-                prefixIcon: const Icon(Icons.note),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-
-            // Tags
+            // Tags (always at bottom)
             TextFormField(
               controller: _tagsController,
               decoration: InputDecoration(
@@ -199,6 +122,13 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 prefixIcon: const Icon(Icons.label),
               ),
             ),
+
+            // Image section (based on deck's imageDisplayMode)
+            if (deck != null && deck.imageDisplayMode != ImageDisplayMode.none) ...[
+              const SizedBox(height: 24),
+              _buildImageSection(l10n, deck),
+            ],
+
             const SizedBox(height: 32),
 
             // Submit button
@@ -238,11 +168,168 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     );
   }
 
-  Widget _buildImageSection(AppLocalizations l10n) {
+  List<Widget> _buildFieldsFromStructure(AppLocalizations l10n, Deck? deck) {
+    final widgets = <Widget>[];
+    final frontFields = deck?.frontFields ?? Deck.defaultFrontFields;
+    final backFields = deck?.backFields ?? Deck.defaultBackFields;
+
+    // Front section header
+    widgets.add(_SectionHeader(
+      title: l10n.front,
+      icon: Icons.flip_to_front,
+      color: AppColors.primary,
+    ));
+    widgets.add(const SizedBox(height: 12));
+
+    // Front fields
+    for (final field in frontFields) {
+      widgets.add(_buildFieldWidget(field, l10n, isFront: true));
+      widgets.add(const SizedBox(height: 12));
+    }
+
+    widgets.add(const SizedBox(height: 12));
+
+    // Back section header
+    widgets.add(_SectionHeader(
+      title: l10n.back,
+      icon: Icons.flip_to_back,
+      color: AppColors.secondary,
+    ));
+    widgets.add(const SizedBox(height: 12));
+
+    // Back fields
+    for (final field in backFields) {
+      widgets.add(_buildFieldWidget(field, l10n, isFront: false));
+      widgets.add(const SizedBox(height: 12));
+    }
+
+    return widgets;
+  }
+
+  Widget _buildFieldWidget(CardFieldType field, AppLocalizations l10n, {required bool isFront}) {
+    final color = isFront ? AppColors.primary : AppColors.secondary;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Side indicator
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(
+              isFront ? Icons.flip_to_front : Icons.flip_to_back,
+              color: color,
+              size: 16,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: _buildFieldInput(field, l10n)),
+      ],
+    );
+  }
+
+  Widget _buildFieldInput(CardFieldType field, AppLocalizations l10n) {
+    switch (field) {
+      case CardFieldType.word:
+        return TextFormField(
+          controller: _frontController,
+          decoration: InputDecoration(
+            labelText: l10n.wordFront,
+            hintText: l10n.enterWord,
+            prefixIcon: const Icon(Icons.text_fields),
+            suffixIcon: _isLookingUp
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: _autoFill,
+                    tooltip: l10n.lookUp,
+                  ),
+          ),
+          textCapitalization: TextCapitalization.none,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return l10n.pleaseEnterWord;
+            }
+            return null;
+          },
+        );
+
+      case CardFieldType.phonetic:
+        return TextFormField(
+          controller: _phoneticController,
+          decoration: InputDecoration(
+            labelText: l10n.phoneticReading,
+            hintText: l10n.phoneticHint,
+            prefixIcon: const Icon(Icons.record_voice_over),
+          ),
+        );
+
+      case CardFieldType.meaning:
+        return TextFormField(
+          controller: _backController,
+          decoration: InputDecoration(
+            labelText: l10n.meaningBack,
+            hintText: l10n.enterMeaning,
+            prefixIcon: const Icon(Icons.translate),
+          ),
+          maxLines: 3,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return l10n.pleaseEnterMeaning;
+            }
+            return null;
+          },
+        );
+
+      case CardFieldType.example:
+        return TextFormField(
+          controller: _exampleController,
+          decoration: InputDecoration(
+            labelText: l10n.exampleSentence,
+            hintText: l10n.addExample,
+            prefixIcon: const Icon(Icons.format_quote),
+          ),
+          maxLines: 3,
+        );
+
+      case CardFieldType.notes:
+        return TextFormField(
+          controller: _notesController,
+          decoration: InputDecoration(
+            labelText: l10n.notesOptional,
+            hintText: l10n.addNotes,
+            prefixIcon: const Icon(Icons.note),
+          ),
+          maxLines: 2,
+        );
+    }
+  }
+
+  Widget _buildImageSection(AppLocalizations l10n, Deck deck) {
+    final modeLabel = switch (deck.imageDisplayMode) {
+      ImageDisplayMode.both => l10n.bothSides,
+      ImageDisplayMode.front => l10n.frontOnly,
+      ImageDisplayMode.back => l10n.backOnly,
+      ImageDisplayMode.none => '',
+    };
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header with toggle
         Row(
           children: [
             Icon(Icons.image, color: AppColors.textSecondaryLight, size: 20),
@@ -254,7 +341,22 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                   ),
             ),
             const Spacer(),
-            // Toggle between URL and Local
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                modeLabel,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             SegmentedButton<bool>(
               segments: [
                 ButtonSegment(
@@ -270,9 +372,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
               ],
               selected: {_useImageUrl},
               onSelectionChanged: (selected) {
-                setState(() {
-                  _useImageUrl = selected.first;
-                });
+                setState(() => _useImageUrl = selected.first);
               },
               style: ButtonStyle(
                 visualDensity: VisualDensity.compact,
@@ -282,8 +382,6 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
           ],
         ),
         const SizedBox(height: 12),
-
-        // Image input based on mode
         if (_useImageUrl)
           _buildUrlInput(l10n)
         else
@@ -305,9 +403,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 ? IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: () {
-                      setState(() {
-                        _imageUrlController.clear();
-                      });
+                      setState(() => _imageUrlController.clear());
                     },
                   )
                 : null,
@@ -322,29 +418,11 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxHeight: 200,
-                ),
+                constraints: const BoxConstraints(maxHeight: 200),
                 child: Image.network(
                   _imageUrlController.text,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 100,
-                    color: Colors.grey.shade200,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.broken_image, color: Colors.grey.shade400),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.invalidImageUrl,
-                            style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  errorBuilder: (_, __, ___) => _buildImageError(l10n),
                   loadingBuilder: (_, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Container(
@@ -361,6 +439,26 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     );
   }
 
+  Widget _buildImageError(AppLocalizations l10n) {
+    return Container(
+      height: 100,
+      color: Colors.grey.shade200,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image, color: Colors.grey.shade400),
+            const SizedBox(height: 4),
+            Text(
+              l10n.invalidImageUrl,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLocalImagePicker(AppLocalizations l10n) {
     final hasImage = _localImagePath != null;
 
@@ -374,10 +472,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.grey.shade300,
-            style: BorderStyle.solid,
-          ),
+          border: Border.all(color: Colors.grey.shade300),
         ),
         child: hasImage
             ? Stack(
@@ -405,7 +500,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                         const SizedBox(width: 8),
                         _buildImageButton(
                           icon: Icons.delete,
-                          onTap: _removeImage,
+                          onTap: () => setState(() => _localImagePath = null),
                           tooltip: l10n.removeImage,
                           color: AppColors.error,
                         ),
@@ -432,10 +527,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
           const SizedBox(height: 8),
           Text(
             l10n.tapToAddImage,
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
           ),
         ],
       ),
@@ -456,37 +548,20 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Icon(
-            icon,
-            size: 20,
-            color: color ?? Colors.white,
-          ),
+          child: Icon(icon, size: 20, color: color ?? Colors.white),
         ),
       ),
     );
   }
 
   Future<void> _pickImage() async {
-    // Get max width from settings to resize image and save storage
     final maxWidth = context.read<SettingsProvider>().flashcardImageMaxWidth;
     final savedPath = await _imageService.pickAndSaveImage(maxWidth: maxWidth);
     if (savedPath != null) {
-      // Delete old image if it's different
       if (_localImagePath != null && _localImagePath != savedPath) {
         await _imageService.deleteImage(_localImagePath!);
       }
-      setState(() {
-        _localImagePath = savedPath;
-      });
-    }
-  }
-
-  void _removeImage() {
-    if (_localImagePath != null) {
-      // We'll delete the image when saving if it's not used
-      setState(() {
-        _localImagePath = null;
-      });
+      setState(() => _localImagePath = savedPath);
     }
   }
 
@@ -510,9 +585,9 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
       dictProvider.setLanguage(SupportedLanguage.fromCode(deck.sourceLanguage));
       await dictProvider.lookup(word);
 
-      final result = dictProvider.result;
-      if (result != null) {
-        _fillFromDictionary(result);
+      final results = dictProvider.results;
+      if (results.isNotEmpty) {
+        _fillFromDictionary(results.first);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.autoFilled),
@@ -538,11 +613,9 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     if (result.phonetic != null && _phoneticController.text.isEmpty) {
       _phoneticController.text = result.phonetic!;
     }
-
     if (result.primaryDefinition != null && _backController.text.isEmpty) {
       _backController.text = result.primaryDefinition!;
     }
-
     if (result.firstExample != null && _exampleController.text.isEmpty) {
       _exampleController.text = result.firstExample!;
     }
@@ -607,13 +680,9 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     final imageUrl = _getImageUrl();
 
     if (_isEditing) {
-      // Check if image was removed or changed
-      final oldImageUrl = widget.flashcard!.imageUrl;
-      if (oldImageUrl != null &&
-          !oldImageUrl.startsWith('http') &&
-          oldImageUrl != imageUrl) {
-        // Delete old local image
-        await _imageService.deleteImage(oldImageUrl);
+      final oldImage = widget.flashcard!.frontImageUrl ?? widget.flashcard!.imageUrl;
+      if (oldImage != null && !oldImage.startsWith('http') && oldImage != imageUrl) {
+        await _imageService.deleteImage(oldImage);
       }
 
       final updated = widget.flashcard!.copyWith(
@@ -622,8 +691,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         back: _backController.text.trim(),
         example: _exampleController.text.trim(),
         notes: _notesController.text.trim(),
-        imageUrl: imageUrl,
-        clearImage: imageUrl == null && widget.flashcard!.hasImage,
+        frontImageUrl: imageUrl,
+        clearFrontImage: imageUrl == null && widget.flashcard!.hasFrontImage,
         tags: tags,
       );
       await provider.updateFlashcard(updated);
@@ -641,7 +710,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         notes: _notesController.text.trim().isNotEmpty
             ? _notesController.text.trim()
             : null,
-        imageUrl: imageUrl,
+        frontImageUrl: imageUrl,
         tags: tags,
       );
       await provider.createFlashcard(flashcard);
@@ -656,8 +725,44 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     _notesController.clear();
     _tagsController.clear();
     _imageUrlController.clear();
-    setState(() {
-      _localImagePath = null;
-    });
+    setState(() => _localImagePath = null);
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+
+  const _SectionHeader({
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border(left: BorderSide(color: color, width: 4)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

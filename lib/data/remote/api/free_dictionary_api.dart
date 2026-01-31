@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants/api_endpoints.dart';
 import '../../models/dictionary_result.dart';
@@ -10,18 +11,21 @@ class FreeDictionaryApi {
 
   Future<DictionaryResult?> lookup(String word) async {
     try {
-      final response = await _client.get(
-        Uri.parse(ApiEndpoints.freeDictionary(word)),
-      );
+      final url = ApiEndpoints.freeDictionary(word);
+      debugPrint('[FreeDictionaryApi] GET $url');
+
+      final response = await _client.get(Uri.parse(url));
+      debugPrint('[FreeDictionaryApi] Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         if (data.isNotEmpty) {
+          debugPrint('[FreeDictionaryApi] Found result for "$word"');
           return _parseResponse(data.first as Map<String, dynamic>);
         }
       }
     } catch (e) {
-      // Log error or handle accordingly
+      debugPrint('[FreeDictionaryApi] Error: $e');
     }
     return null;
   }

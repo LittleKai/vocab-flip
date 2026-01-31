@@ -1,6 +1,6 @@
 # Project Summary
 **Last Updated:** 2026-01-31
-**Updated By:** Claude Code - Card Structure Configuration, TTS Improvements
+**Updated By:** Claude Code - Chinese-Vietnamese Local Dictionary
 
 ---
 
@@ -52,13 +52,17 @@ lib/
 │   │   ├── database/
 │   │   │   ├── app_database.dart    # Singleton SQLite setup
 │   │   │   ├── deck_dao.dart        # Deck CRUD + counts
-│   │   │   └── flashcard_dao.dart   # Flashcard CRUD + queries
+│   │   │   ├── flashcard_dao.dart   # Flashcard CRUD + queries
+│   │   │   └── chinese_dict_dao.dart # Chinese-Vietnamese dictionary (local SQLite)
 │   │   └── preferences/
 │   │       └── app_preferences.dart # SharedPreferences wrapper
 │   ├── remote/
 │   │   ├── api/                 # Dictionary API clients
-│   │   │   ├── free_dictionary_api.dart  # English
-│   │   │   └── jisho_api.dart            # Japanese
+│   │   │   ├── free_dictionary_api.dart  # English → English
+│   │   │   ├── laban_api.dart            # English → Vietnamese
+│   │   │   ├── jisho_api.dart            # Japanese → English
+│   │   │   ├── mazii_api.dart            # Japanese → Vietnamese
+│   │   │   └── hanzii_api.dart           # Chinese → Vietnamese
 │   │   └── firebase/            # Firebase services
 │   │       ├── firebase_service.dart      # Auth + ID token
 │   │       ├── firestore_rest_client.dart # REST API for Windows
@@ -133,7 +137,11 @@ lib/
 │   └── app_localizations_vi.dart
 │
 tools/
-└── firebase_setup.dart          # Firebase CLI tool for indexes/rules
+├── firebase_setup.dart          # Firebase CLI tool for indexes/rules
+└── build_chinese_dict.dart      # Build Chinese-Vietnamese dictionary from LacViet.txt
+
+assets/
+└── chinese_dict.db              # Chinese-Vietnamese dictionary (66K+ entries, 7.9MB)
 ```
 
 ### Component Dependencies
@@ -240,8 +248,9 @@ return _methodNative();  // Firestore SDK
 | **Image Size Settings** | ✅ Complete | 1000px desktop, 600px mobile |
 | SM-2 Spaced Repetition | ✅ Complete | All platforms |
 | Study Session | ✅ Complete | Flip, rate, progress |
-| Dictionary Lookup (EN) | ✅ Complete | Free Dictionary API |
-| Dictionary Lookup (JA) | ✅ Complete | Jisho API |
+| Dictionary Lookup (EN) | ✅ Complete | Free Dictionary + Laban API |
+| Dictionary Lookup (JA) | ✅ Complete | Mazii + Jisho API |
+| **Dictionary Lookup (ZH)** | ✅ Complete | Local SQLite (LacViet, 66K+ entries) |
 | Text-to-Speech | ✅ Complete | Multi-language (graceful fail on Windows) |
 | Statistics | ✅ Complete | Charts with fl_chart |
 | Import/Export (JSON) | ✅ Complete | All platforms |
@@ -343,7 +352,24 @@ return _methodNative();  // Firestore SDK
 
 ## 9. Recent Changes (Last 3 Sessions)
 
-1. **2026-01-31** - Card Structure Configuration & TTS Improvements
+1. **2026-01-31 (Session 3)** - Chinese-Vietnamese Local Dictionary
+   - Created `tools/build_chinese_dict.dart` to build SQLite DB from LacViet.txt
+   - Created `assets/chinese_dict.db` with 66,447 entries (7.9MB)
+   - Created `ChineseDictDao` for local database access
+   - Rewrote `HanziiApi` to use local SQLite instead of Mazii API
+   - Fixed definition parsing: renumber across multiple pronunciations
+   - Fixed UI display: keep all definitions in single meaning for proper numbering
+   - Added `sqlite3` dev dependency for build tool
+   - Database auto-copies from assets to documents on first launch
+
+2. **2026-01-31 (Session 2)** - TTS Improvements
+   - Fixed TTS voice selection on Windows (setVoice() instead of setLanguage())
+   - Added voice caching for faster language switching
+   - Moved TTS settings to Helper dialog on Settings screen
+   - Fixed TTS to play on every card flip (not just word side)
+   - Added TTS Warning Dialog for unavailable languages
+
+3. **2026-01-31 (Session 1)** - Card Structure Configuration & TTS Improvements
    - Added 2-tab interface in Create/Edit Deck (Basic Info + Card Structure)
    - Added CardFieldType enum and drag-and-drop field configuration
    - Added ImageDisplayMode for controlling image visibility per side
@@ -357,30 +383,6 @@ return _methodNative();  // Firestore SDK
    - Changed flashcard sort order (oldest first, new cards at bottom)
    - Added pronunciation button to Study Screen
    - Fixed "Study Again" button (now reshuffles instead of empty load)
-
-2. **2026-01-29 (Session 2)** - Auth System, Image Settings, Navigation Improvements
-   - Added authentication system: AuthProvider, LoginScreen, SignupScreen
-   - Added flashcard image size setting in Settings (1000px Windows, 600px mobile)
-   - Added image resize on save to optimize storage (uses `image` package)
-   - Fixed TTS service for Windows (setSharedInstance iOS/macOS only)
-   - Updated RatingService and SyncService with REST API support for Windows
-   - Created DeckNavigation helper for consistent deck browsing
-   - Deck tap now goes to Browse (flashcards) instead of Detail screen
-   - Replaced flip button with audio play button in flashcard viewer
-   - Fixed Hero tag conflict on FloatingActionButtons
-   - Fixed image URL display ratio in flip card
-   - Created tools/firebase_setup.dart for Firebase CLI operations
-   - Added 20+ localization keys for auth and settings
-
-3. **2026-01-29 (Session 1)** - Flashcard Images & SQLite Windows Fix
-   - Fixed SQLite on Windows: added sqflite_common_ffi + sqlite3_flutter_libs
-   - Added FFI initialization in app_database.dart for desktop platforms
-   - Database migration v2→v3 adding image_url column to flashcards
-   - Created ImageService for image picking and local storage
-   - Updated FlashcardEditorScreen with image UI (URL/local file toggle)
-   - Updated FlashcardFace and CardContent widgets to display images
-   - Fixed firestore.indexes.json field names (camelCase → snake_case)
-   - Created deploy_indexes.bat script for deploying Firestore indexes
 
 ---
 

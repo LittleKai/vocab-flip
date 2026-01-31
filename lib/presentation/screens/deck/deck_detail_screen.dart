@@ -37,10 +37,9 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<DeckProvider>().selectDeck(widget.deckId);
       context.read<FlashcardProvider>().loadFlashcards(widget.deckId);
-      // Check for sync updates if this is a linked deck
       context.read<SyncProvider>().checkForUpdates();
       _focusNode.requestFocus();
-      // Check TTS after deck is loaded
+
       if (mounted) {
         await _checkTtsForDeck();
       }
@@ -49,18 +48,21 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
 
   Future<void> _checkTtsForDeck() async {
     final deck = context.read<DeckProvider>().selectedDeck;
-    if (deck == null) {
-      debugPrint('TTS check: deck is null');
-      return;
+    if (deck == null) return;
+
+    final language = SupportedLanguage.fromCode(deck.sourceLanguage);
+
+    if (!_ttsService.isInitialized) {
+      await _ttsService.init();
     }
 
-    debugPrint('TTS check for deck: ${deck.name}, sourceLanguage: ${deck.sourceLanguage}');
-    final language = SupportedLanguage.fromCode(deck.sourceLanguage);
-    await TtsHelpDialog.checkAndShowWarningForLanguage(
-      context,
-      _ttsService,
-      language,
-    );
+    if (context.mounted) {
+      await TtsHelpDialog.checkAndShowWarningForLanguage(
+        context,
+        _ttsService,
+        language,
+      );
+    }
   }
 
   @override

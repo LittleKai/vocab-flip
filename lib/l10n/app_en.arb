@@ -569,5 +569,10 @@
   "ttsStepRestartApp": "Restart VocabFlip",
   "ttsGenericInstructions": "Please install TTS voices for your desired languages in your system settings.",
   "dontShowAgain": "Don't show again",
-  "ttsSettings": "TTS Settings"
+  "ttsSettings": "TTS Settings",
+  "helper": "Help & Guides",
+  "resetTtsWarning": "Reset TTS Warning",
+  "resetTtsWarningDesc": "Show TTS installation warning again when entering decks",
+  "ttsWarningReset": "TTS warning has been reset",
+  "close": "Close"
 }

@@ -17,6 +17,10 @@ class CardContent extends StatelessWidget {
     this.onAudioPlay,
   });
 
+  /// Check if there's an image to show for the current side
+  bool get _hasImageForCurrentSide =>
+      showBack ? flashcard.hasBackImage : flashcard.hasFrontImage;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -36,11 +40,13 @@ class CardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Image (if available)
-          if (flashcard.hasImage) ...[
+          // Image (if available) - show front image when not showing back, back image otherwise
+          if (_hasImageForCurrentSide) ...[
             Builder(
               builder: (context) {
                 final maxWidth = context.watch<SettingsProvider>().flashcardImageMaxWidth.toDouble();
+                final imageUrl = showBack ? flashcard.effectiveBackImageUrl! : flashcard.effectiveFrontImageUrl!;
+                final isUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: ConstrainedBox(
@@ -48,14 +54,14 @@ class CardContent extends StatelessWidget {
                       maxWidth: maxWidth,
                       maxHeight: maxWidth * 0.75, // 4:3 aspect ratio max
                     ),
-                    child: flashcard.isImageUrl
+                    child: isUrl
                         ? Image.network(
-                            flashcard.imageUrl!,
+                            imageUrl,
                             fit: BoxFit.contain,
                             errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                           )
                         : Image.file(
-                            File(flashcard.imageUrl!),
+                            File(imageUrl),
                             fit: BoxFit.contain,
                             errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                           ),

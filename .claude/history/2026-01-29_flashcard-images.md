@@ -173,3 +173,119 @@ image: ^4.1.3  # For image resizing
 - `flutter analyze` passes with no errors (only info-level warnings)
 - Auth flow ready for testing
 - Image resize works in background isolate
+
+---
+
+# Session 3: Separate Front/Back Image Support
+
+## Summary
+Added support for separate front and back images on flashcards with an option to share the front image on both sides.
+
+## New Features
+
+### Separate Front/Back Images
+- Each flashcard can now have separate images for front and back sides
+- Toggle to "Share image on both sides" (enabled by default for backwards compatibility)
+- When sharing is enabled, the front image appears on both sides
+- When sharing is disabled, users can set different images for front and back
+
+## Database Changes
+- **Version:** 3 → 4
+- **New Columns:**
+  - `flashcards.front_image_url TEXT` - URL or local path for front image
+  - `flashcards.back_image_url TEXT` - URL or local path for back image
+  - `flashcards.share_image INTEGER DEFAULT 1` - Whether to share front image on back side
+
+## Files Modified
+
+### Model
+- `lib/data/models/flashcard.dart`
+  - Added `frontImageUrl`, `backImageUrl`, `shareImage` fields
+  - Added helper getters: `effectiveFrontImageUrl`, `effectiveBackImageUrl`, `hasFrontImage`, `hasBackImage`, `isFrontImageUrl`, `isBackImageUrl`
+  - Updated `copyWith`, `toMap`, `fromMap`, `toJson`, `fromJson` methods
+  - Added `clearFrontImage`, `clearBackImage` parameters to `copyWith`
+
+### Database
+- `lib/data/local/database/app_database.dart` - Migration v3→v4 adding new columns
+- `lib/core/constants/app_constants.dart` - Database version 3→4
+
+### UI
+- `lib/presentation/screens/flashcard/flashcard_editor_screen.dart`
+  - Separate image pickers for front and back
+  - "Share image on both sides" toggle switch
+  - Refactored image UI to use generic builder methods
+- `lib/presentation/widgets/flashcard/card_content.dart` - Shows correct image per side
+- `lib/presentation/screens/study/study_screen.dart` - Uses effectiveFrontImageUrl/effectiveBackImageUrl
+- `lib/presentation/screens/flashcard/flashcard_viewer_screen.dart` - Uses effectiveFrontImageUrl/effectiveBackImageUrl
+
+### Localization
+- `lib/l10n/app_en.arb` - Added 4 new keys
+- `lib/l10n/app_vi.arb` - Added 4 new Vietnamese translations
+
+## New Localization Keys
+- `frontImage` - "Front Image"
+- `backImage` - "Back Image"
+- `shareImageOnBothSides` - "Share image on both sides"
+- `shareImageDescription` - "Show the front image on the back side as well"
+
+## Backwards Compatibility
+- The legacy `imageUrl` field is still supported and maps to `frontImageUrl`
+- When `shareImage` is true (default), `effectiveBackImageUrl` returns the front image
+- Old cards with only `imageUrl` set will show the same image on both sides
+
+---
+
+# Session 4: Vietnamese Dictionary Integration (Laban + Mazii)
+
+## Summary
+Replaced English-only dictionary APIs with Vietnamese translation APIs for better learning experience.
+
+## New APIs
+
+### 1. Laban Dictionary (English → Vietnamese)
+- **Endpoint:** `https://dict.laban.vn/ajax/find?type=1&query={word}`
+- **Features:**
+  - Vietnamese definitions for English words
+  - IPA phonetic extraction
+  - Part-of-speech categorization (Danh từ, Động từ, etc.)
+  - Example sentences in Vietnamese
+
+### 2. Mazii API (Japanese → Vietnamese)
+- **Endpoint:** `https://mazii.net/api/search/{word}/{limit}/{page}`
+- **Features:**
+  - Vietnamese definitions for Japanese words
+  - Hiragana/Katakana readings
+  - Example sentences with Vietnamese translations
+  - Related words and antonyms
+
+## Files Created
+- `lib/data/remote/api/laban_api.dart` - Laban Dictionary API client
+- `lib/data/remote/api/mazii_api.dart` - Mazii API client with MaziiResult model
+
+## Files Modified
+- `lib/core/constants/api_endpoints.dart` - Added Laban and Mazii endpoints
+- `lib/data/repositories/dictionary_repository.dart` - Updated to use Vietnamese APIs with English fallback
+
+## API Strategy
+```
+English word lookup:
+  1. Try Laban (English → Vietnamese) ✓
+  2. Fallback: FreeDictionary (English → English)
+
+Japanese word lookup:
+  1. Try Mazii (Japanese → Vietnamese) ✓
+  2. Fallback: Jisho (Japanese → English)
+
+Chinese word lookup:
+  - TODO: Need to find/implement Chinese → Vietnamese API
+```
+
+## New Methods in DictionaryRepository
+- `lookup()` - Primary lookup with Vietnamese first, English fallback
+- `lookupVietnamese()` - Only use Vietnamese dictionaries (no fallback)
+- `lookupEnglish()` - Only use English dictionaries
+
+## Testing Notes
+- `flutter analyze` passes with no errors
+- Laban API parses HTML response to extract definitions
+- Mazii API uses clean JSON response

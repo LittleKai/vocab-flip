@@ -2401,6 +2401,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TTS Settings'**
   String get ttsSettings;
+
+  /// No description provided for @helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Guides'**
+  String get helper;
+
+  /// No description provided for @resetTtsWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset TTS Warning'**
+  String get resetTtsWarning;
+
+  /// No description provided for @resetTtsWarningDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Show TTS installation warning again when entering decks'**
+  String get resetTtsWarningDesc;
+
+  /// No description provided for @ttsWarningReset.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS warning has been reset'**
+  String get ttsWarningReset;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate

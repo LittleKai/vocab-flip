@@ -1215,4 +1215,20 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get ttsSettings => 'Cài đặt TTS';
+
+  @override
+  String get helper => 'Trợ giúp';
+
+  @override
+  String get resetTtsWarning => 'Đặt lại cảnh báo TTS';
+
+  @override
+  String get resetTtsWarningDesc =>
+      'Hiển thị lại cảnh báo cài đặt TTS khi vào bộ thẻ';
+
+  @override
+  String get ttsWarningReset => 'Đã đặt lại cảnh báo TTS';
+
+  @override
+  String get close => 'Đóng';
 }

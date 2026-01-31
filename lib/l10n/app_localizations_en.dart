@@ -1220,4 +1220,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ttsSettings => 'TTS Settings';
+
+  @override
+  String get helper => 'Help & Guides';
+
+  @override
+  String get resetTtsWarning => 'Reset TTS Warning';
+
+  @override
+  String get resetTtsWarningDesc =>
+      'Show TTS installation warning again when entering decks';
+
+  @override
+  String get ttsWarningReset => 'TTS warning has been reset';
+
+  @override
+  String get close => 'Close';
 }

@@ -177,17 +177,10 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                         controller: _flipController,
                         isFlipped: _isFlipped,
                         onFlip: () {
-                          final wasFlipped = _isFlipped;
                           setState(() => _isFlipped = !_isFlipped);
-                          // Auto-play TTS when flipping to show word
+                          // Auto-play TTS on every flip
                           if (deck?.autoPlayTtsOnFlip == true) {
-                            // Determine if we're now showing the word side
-                            // showBackFirst=false: word on front, showing when _isFlipped=false
-                            // showBackFirst=true: word on back, showing when _isFlipped=true
-                            final isNowShowingWord = showBackFirst ? !wasFlipped : wasFlipped;
-                            if (isNowShowingWord) {
-                              _speakWord(card.front, deck?.sourceLanguage ?? 'en');
-                            }
+                            _speakWord(card.front, deck?.sourceLanguage ?? 'en');
                           }
                         },
                         // Swap front/back if showBackFirst is enabled

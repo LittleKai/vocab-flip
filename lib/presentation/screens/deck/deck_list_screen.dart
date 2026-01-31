@@ -110,6 +110,13 @@ class _DeckCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  // Front/Back mode icon
+                  Icon(
+                    deck.showBackFirst ? Icons.flip_to_back : Icons.flip_to_front,
+                    size: 16,
+                    color: deck.showBackFirst ? AppColors.secondary : AppColors.primary,
+                  ),
+                  const SizedBox(width: 4),
                   // Language badges
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

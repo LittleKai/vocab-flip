@@ -74,7 +74,7 @@ class DeckDao {
     final db = await _db;
     final maps = await db.query(
       AppConstants.tableDecks,
-      orderBy: 'updated_at DESC',
+      orderBy: 'created_at ASC',
     );
 
     final decks = <Deck>[];

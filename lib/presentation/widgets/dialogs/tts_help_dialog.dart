@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
@@ -29,7 +29,7 @@ class TtsHelpDialog extends StatelessWidget {
 
     await showDialog(
       context: context,
-      builder: (context) => _TtsHelpDialogContent(
+      builder: (dialogContext) => _TtsHelpDialogContent(
         missingLanguages: missingLanguages,
         showDontShowAgain: showDontShowAgain,
         onDontShowAgainChanged: (value) => dontShowAgain = value,
@@ -47,39 +47,24 @@ class TtsHelpDialog extends StatelessWidget {
     TtsService ttsService,
     SupportedLanguage language,
   ) async {
-    debugPrint('TTS Dialog: checking for language ${language.code}');
+    // Only show on Windows/Linux desktop
+    if (kIsWeb) return;
+    if (!Platform.isWindows && !Platform.isLinux) return;
 
-    // Only show on Windows/desktop
-    if (kIsWeb) {
-      debugPrint('TTS Dialog: skipping - web platform');
-      return;
-    }
-    if (!Platform.isWindows && !Platform.isLinux) {
-      debugPrint('TTS Dialog: skipping - not Windows/Linux');
-      return;
-    }
-
-    // Initialize preferences
+    // Check user preference
     final prefs = AppPreferences();
     await prefs.init();
+    if (prefs.hideTtsWarning) return;
 
-    final hideWarning = prefs.hideTtsWarning;
-    debugPrint('TTS Dialog: hideTtsWarning=$hideWarning');
-    if (hideWarning) return;
-
-    // Initialize TTS and check language
+    // Initialize TTS if needed
     if (!ttsService.isInitialized) {
-      debugPrint('TTS Dialog: initializing TTS...');
       await ttsService.init();
     }
 
-    // Check if this specific language is supported
-    final isSupported = ttsService.isLanguageSupported(language);
-    debugPrint('TTS Dialog: language ${language.code} supported=$isSupported');
+    // Check if language is supported
+    if (ttsService.isLanguageSupported(language)) return;
 
-    if (isSupported) return;
-
-    debugPrint('TTS Dialog: showing warning dialog');
+    // Show warning dialog
     if (context.mounted) {
       await show(
         context,

@@ -8,7 +8,23 @@
       "Bash(tree:*)",
       "Bash(flutter gen-l10n:*)",
       "Bash(powershell -Command \"Get-ChildItem -Recurse -Filter ''*.dart'' lib/presentation/screens | ForEach-Object { \\(Get-Content $_FullName\\) -replace \"\"import ''package:flutter_gen/gen_l10n/app_localizations.dart''\"\", \"\"import ''package:vocabflip/l10n/app_localizations.dart''\"\" | Set-Content $_FullName }\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:mazii.net)",
+      "WebFetch(domain:hanzii.net)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:dict.laban.vn)",
+      "WebFetch(domain:api.hanzii.net)",
+      "Bash(flutter build:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(dart run:*)",
+      "Bash(sqlite3:*)",
+      "Bash(findstr:*)",
+      "Bash(del \"D:\\\\3.Flutter\\\\projects\\\\vocabflip\\\\.claude\\\\history\\\\2026-01-31_chinese-dictionary.md\")"
     ]
   },
   "capabilities": {

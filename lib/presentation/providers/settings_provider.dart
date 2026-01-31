@@ -14,6 +14,9 @@ class SettingsProvider extends ChangeNotifier {
   int _streak = 0;
   int _totalStudyTime = 0;
   int _flashcardImageMaxWidth = AppPreferences.defaultFlashcardImageMaxWidth;
+  int _flashcardMainFontSize = AppPreferences.defaultMainFontSize;
+  int _flashcardPhoneticFontSize = AppPreferences.defaultPhoneticFontSize;
+  int _flashcardDetailFontSize = AppPreferences.defaultDetailFontSize;
 
   SettingsProvider({AppPreferences? preferences})
       : _preferences = preferences ?? AppPreferences();
@@ -28,6 +31,9 @@ class SettingsProvider extends ChangeNotifier {
   int get streak => _streak;
   int get totalStudyTime => _totalStudyTime;
   int get flashcardImageMaxWidth => _flashcardImageMaxWidth;
+  int get flashcardMainFontSize => _flashcardMainFontSize;
+  int get flashcardPhoneticFontSize => _flashcardPhoneticFontSize;
+  int get flashcardDetailFontSize => _flashcardDetailFontSize;
 
   String get formattedStudyTime {
     final hours = _totalStudyTime ~/ 3600;
@@ -51,6 +57,9 @@ class SettingsProvider extends ChangeNotifier {
     _streak = _preferences.streak;
     _totalStudyTime = _preferences.totalStudyTime;
     _flashcardImageMaxWidth = _preferences.flashcardImageMaxWidth;
+    _flashcardMainFontSize = _preferences.flashcardMainFontSize;
+    _flashcardPhoneticFontSize = _preferences.flashcardPhoneticFontSize;
+    _flashcardDetailFontSize = _preferences.flashcardDetailFontSize;
 
     notifyListeners();
   }
@@ -100,6 +109,24 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setFlashcardImageMaxWidth(int value) async {
     _flashcardImageMaxWidth = value;
     await _preferences.setFlashcardImageMaxWidth(value);
+    notifyListeners();
+  }
+
+  Future<void> setFlashcardMainFontSize(int value) async {
+    _flashcardMainFontSize = value;
+    await _preferences.setFlashcardMainFontSize(value);
+    notifyListeners();
+  }
+
+  Future<void> setFlashcardPhoneticFontSize(int value) async {
+    _flashcardPhoneticFontSize = value;
+    await _preferences.setFlashcardPhoneticFontSize(value);
+    notifyListeners();
+  }
+
+  Future<void> setFlashcardDetailFontSize(int value) async {
+    _flashcardDetailFontSize = value;
+    await _preferences.setFlashcardDetailFontSize(value);
     notifyListeners();
   }
 

@@ -409,5 +409,10 @@
   "ttsStepRestartApp": "Khởi động lại VocabFlip",
   "ttsGenericInstructions": "Vui lòng cài đặt giọng đọc TTS cho ngôn ngữ mong muốn trong cài đặt hệ thống.",
   "dontShowAgain": "Không hiển thị lại",
-  "ttsSettings": "Cài đặt TTS"
+  "ttsSettings": "Cài đặt TTS",
+  "helper": "Trợ giúp",
+  "resetTtsWarning": "Đặt lại cảnh báo TTS",
+  "resetTtsWarningDesc": "Hiển thị lại cảnh báo cài đặt TTS khi vào bộ thẻ",
+  "ttsWarningReset": "Đã đặt lại cảnh báo TTS",
+  "close": "Đóng"
 }

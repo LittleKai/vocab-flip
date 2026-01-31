@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'data/local/preferences/app_preferences.dart';
+import 'data/local/database/chinese_dict_dao.dart';
 import 'data/remote/firebase/category_seeder.dart';
 import 'data/remote/firebase/public_deck_seeder.dart';
 
@@ -60,6 +61,14 @@ void main() async {
     // Initialize preferences
     final preferences = AppPreferences();
     await preferences.init();
+
+    // Initialize Chinese dictionary database (async, non-blocking)
+    try {
+      await ChineseDictDao.instance.init();
+      debugPrint('Chinese dictionary initialized');
+    } catch (e) {
+      debugPrint('Failed to initialize Chinese dictionary: $e');
+    }
 
     debugPrint('Starting VocabFlip app...');
 
