@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../data/models/deck.dart';
+import '../../../data/models/flashcard.dart';
 import '../../providers/settings_provider.dart';
 
 class FlipCard extends StatefulWidget {
@@ -148,10 +150,206 @@ class FlipCardController {
   void reset() => _state?.reset();
 }
 
+/// A structured flashcard face that displays fields based on deck configuration
+class StructuredFlashcardFace extends StatelessWidget {
+  final Flashcard card;
+  final List<CardFieldType> fields;
+  final bool showImage;
+  final bool isFront;
+  final Color? backgroundColor;
+
+  const StructuredFlashcardFace({
+    super.key,
+    required this.card,
+    required this.fields,
+    required this.showImage,
+    this.isFront = true,
+    this.backgroundColor,
+  });
+
+  String? _getFieldValue(CardFieldType field) {
+    switch (field) {
+      case CardFieldType.word:
+        return card.front;
+      case CardFieldType.phonetic:
+        return card.frontPhonetic;
+      case CardFieldType.meaning:
+        return card.back;
+      case CardFieldType.example:
+        return card.example;
+      case CardFieldType.notes:
+        return card.notes;
+    }
+  }
+
+  bool _isMainField(CardFieldType field) {
+    return field == CardFieldType.word || field == CardFieldType.meaning;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+    final maxWidth = settings.flashcardImageMaxWidth.toDouble();
+    final mainFontSize = settings.flashcardMainFontSize.toDouble();
+    final phoneticFontSize = settings.flashcardPhoneticFontSize.toDouble();
+    final detailFontSize = settings.flashcardDetailFontSize.toDouble();
+
+    final imageUrl = card.effectiveFrontImageUrl;
+    final hasImage = showImage && imageUrl != null && imageUrl.isNotEmpty;
+    final isImageUrl = hasImage && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Side indicator badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: (isFront ? AppColors.primary : AppColors.secondary).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              isFront ? 'Front' : 'Back',
+              style: TextStyle(
+                color: isFront ? AppColors.primary : AppColors.secondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const Spacer(),
+
+          // Image (if enabled)
+          if (hasImage) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: maxWidth,
+                  maxHeight: maxWidth * 0.75,
+                ),
+                child: isImageUrl
+                    ? Image.network(
+                        imageUrl,
+                        width: maxWidth,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return SizedBox(
+                            width: maxWidth,
+                            height: 100,
+                            child: const Center(child: CircularProgressIndicator()),
+                          );
+                        },
+                      )
+                    : Image.file(
+                        File(imageUrl),
+                        width: maxWidth,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Fields based on configuration
+          ...fields.map((field) {
+            final value = _getFieldValue(field);
+            if (value == null || value.isEmpty) return const SizedBox.shrink();
+
+            if (_isMainField(field)) {
+              // Main text (word or meaning)
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  value,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: mainFontSize,
+                      ),
+                ),
+              );
+            } else if (field == CardFieldType.phonetic) {
+              // Phonetic text
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  value,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.textSecondaryLight,
+                        fontStyle: FontStyle.italic,
+                        fontSize: phoneticFontSize,
+                      ),
+                ),
+              );
+            } else if (field == CardFieldType.example) {
+              // Example with labeled box
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _LabeledBox(
+                  label: 'Example',
+                  color: AppColors.primary,
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: detailFontSize,
+                        ),
+                  ),
+                ),
+              );
+            } else if (field == CardFieldType.notes) {
+              // Notes with labeled box
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _LabeledBox(
+                  label: 'Note',
+                  color: AppColors.secondary,
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          fontSize: detailFontSize,
+                        ),
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Legacy FlashcardFace for backward compatibility
 class FlashcardFace extends StatelessWidget {
   final String text;
   final String? phonetic;
   final String? subtitle;
+  final String? note;
   final String? imageUrl;
   final bool isFront;
   final VoidCallback? onAudioPlay;
@@ -162,6 +360,7 @@ class FlashcardFace extends StatelessWidget {
     required this.text,
     this.phonetic,
     this.subtitle,
+    this.note,
     this.imageUrl,
     this.isFront = true,
     this.onAudioPlay,
@@ -181,7 +380,7 @@ class FlashcardFace extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -194,7 +393,7 @@ class FlashcardFace extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -210,7 +409,7 @@ class FlashcardFace extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.secondary.withOpacity(0.1),
+                color: AppColors.secondary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -223,88 +422,154 @@ class FlashcardFace extends StatelessWidget {
               ),
             ),
           const Spacer(),
-          if (_hasImage) ...[
-            Builder(
-              builder: (context) {
-                final maxWidth = context.watch<SettingsProvider>().flashcardImageMaxWidth.toDouble();
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: maxWidth,
-                      maxHeight: maxWidth * 0.75, // 4:3 aspect ratio max
-                    ),
-                    child: _isImageUrl
-                        ? Image.network(
-                            imageUrl!,
-                            width: maxWidth,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return SizedBox(
+          Builder(
+            builder: (context) {
+              final settings = context.watch<SettingsProvider>();
+              final maxWidth = settings.flashcardImageMaxWidth.toDouble();
+              final mainFontSize = settings.flashcardMainFontSize.toDouble();
+              final phoneticFontSize = settings.flashcardPhoneticFontSize.toDouble();
+              final detailFontSize = settings.flashcardDetailFontSize.toDouble();
+
+              return Column(
+                children: [
+                  if (_hasImage) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: maxWidth,
+                          maxHeight: maxWidth * 0.75, // 4:3 aspect ratio max
+                        ),
+                        child: _isImageUrl
+                            ? Image.network(
+                                imageUrl!,
                                 width: maxWidth,
-                                height: 100,
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            },
-                          )
-                        : Image.file(
-                            File(imageUrl!),
-                            width: maxWidth,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return SizedBox(
+                                    width: maxWidth,
+                                    height: 100,
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                },
+                              )
+                            : Image.file(
+                                File(imageUrl!),
+                                width: maxWidth,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: mainFontSize,
+                        ),
+                  ),
+                  if (phonetic != null && phonetic!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      phonetic!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: AppColors.textSecondaryLight,
+                            fontStyle: FontStyle.italic,
+                            fontSize: phoneticFontSize,
                           ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                    ),
+                  ],
+                  if (subtitle != null && subtitle!.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    _LabeledBox(
+                      label: 'Example',
+                      color: AppColors.primary,
+                      child: Text(
+                        subtitle!,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: detailFontSize,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (note != null && note!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LabeledBox(
+                      label: 'Note',
+                      color: AppColors.secondary,
+                      child: Text(
+                        note!,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          fontSize: detailFontSize,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
-          if (phonetic != null && phonetic!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              phonetic!,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textSecondaryLight,
-                    fontStyle: FontStyle.italic,
-                  ),
-            ),
-          ],
-          if (subtitle != null && subtitle!.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                subtitle!,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          ],
           const Spacer(),
-          Text(
-            'Tap to flip',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondaryLight,
-                ),
-          ),
         ],
       ),
+    );
+  }
+}
+
+class _LabeledBox extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Widget child;
+
+  const _LabeledBox({
+    required this.label,
+    required this.color,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: child,
+        ),
+        Positioned(
+          top: -8,
+          left: 12,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            color: Theme.of(context).cardColor,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

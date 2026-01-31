@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/deck.dart';
 import '../../../data/services/tts_service.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../providers/flashcard_provider.dart';
@@ -26,6 +28,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
   final PageController _pageController = PageController();
   final FlipCardController _flipController = FlipCardController();
   final TtsService _ttsService = TtsService();
+  final FocusNode _focusNode = FocusNode();
 
   int _currentIndex = 0;
   bool _isFlipped = false;
@@ -40,6 +43,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
       if (widget.startIndex != null) {
         _pageController.jumpToPage(widget.startIndex!);
       }
+      _focusNode.requestFocus();
     });
   }
 
@@ -47,7 +51,42 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
   void dispose() {
     _pageController.dispose();
     _ttsService.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent) {
+      final flashcards = context.read<FlashcardProvider>().flashcards;
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        if (_currentIndex < flashcards.length - 1) {
+          _nextCard();
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (_currentIndex > 0) {
+          _previousCard();
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.space) {
+        setState(() => _isFlipped = !_isFlipped);
+      } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
+  /// Determine if image should show on a specific side based on deck's imageDisplayMode
+  bool _shouldShowImage(Deck? deck, bool isFront) {
+    if (deck == null) return true;
+    switch (deck.imageDisplayMode) {
+      case ImageDisplayMode.none:
+        return false;
+      case ImageDisplayMode.both:
+        return true;
+      case ImageDisplayMode.front:
+        return isFront;
+      case ImageDisplayMode.back:
+        return !isFront;
+    }
   }
 
   @override
@@ -66,19 +105,35 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
           );
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('${_currentIndex + 1} / ${flashcards.length}'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.shuffle),
-                onPressed: () {
-                  // TODO: Shuffle cards
-                },
-              ),
-            ],
-          ),
-          body: Column(
+        final showBackFirst = deck?.showBackFirst ?? false;
+        final frontFields = deck?.frontFields ?? Deck.defaultFrontFields;
+        final backFields = deck?.backFields ?? Deck.defaultBackFields;
+
+        return KeyboardListener(
+          focusNode: _focusNode,
+          onKeyEvent: _handleKeyEvent,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text('${_currentIndex + 1} / ${flashcards.length}'),
+              actions: [
+                // Show display mode indicator
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Icon(
+                    showBackFirst ? Icons.flip_to_back : Icons.flip_to_front,
+                    size: 20,
+                    color: Colors.white70,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.shuffle),
+                  onPressed: () {
+                    // TODO: Shuffle cards
+                  },
+                ),
+              ],
+            ),
+            body: Column(
             children: [
               // Progress indicator
               LinearProgressIndicator(
@@ -101,31 +156,43 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                   },
                   itemBuilder: (context, index) {
                     final card = flashcards[index];
+
+                    // Create structured front and back faces based on deck configuration
+                    final frontFace = StructuredFlashcardFace(
+                      card: card,
+                      fields: frontFields,
+                      showImage: _shouldShowImage(deck, true),
+                      isFront: true,
+                    );
+                    final backFace = StructuredFlashcardFace(
+                      card: card,
+                      fields: backFields,
+                      showImage: _shouldShowImage(deck, false),
+                      isFront: false,
+                    );
+
                     return Padding(
                       padding: const EdgeInsets.all(24),
                       child: FlipCard(
                         controller: _flipController,
                         isFlipped: _isFlipped,
                         onFlip: () {
+                          final wasFlipped = _isFlipped;
                           setState(() => _isFlipped = !_isFlipped);
+                          // Auto-play TTS when flipping to show word
+                          if (deck?.autoPlayTtsOnFlip == true) {
+                            // Determine if we're now showing the word side
+                            // showBackFirst=false: word on front, showing when _isFlipped=false
+                            // showBackFirst=true: word on back, showing when _isFlipped=true
+                            final isNowShowingWord = showBackFirst ? !wasFlipped : wasFlipped;
+                            if (isNowShowingWord) {
+                              _speakWord(card.front, deck?.sourceLanguage ?? 'en');
+                            }
+                          }
                         },
-                        front: FlashcardFace(
-                          text: card.front,
-                          phonetic: card.frontPhonetic,
-                          imageUrl: card.imageUrl,
-                          isFront: true,
-                          onAudioPlay: () => _speakWord(
-                            card.front,
-                            deck?.sourceLanguage ?? 'en',
-                          ),
-                        ),
-                        back: FlashcardFace(
-                          text: card.back,
-                          subtitle: card.example,
-                          imageUrl: card.imageUrl,
-                          isFront: false,
-                          onAudioPlay: () => _speakWord(card.back, 'vi'),
-                        ),
+                        // Swap front/back if showBackFirst is enabled
+                        front: showBackFirst ? backFace : frontFace,
+                        back: showBackFirst ? frontFace : backFace,
                       ),
                     );
                   },
@@ -146,11 +213,8 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                     IconButton(
                       onPressed: () {
                         final card = flashcards[_currentIndex];
-                        if (_isFlipped) {
-                          _speakWord(card.back, 'vi');
-                        } else {
-                          _speakWord(card.front, deck?.sourceLanguage ?? 'en');
-                        }
+                        // Always speak word (front) using source language
+                        _speakWord(card.front, deck?.sourceLanguage ?? 'en');
                       },
                       icon: const Icon(Icons.volume_up),
                       iconSize: 32,
@@ -167,6 +231,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                 ),
               ),
             ],
+          ),
           ),
         );
       },

@@ -125,22 +125,34 @@ class _StudyScreenState extends State<StudyScreen> {
           valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
         ),
 
-        // Stats bar
+        // Stats bar with pronunciation button
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
+              // Pronunciation button
+              IconButton(
+                onPressed: () => _speakWord(
+                  card.front,
+                  deck?.sourceLanguage ?? 'en',
+                ),
+                icon: const Icon(Icons.volume_up),
+                iconSize: 28,
+                color: AppColors.primary,
+              ),
+              const Spacer(),
               _StatChip(
                 icon: Icons.check_circle,
                 label: '${provider.cardsCorrect}',
                 color: AppColors.success,
               ),
+              const SizedBox(width: 16),
               _StatChip(
                 icon: Icons.cancel,
                 label: '${provider.cardsIncorrect}',
                 color: AppColors.error,
               ),
+              const SizedBox(width: 16),
               _StatChip(
                 icon: Icons.pending,
                 label: '${provider.cardsRemaining}',
@@ -160,12 +172,16 @@ class _StudyScreenState extends State<StudyScreen> {
               onFlip: () {
                 if (provider.state == StudyState.studying) {
                   provider.showAnswer();
+                  // Auto-play TTS when showing answer (flipping to back)
+                  if (deck?.autoPlayTtsOnFlip == true) {
+                    _speakWord(card.front, deck?.sourceLanguage ?? 'en');
+                  }
                 }
               },
               front: FlashcardFace(
                 text: card.front,
                 phonetic: card.frontPhonetic,
-                imageUrl: card.imageUrl,
+                imageUrl: card.effectiveFrontImageUrl,
                 isFront: true,
                 onAudioPlay: () => _speakWord(
                   card.front,
@@ -175,9 +191,13 @@ class _StudyScreenState extends State<StudyScreen> {
               back: FlashcardFace(
                 text: card.back,
                 subtitle: card.example,
-                imageUrl: card.imageUrl,
+                imageUrl: card.effectiveBackImageUrl,
                 isFront: false,
-                onAudioPlay: () => _speakWord(card.back, 'vi'),
+                // Only speak word, not meaning
+                onAudioPlay: () => _speakWord(
+                  card.front,
+                  deck?.sourceLanguage ?? 'en',
+                ),
               ),
             ),
           ),
@@ -317,7 +337,7 @@ class _StudyScreenState extends State<StudyScreen> {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: () {
-                    provider.startStudySession(widget.deckId);
+                    provider.startStudySession(widget.deckId, forceReload: true);
                   },
                   child: Text(l10n.studyAgain),
                 ),

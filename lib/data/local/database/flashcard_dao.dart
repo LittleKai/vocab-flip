@@ -65,7 +65,7 @@ class FlashcardDao {
       AppConstants.tableFlashcards,
       where: 'deck_id = ?',
       whereArgs: [deckId],
-      orderBy: 'created_at DESC',
+      orderBy: 'created_at ASC',
     );
 
     return maps.map((map) => Flashcard.fromMap(map)).toList();

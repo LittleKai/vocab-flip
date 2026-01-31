@@ -63,7 +63,12 @@ class AppDatabase {
         linked_public_deck_id TEXT,
         linked_version INTEGER,
         is_published INTEGER DEFAULT 0,
-        published_deck_id TEXT
+        published_deck_id TEXT,
+        show_back_first INTEGER DEFAULT 0,
+        front_fields TEXT DEFAULT 'word,phonetic',
+        back_fields TEXT DEFAULT 'meaning,example,notes',
+        image_display_mode TEXT DEFAULT 'both',
+        auto_play_tts_on_flip INTEGER DEFAULT 1
       )
     ''');
 
@@ -78,6 +83,9 @@ class AppDatabase {
         example TEXT,
         notes TEXT,
         image_url TEXT,
+        front_image_url TEXT,
+        back_image_url TEXT,
+        share_image INTEGER DEFAULT 1,
         tags TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
@@ -208,6 +216,33 @@ class AppDatabase {
       debugPrint('AppDatabase: Applying migration v2 -> v3 (adding image_url to flashcards)');
       // Add image_url column to flashcards table
       await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN image_url TEXT');
+    }
+
+    if (oldVersion < 4) {
+      debugPrint('AppDatabase: Applying migration v3 -> v4 (adding front/back image support)');
+      // Add front_image_url, back_image_url, and share_image columns
+      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN front_image_url TEXT');
+      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN back_image_url TEXT');
+      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN share_image INTEGER DEFAULT 1');
+    }
+
+    if (oldVersion < 5) {
+      debugPrint('AppDatabase: Applying migration v4 -> v5 (adding show_back_first to decks)');
+      // Add show_back_first column to decks table
+      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN show_back_first INTEGER DEFAULT 0');
+    }
+
+    if (oldVersion < 6) {
+      debugPrint('AppDatabase: Applying migration v5 -> v6 (adding card structure to decks)');
+      // Add card structure columns to decks table
+      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN front_fields TEXT DEFAULT 'word,phonetic'");
+      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN back_fields TEXT DEFAULT 'meaning,example,notes'");
+      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN image_display_mode TEXT DEFAULT 'both'");
+    }
+
+    if (oldVersion < 7) {
+      debugPrint('AppDatabase: Applying migration v6 -> v7 (adding auto_play_tts_on_flip to decks)');
+      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN auto_play_tts_on_flip INTEGER DEFAULT 1");
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/deck_navigation.dart';
+import '../../../data/models/deck.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../deck/deck_list_screen.dart';
@@ -362,13 +363,23 @@ class _StatCard extends StatelessWidget {
 }
 
 class _DueDeckCard extends StatelessWidget {
-  final dynamic deck;
+  final Deck deck;
 
   const _DueDeckCard({required this.deck});
+
+  Color _getLanguageColor(String langCode) {
+    switch (langCode) {
+      case 'en': return AppColors.englishBadge;
+      case 'ja': return AppColors.japaneseBadge;
+      case 'zh': return AppColors.chineseBadge;
+      default: return AppColors.primary;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final langColor = _getLanguageColor(deck.sourceLanguage);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -377,7 +388,30 @@ class _DueDeckCard extends StatelessWidget {
           backgroundColor: AppColors.accent.withOpacity(0.1),
           child: const Icon(Icons.schedule, color: AppColors.accent),
         ),
-        title: Text(deck.name),
+        title: Row(
+          children: [
+            Expanded(child: Text(deck.name)),
+            // Front/Back mode icon
+            Icon(
+              deck.showBackFirst ? Icons.flip_to_back : Icons.flip_to_front,
+              size: 14,
+              color: deck.showBackFirst ? AppColors.secondary : AppColors.primary,
+            ),
+            const SizedBox(width: 4),
+            // Language badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: langColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                deck.sourceLanguage.toUpperCase(),
+                style: TextStyle(color: langColor, fontWeight: FontWeight.bold, fontSize: 9),
+              ),
+            ),
+          ],
+        ),
         subtitle: Text(l10n.cardsDue(deck.dueCount)),
         trailing: ElevatedButton(
           onPressed: () {
@@ -391,13 +425,23 @@ class _DueDeckCard extends StatelessWidget {
 }
 
 class _RecentDeckCard extends StatelessWidget {
-  final dynamic deck;
+  final Deck deck;
 
   const _RecentDeckCard({required this.deck});
+
+  Color _getLanguageColor(String langCode) {
+    switch (langCode) {
+      case 'en': return AppColors.englishBadge;
+      case 'ja': return AppColors.japaneseBadge;
+      case 'zh': return AppColors.chineseBadge;
+      default: return AppColors.primary;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final langColor = _getLanguageColor(deck.sourceLanguage);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -406,7 +450,30 @@ class _RecentDeckCard extends StatelessWidget {
           backgroundColor: AppColors.primary.withOpacity(0.1),
           child: const Icon(Icons.folder, color: AppColors.primary),
         ),
-        title: Text(deck.name),
+        title: Row(
+          children: [
+            Expanded(child: Text(deck.name)),
+            // Front/Back mode icon
+            Icon(
+              deck.showBackFirst ? Icons.flip_to_back : Icons.flip_to_front,
+              size: 14,
+              color: deck.showBackFirst ? AppColors.secondary : AppColors.primary,
+            ),
+            const SizedBox(width: 4),
+            // Language badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: langColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                deck.sourceLanguage.toUpperCase(),
+                style: TextStyle(color: langColor, fontWeight: FontWeight.bold, fontSize: 9),
+              ),
+            ),
+          ],
+        ),
         subtitle: Text(l10n.nCards(deck.cardCount)),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => DeckNavigation.navigateToBrowse(context, deck.id),

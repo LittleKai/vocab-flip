@@ -16,6 +16,18 @@ class AppPreferences {
   static const String _keyTotalStudyTime = 'total_study_time';
   static const String _keyUserId = 'user_id';
   static const String _keyFlashcardImageMaxWidth = 'flashcard_image_max_width';
+  static const String _keyDictionarySourceLanguage = 'dictionary_source_language';
+  static const String _keyDictionaryFilterMode = 'dictionary_filter_mode';
+  static const String _keyDictionaryFallbackToEnglish = 'dictionary_fallback_to_english';
+  static const String _keyFlashcardMainFontSize = 'flashcard_main_font_size';
+  static const String _keyFlashcardPhoneticFontSize = 'flashcard_phonetic_font_size';
+  static const String _keyFlashcardDetailFontSize = 'flashcard_detail_font_size';
+  static const String _keyHideTtsWarning = 'hide_tts_warning';
+
+  // Default font sizes
+  static const int defaultMainFontSize = 32;
+  static const int defaultPhoneticFontSize = 20;
+  static const int defaultDetailFontSize = 16;
 
   /// Default image max width based on platform
   static int get defaultFlashcardImageMaxWidth {
@@ -95,6 +107,48 @@ class AppPreferences {
       _prefs.getInt(_keyFlashcardImageMaxWidth) ?? defaultFlashcardImageMaxWidth;
   Future<bool> setFlashcardImageMaxWidth(int value) =>
       _prefs.setInt(_keyFlashcardImageMaxWidth, value);
+
+  // Dictionary source language (en, ja, zh)
+  String get dictionarySourceLanguage =>
+      _prefs.getString(_keyDictionarySourceLanguage) ?? 'en';
+  Future<bool> setDictionarySourceLanguage(String value) =>
+      _prefs.setString(_keyDictionarySourceLanguage, value);
+
+  // Dictionary filter mode: 'exact_first', 'with_meanings', 'all'
+  // - exact_first: Prioritize exact match, then results with meanings
+  // - with_meanings: Only show results that have meanings/definitions
+  // - all: Show all results without filtering
+  String get dictionaryFilterMode =>
+      _prefs.getString(_keyDictionaryFilterMode) ?? 'exact_first';
+  Future<bool> setDictionaryFilterMode(String value) =>
+      _prefs.setString(_keyDictionaryFilterMode, value);
+
+  // Whether to fallback to English dictionary if Vietnamese not found
+  bool get dictionaryFallbackToEnglish =>
+      _prefs.getBool(_keyDictionaryFallbackToEnglish) ?? true;
+  Future<bool> setDictionaryFallbackToEnglish(bool value) =>
+      _prefs.setBool(_keyDictionaryFallbackToEnglish, value);
+
+  // Flashcard font sizes
+  int get flashcardMainFontSize =>
+      _prefs.getInt(_keyFlashcardMainFontSize) ?? defaultMainFontSize;
+  Future<bool> setFlashcardMainFontSize(int value) =>
+      _prefs.setInt(_keyFlashcardMainFontSize, value);
+
+  int get flashcardPhoneticFontSize =>
+      _prefs.getInt(_keyFlashcardPhoneticFontSize) ?? defaultPhoneticFontSize;
+  Future<bool> setFlashcardPhoneticFontSize(int value) =>
+      _prefs.setInt(_keyFlashcardPhoneticFontSize, value);
+
+  int get flashcardDetailFontSize =>
+      _prefs.getInt(_keyFlashcardDetailFontSize) ?? defaultDetailFontSize;
+  Future<bool> setFlashcardDetailFontSize(int value) =>
+      _prefs.setInt(_keyFlashcardDetailFontSize, value);
+
+  // Hide TTS warning dialog
+  bool get hideTtsWarning => _prefs.getBool(_keyHideTtsWarning) ?? false;
+  Future<bool> setHideTtsWarning(bool value) =>
+      _prefs.setBool(_keyHideTtsWarning, value);
 
   // Update streak
   Future<void> updateStreak() async {

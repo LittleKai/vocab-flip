@@ -4,6 +4,7 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/dialogs/tts_help_dialog.dart';
 import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -121,6 +122,24 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: Text('${settings.flashcardImageMaxWidth}px'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showImageSizePicker(context, settings),
+              ),
+              ListTile(
+                leading: const Icon(Icons.text_fields),
+                title: Text(l10n.flashcardFontSize),
+                subtitle: Text(l10n.fontSizePixels(settings.flashcardMainFontSize)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showFontSizePicker(context, settings, l10n),
+              ),
+              ListTile(
+                leading: const Icon(Icons.record_voice_over),
+                title: Text(l10n.ttsSettings),
+                subtitle: Text(l10n.ttsHelp),
+                trailing: IconButton(
+                  icon: const Icon(Icons.help_outline),
+                  color: AppColors.primary,
+                  onPressed: () => TtsHelpDialog.show(context),
+                ),
+                onTap: () => TtsHelpDialog.show(context),
               ),
 
               const Divider(),
@@ -294,6 +313,68 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showFontSizePicker(BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(l10n.flashcardFontSize),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Main text size
+                Text(l10n.mainTextSize, style: const TextStyle(fontWeight: FontWeight.bold)),
+                _FontSizeSlider(
+                  value: settings.flashcardMainFontSize,
+                  min: 20,
+                  max: 48,
+                  onChanged: (value) {
+                    settings.setFlashcardMainFontSize(value);
+                    setState(() {});
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Phonetic text size
+                Text(l10n.phoneticTextSize, style: const TextStyle(fontWeight: FontWeight.bold)),
+                _FontSizeSlider(
+                  value: settings.flashcardPhoneticFontSize,
+                  min: 14,
+                  max: 32,
+                  onChanged: (value) {
+                    settings.setFlashcardPhoneticFontSize(value);
+                    setState(() {});
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Detail text size (example/note)
+                Text(l10n.detailTextSize, style: const TextStyle(fontWeight: FontWeight.bold)),
+                _FontSizeSlider(
+                  value: settings.flashcardDetailFontSize,
+                  min: 12,
+                  max: 24,
+                  onChanged: (value) {
+                    settings.setFlashcardDetailFontSize(value);
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.done),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showNumberPicker(
     BuildContext context,
     String title,
@@ -450,6 +531,48 @@ class _SectionHeader extends StatelessWidget {
               letterSpacing: 1.2,
             ),
       ),
+    );
+  }
+}
+
+class _FontSizeSlider extends StatelessWidget {
+  final int value;
+  final int min;
+  final int max;
+  final ValueChanged<int> onChanged;
+
+  const _FontSizeSlider({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 45,
+          child: Text(
+            '${value}px',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Slider(
+            value: value.toDouble(),
+            min: min.toDouble(),
+            max: max.toDouble(),
+            divisions: max - min,
+            onChanged: (newValue) => onChanged(newValue.round()),
+          ),
+        ),
+      ],
     );
   }
 }

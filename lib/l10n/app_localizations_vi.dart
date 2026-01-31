@@ -180,6 +180,24 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chinese => 'Tiếng Trung';
 
   @override
+  String get displayMode => 'Chế độ hiển thị';
+
+  @override
+  String get displayModeDesc => 'Chọn mặt thẻ hiển thị trước';
+
+  @override
+  String get frontFirst => 'Mặt trước';
+
+  @override
+  String get backFirst => 'Mặt sau';
+
+  @override
+  String get exampleSentence => 'Câu ví dụ (tùy chọn)';
+
+  @override
+  String get noteLabel => 'Ghi chú';
+
+  @override
   String get confirmDelete => 'Bạn có chắc muốn xóa không?';
 
   @override
@@ -393,9 +411,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get enterMeaning => 'Nhập nghĩa tiếng Việt';
 
   @override
-  String get exampleSentence => 'Câu ví dụ (tùy chọn)';
-
-  @override
   String get addExample => 'Thêm câu ví dụ';
 
   @override
@@ -463,6 +478,50 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get synonyms => 'Từ đồng nghĩa';
+
+  @override
+  String get antonyms => 'Từ trái nghĩa';
+
+  @override
+  String get resultLimit => 'Giới hạn kết quả';
+
+  @override
+  String get dictionarySettings => 'Từ điển';
+
+  @override
+  String get filterMode => 'Chế độ lọc';
+
+  @override
+  String get filterExactFirst => 'Ưu tiên khớp chính xác';
+
+  @override
+  String get filterExactFirstDesc =>
+      'Ưu tiên từ khớp chính xác, sau đó là kết quả có nghĩa';
+
+  @override
+  String get filterWithMeanings => 'Chỉ có nghĩa';
+
+  @override
+  String get filterWithMeaningsDesc => 'Chỉ hiển thị kết quả có định nghĩa';
+
+  @override
+  String get filterAll => 'Hiển thị tất cả';
+
+  @override
+  String get filterAllDesc => 'Hiển thị tất cả kết quả không lọc';
+
+  @override
+  String get fallbackToEnglish => 'Dự phòng tiếng Anh';
+
+  @override
+  String get fallbackToEnglishDesc =>
+      'Dùng từ điển Anh nếu không tìm thấy tiếng Việt';
+
+  @override
+  String get selectDeck => 'Chọn bộ thẻ';
+
+  @override
+  String get addedToDeck => 'Đã thêm vào bộ thẻ';
 
   @override
   String get appearance => 'Giao diện';
@@ -932,6 +991,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get removeImage => 'Xóa hình ảnh';
 
   @override
+  String get frontImage => 'Hình mặt trước';
+
+  @override
+  String get backImage => 'Hình mặt sau';
+
+  @override
+  String get shareImageOnBothSides => 'Hiện hình ở cả hai mặt';
+
+  @override
+  String get shareImageDescription => 'Hiện hình mặt trước ở cả mặt sau';
+
+  @override
   String get flashcardImageSize => 'Kích cỡ ảnh Flashcard';
 
   @override
@@ -942,6 +1013,35 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get balanced => 'Cân bằng';
+
+  @override
+  String get flashcardFontSize => 'Cỡ chữ Flashcard';
+
+  @override
+  String get mainTextSize => 'Chữ chính';
+
+  @override
+  String get phoneticTextSize => 'Phiên âm';
+
+  @override
+  String get detailTextSize => 'Ví dụ & Ghi chú';
+
+  @override
+  String fontSizePixels(int size) {
+    return '${size}px';
+  }
+
+  @override
+  String get small => 'Nhỏ';
+
+  @override
+  String get medium => 'Vừa';
+
+  @override
+  String get large => 'Lớn';
+
+  @override
+  String get extraLarge => 'Rất lớn';
 
   @override
   String get account => 'Tài khoản';
@@ -1010,4 +1110,109 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get signOutConfirm => 'Bạn có chắc muốn đăng xuất?';
+
+  @override
+  String get basicInfo => 'Thông tin cơ bản';
+
+  @override
+  String get cardStructure => 'Cấu trúc thẻ';
+
+  @override
+  String get cardStructureDesc =>
+      'Cấu hình các trường hiển thị ở mặt trước và mặt sau';
+
+  @override
+  String get frontSide => 'Mặt trước';
+
+  @override
+  String get backSide => 'Mặt sau';
+
+  @override
+  String get dragToReorder =>
+      '• Kéo biểu tượng (≡): sắp xếp trong cùng mặt\n• Kéo cả trường: di chuyển sang mặt khác';
+
+  @override
+  String get imageDisplay => 'Hiển thị hình ảnh';
+
+  @override
+  String get imageDisplayDesc => 'Chọn cách hiển thị hình ảnh trên thẻ';
+
+  @override
+  String get noImage => 'Không hiển thị';
+
+  @override
+  String get bothSides => 'Cả hai mặt';
+
+  @override
+  String get frontOnly => 'Chỉ mặt trước';
+
+  @override
+  String get backOnly => 'Chỉ mặt sau';
+
+  @override
+  String get fieldWord => 'Từ vựng';
+
+  @override
+  String get fieldPhonetic => 'Phiên âm';
+
+  @override
+  String get fieldMeaning => 'Nghĩa';
+
+  @override
+  String get fieldExample => 'Ví dụ';
+
+  @override
+  String get fieldNotes => 'Ghi chú';
+
+  @override
+  String get lockedField => 'Đã khóa';
+
+  @override
+  String get autoPlayTts => 'Tự động phát âm';
+
+  @override
+  String get autoPlayTtsDesc => 'Tự động phát âm khi lật thẻ';
+
+  @override
+  String get ttsHelp => 'Hướng dẫn cài đặt TTS';
+
+  @override
+  String get ttsLanguagesMissing => 'Thiếu ngôn ngữ TTS';
+
+  @override
+  String get ttsLanguagesMissingDesc =>
+      'Các ngôn ngữ sau chưa được cài đặt cho phát âm:';
+
+  @override
+  String get ttsInstallInstructions => 'Cách cài đặt giọng đọc TTS (Windows):';
+
+  @override
+  String get ttsStepOpenSettings => 'Mở Windows Settings';
+
+  @override
+  String get ttsStepTimeLanguage => 'Vào Time & Language → Language';
+
+  @override
+  String get ttsStepAddLanguage => 'Nhấn \"Add a language\"';
+
+  @override
+  String get ttsStepSelectLanguage =>
+      'Tìm và thêm ngôn ngữ (ví dụ: Japanese, Chinese)';
+
+  @override
+  String get ttsStepDownloadSpeech =>
+      'Nhấn vào ngôn ngữ → Options → Tải \"Speech\"';
+
+  @override
+  String get ttsStepRestartApp => 'Khởi động lại VocabFlip';
+
+  @override
+  String get ttsGenericInstructions =>
+      'Vui lòng cài đặt giọng đọc TTS cho ngôn ngữ mong muốn trong cài đặt hệ thống.';
+
+  @override
+  String get dontShowAgain => 'Không hiển thị lại';
+
+  @override
+  String get ttsSettings => 'Cài đặt TTS';
 }

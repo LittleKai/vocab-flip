@@ -180,6 +180,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chinese => 'Chinese';
 
   @override
+  String get displayMode => 'Display Mode';
+
+  @override
+  String get displayModeDesc => 'Choose which side of the card to show first';
+
+  @override
+  String get frontFirst => 'Front First';
+
+  @override
+  String get backFirst => 'Back First';
+
+  @override
+  String get exampleSentence => 'Example sentence (optional)';
+
+  @override
+  String get noteLabel => 'Note';
+
+  @override
   String get confirmDelete => 'Are you sure you want to delete this?';
 
   @override
@@ -393,9 +411,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterMeaning => 'Enter the meaning in Vietnamese';
 
   @override
-  String get exampleSentence => 'Example sentence (optional)';
-
-  @override
   String get addExample => 'Add an example sentence';
 
   @override
@@ -463,6 +478,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get synonyms => 'Synonyms';
+
+  @override
+  String get antonyms => 'Antonyms';
+
+  @override
+  String get resultLimit => 'Result Limit';
+
+  @override
+  String get dictionarySettings => 'Dictionary';
+
+  @override
+  String get filterMode => 'Filter Mode';
+
+  @override
+  String get filterExactFirst => 'Exact match first';
+
+  @override
+  String get filterExactFirstDesc =>
+      'Prioritize exact match, then results with meanings';
+
+  @override
+  String get filterWithMeanings => 'With meanings only';
+
+  @override
+  String get filterWithMeaningsDesc =>
+      'Only show results that have definitions';
+
+  @override
+  String get filterAll => 'Show all';
+
+  @override
+  String get filterAllDesc => 'Show all results without filtering';
+
+  @override
+  String get fallbackToEnglish => 'Fallback to English';
+
+  @override
+  String get fallbackToEnglishDesc =>
+      'Use English dictionary if Vietnamese not found';
+
+  @override
+  String get selectDeck => 'Select Deck';
+
+  @override
+  String get addedToDeck => 'Added to deck';
 
   @override
   String get appearance => 'Appearance';
@@ -934,6 +994,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeImage => 'Remove image';
 
   @override
+  String get frontImage => 'Front Image';
+
+  @override
+  String get backImage => 'Back Image';
+
+  @override
+  String get shareImageOnBothSides => 'Share image on both sides';
+
+  @override
+  String get shareImageDescription =>
+      'Show the front image on the back side as well';
+
+  @override
   String get flashcardImageSize => 'Flashcard Image Size';
 
   @override
@@ -944,6 +1017,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get balanced => 'Balanced';
+
+  @override
+  String get flashcardFontSize => 'Flashcard Font Size';
+
+  @override
+  String get mainTextSize => 'Main Text';
+
+  @override
+  String get phoneticTextSize => 'Phonetic Text';
+
+  @override
+  String get detailTextSize => 'Example & Note';
+
+  @override
+  String fontSizePixels(int size) {
+    return '${size}px';
+  }
+
+  @override
+  String get small => 'Small';
+
+  @override
+  String get medium => 'Medium';
+
+  @override
+  String get large => 'Large';
+
+  @override
+  String get extraLarge => 'Extra Large';
 
   @override
   String get account => 'Account';
@@ -1012,4 +1114,110 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signOutConfirm => 'Are you sure you want to sign out?';
+
+  @override
+  String get basicInfo => 'Basic Info';
+
+  @override
+  String get cardStructure => 'Card Structure';
+
+  @override
+  String get cardStructureDesc =>
+      'Configure which fields appear on front and back of cards';
+
+  @override
+  String get frontSide => 'Front Side';
+
+  @override
+  String get backSide => 'Back Side';
+
+  @override
+  String get dragToReorder =>
+      '• Drag handle (≡): reorder within section\n• Drag entire field: move to other section';
+
+  @override
+  String get imageDisplay => 'Image Display';
+
+  @override
+  String get imageDisplayDesc => 'Choose how images are displayed on cards';
+
+  @override
+  String get noImage => 'No Image';
+
+  @override
+  String get bothSides => 'Both Sides';
+
+  @override
+  String get frontOnly => 'Front Only';
+
+  @override
+  String get backOnly => 'Back Only';
+
+  @override
+  String get fieldWord => 'Word';
+
+  @override
+  String get fieldPhonetic => 'Phonetic';
+
+  @override
+  String get fieldMeaning => 'Meaning';
+
+  @override
+  String get fieldExample => 'Example';
+
+  @override
+  String get fieldNotes => 'Notes';
+
+  @override
+  String get lockedField => 'Locked';
+
+  @override
+  String get autoPlayTts => 'Auto-play Pronunciation';
+
+  @override
+  String get autoPlayTtsDesc =>
+      'Automatically play pronunciation when flipping cards';
+
+  @override
+  String get ttsHelp => 'TTS Installation Guide';
+
+  @override
+  String get ttsLanguagesMissing => 'Missing TTS Languages';
+
+  @override
+  String get ttsLanguagesMissingDesc =>
+      'The following languages are not available for text-to-speech:';
+
+  @override
+  String get ttsInstallInstructions => 'How to install TTS voices (Windows):';
+
+  @override
+  String get ttsStepOpenSettings => 'Open Windows Settings';
+
+  @override
+  String get ttsStepTimeLanguage => 'Go to Time & Language → Language';
+
+  @override
+  String get ttsStepAddLanguage => 'Click \"Add a language\"';
+
+  @override
+  String get ttsStepSelectLanguage =>
+      'Search and add the language (e.g., Japanese, Chinese)';
+
+  @override
+  String get ttsStepDownloadSpeech =>
+      'Click on the language → Options → Download \"Speech\"';
+
+  @override
+  String get ttsStepRestartApp => 'Restart VocabFlip';
+
+  @override
+  String get ttsGenericInstructions =>
+      'Please install TTS voices for your desired languages in your system settings.';
+
+  @override
+  String get dontShowAgain => 'Don\'t show again';
+
+  @override
+  String get ttsSettings => 'TTS Settings';
 }

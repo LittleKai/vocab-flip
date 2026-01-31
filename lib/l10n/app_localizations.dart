@@ -440,6 +440,42 @@ abstract class AppLocalizations {
   /// **'Chinese'**
   String get chinese;
 
+  /// No description provided for @displayMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Mode'**
+  String get displayMode;
+
+  /// No description provided for @displayModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which side of the card to show first'**
+  String get displayModeDesc;
+
+  /// No description provided for @frontFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Front First'**
+  String get frontFirst;
+
+  /// No description provided for @backFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Back First'**
+  String get backFirst;
+
+  /// No description provided for @exampleSentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Example sentence (optional)'**
+  String get exampleSentence;
+
+  /// No description provided for @noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get noteLabel;
+
   /// No description provided for @confirmDelete.
   ///
   /// In en, this message translates to:
@@ -842,12 +878,6 @@ abstract class AppLocalizations {
   /// **'Enter the meaning in Vietnamese'**
   String get enterMeaning;
 
-  /// No description provided for @exampleSentence.
-  ///
-  /// In en, this message translates to:
-  /// **'Example sentence (optional)'**
-  String get exampleSentence;
-
   /// No description provided for @addExample.
   ///
   /// In en, this message translates to:
@@ -985,6 +1015,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Synonyms'**
   String get synonyms;
+
+  /// No description provided for @antonyms.
+  ///
+  /// In en, this message translates to:
+  /// **'Antonyms'**
+  String get antonyms;
+
+  /// No description provided for @resultLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Result Limit'**
+  String get resultLimit;
+
+  /// No description provided for @dictionarySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictionary'**
+  String get dictionarySettings;
+
+  /// No description provided for @filterMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Mode'**
+  String get filterMode;
+
+  /// No description provided for @filterExactFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact match first'**
+  String get filterExactFirst;
+
+  /// No description provided for @filterExactFirstDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Prioritize exact match, then results with meanings'**
+  String get filterExactFirstDesc;
+
+  /// No description provided for @filterWithMeanings.
+  ///
+  /// In en, this message translates to:
+  /// **'With meanings only'**
+  String get filterWithMeanings;
+
+  /// No description provided for @filterWithMeaningsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show results that have definitions'**
+  String get filterWithMeaningsDesc;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get filterAll;
+
+  /// No description provided for @filterAllDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all results without filtering'**
+  String get filterAllDesc;
+
+  /// No description provided for @fallbackToEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'Fallback to English'**
+  String get fallbackToEnglish;
+
+  /// No description provided for @fallbackToEnglishDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use English dictionary if Vietnamese not found'**
+  String get fallbackToEnglishDesc;
+
+  /// No description provided for @selectDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Deck'**
+  String get selectDeck;
+
+  /// No description provided for @addedToDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to deck'**
+  String get addedToDeck;
 
   /// No description provided for @appearance.
   ///
@@ -1856,6 +1970,30 @@ abstract class AppLocalizations {
   /// **'Remove image'**
   String get removeImage;
 
+  /// No description provided for @frontImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Image'**
+  String get frontImage;
+
+  /// No description provided for @backImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Image'**
+  String get backImage;
+
+  /// No description provided for @shareImageOnBothSides.
+  ///
+  /// In en, this message translates to:
+  /// **'Share image on both sides'**
+  String get shareImageOnBothSides;
+
+  /// No description provided for @shareImageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the front image on the back side as well'**
+  String get shareImageDescription;
+
   /// No description provided for @flashcardImageSize.
   ///
   /// In en, this message translates to:
@@ -1879,6 +2017,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Balanced'**
   String get balanced;
+
+  /// No description provided for @flashcardFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcard Font Size'**
+  String get flashcardFontSize;
+
+  /// No description provided for @mainTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Main Text'**
+  String get mainTextSize;
+
+  /// No description provided for @phoneticTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Phonetic Text'**
+  String get phoneticTextSize;
+
+  /// No description provided for @detailTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Example & Note'**
+  String get detailTextSize;
+
+  /// No description provided for @fontSizePixels.
+  ///
+  /// In en, this message translates to:
+  /// **'{size}px'**
+  String fontSizePixels(int size);
+
+  /// No description provided for @small.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get small;
+
+  /// No description provided for @medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get medium;
+
+  /// No description provided for @large.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get large;
+
+  /// No description provided for @extraLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra Large'**
+  String get extraLarge;
 
   /// No description provided for @account.
   ///
@@ -2011,6 +2203,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to sign out?'**
   String get signOutConfirm;
+
+  /// No description provided for @basicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Info'**
+  String get basicInfo;
+
+  /// No description provided for @cardStructure.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Structure'**
+  String get cardStructure;
+
+  /// No description provided for @cardStructureDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure which fields appear on front and back of cards'**
+  String get cardStructureDesc;
+
+  /// No description provided for @frontSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Side'**
+  String get frontSide;
+
+  /// No description provided for @backSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Side'**
+  String get backSide;
+
+  /// No description provided for @dragToReorder.
+  ///
+  /// In en, this message translates to:
+  /// **'• Drag handle (≡): reorder within section\n• Drag entire field: move to other section'**
+  String get dragToReorder;
+
+  /// No description provided for @imageDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Display'**
+  String get imageDisplay;
+
+  /// No description provided for @imageDisplayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how images are displayed on cards'**
+  String get imageDisplayDesc;
+
+  /// No description provided for @noImage.
+  ///
+  /// In en, this message translates to:
+  /// **'No Image'**
+  String get noImage;
+
+  /// No description provided for @bothSides.
+  ///
+  /// In en, this message translates to:
+  /// **'Both Sides'**
+  String get bothSides;
+
+  /// No description provided for @frontOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Only'**
+  String get frontOnly;
+
+  /// No description provided for @backOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Only'**
+  String get backOnly;
+
+  /// No description provided for @fieldWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Word'**
+  String get fieldWord;
+
+  /// No description provided for @fieldPhonetic.
+  ///
+  /// In en, this message translates to:
+  /// **'Phonetic'**
+  String get fieldPhonetic;
+
+  /// No description provided for @fieldMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Meaning'**
+  String get fieldMeaning;
+
+  /// No description provided for @fieldExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example'**
+  String get fieldExample;
+
+  /// No description provided for @fieldNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get fieldNotes;
+
+  /// No description provided for @lockedField.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get lockedField;
+
+  /// No description provided for @autoPlayTts.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-play Pronunciation'**
+  String get autoPlayTts;
+
+  /// No description provided for @autoPlayTtsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically play pronunciation when flipping cards'**
+  String get autoPlayTtsDesc;
+
+  /// No description provided for @ttsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS Installation Guide'**
+  String get ttsHelp;
+
+  /// No description provided for @ttsLanguagesMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing TTS Languages'**
+  String get ttsLanguagesMissing;
+
+  /// No description provided for @ttsLanguagesMissingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The following languages are not available for text-to-speech:'**
+  String get ttsLanguagesMissingDesc;
+
+  /// No description provided for @ttsInstallInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'How to install TTS voices (Windows):'**
+  String get ttsInstallInstructions;
+
+  /// No description provided for @ttsStepOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Windows Settings'**
+  String get ttsStepOpenSettings;
+
+  /// No description provided for @ttsStepTimeLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Time & Language → Language'**
+  String get ttsStepTimeLanguage;
+
+  /// No description provided for @ttsStepAddLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Click \"Add a language\"'**
+  String get ttsStepAddLanguage;
+
+  /// No description provided for @ttsStepSelectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Search and add the language (e.g., Japanese, Chinese)'**
+  String get ttsStepSelectLanguage;
+
+  /// No description provided for @ttsStepDownloadSpeech.
+  ///
+  /// In en, this message translates to:
+  /// **'Click on the language → Options → Download \"Speech\"'**
+  String get ttsStepDownloadSpeech;
+
+  /// No description provided for @ttsStepRestartApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart VocabFlip'**
+  String get ttsStepRestartApp;
+
+  /// No description provided for @ttsGenericInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Please install TTS voices for your desired languages in your system settings.'**
+  String get ttsGenericInstructions;
+
+  /// No description provided for @dontShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show again'**
+  String get dontShowAgain;
+
+  /// No description provided for @ttsSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS Settings'**
+  String get ttsSettings;
 }
 
 class _AppLocalizationsDelegate

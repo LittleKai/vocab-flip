@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/flashcard.dart';
 import '../../../data/remote/firebase/firebase_service.dart';
+import '../../../data/services/tts_service.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/sync/sync_badge.dart';
+import '../../widgets/dialogs/tts_help_dialog.dart';
 import '../flashcard/flashcard_editor_screen.dart';
 import '../flashcard/flashcard_viewer_screen.dart';
 import '../study/study_screen.dart';
@@ -24,15 +28,51 @@ class DeckDetailScreen extends StatefulWidget {
 }
 
 class _DeckDetailScreenState extends State<DeckDetailScreen> {
+  final FocusNode _focusNode = FocusNode();
+  final TtsService _ttsService = TtsService();
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DeckProvider>().selectDeck(widget.deckId);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<DeckProvider>().selectDeck(widget.deckId);
       context.read<FlashcardProvider>().loadFlashcards(widget.deckId);
       // Check for sync updates if this is a linked deck
       context.read<SyncProvider>().checkForUpdates();
+      _focusNode.requestFocus();
+      // Check TTS after deck is loaded
+      if (mounted) {
+        await _checkTtsForDeck();
+      }
     });
+  }
+
+  Future<void> _checkTtsForDeck() async {
+    final deck = context.read<DeckProvider>().selectedDeck;
+    if (deck == null) {
+      debugPrint('TTS check: deck is null');
+      return;
+    }
+
+    debugPrint('TTS check for deck: ${deck.name}, sourceLanguage: ${deck.sourceLanguage}');
+    final language = SupportedLanguage.fromCode(deck.sourceLanguage);
+    await TtsHelpDialog.checkAndShowWarningForLanguage(
+      context,
+      _ttsService,
+      language,
+    );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -50,17 +90,20 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
           );
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(deck.name),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () {
-                  // TODO: Search within deck
-                },
-              ),
-              PopupMenuButton<String>(
+        return KeyboardListener(
+          focusNode: _focusNode,
+          onKeyEvent: _handleKeyEvent,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(deck.name),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    // TODO: Search within deck
+                  },
+                ),
+                PopupMenuButton<String>(
                 onSelected: (value) => _handleMenuAction(context, value, deck),
                 itemBuilder: (context) => [
                   PopupMenuItem(value: 'edit', child: Text(l10n.editDeck)),
@@ -123,29 +166,24 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                           label: Text(l10n.addFlashcard),
                         ),
                       )
-                    : RefreshIndicator(
-                        onRefresh: () => flashcardProvider.loadFlashcards(widget.deckId),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: flashcardProvider.flashcards.length,
-                          itemBuilder: (context, index) {
-                            return _FlashcardListItem(
-                              flashcard: flashcardProvider.flashcards[index],
-                              onTap: () => _navigateToViewCard(
-                                context,
-                                flashcardProvider.flashcards[index],
-                              ),
-                              onEdit: () => _navigateToEditCard(
-                                context,
-                                flashcardProvider.flashcards[index],
-                              ),
-                              onDelete: () => _confirmDeleteCard(
-                                context,
-                                flashcardProvider.flashcards[index],
-                              ),
-                            );
-                          },
-                        ),
+                    : ReorderableListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: flashcardProvider.flashcards.length,
+                        buildDefaultDragHandles: false,
+                        onReorder: (oldIndex, newIndex) {
+                          flashcardProvider.reorderFlashcards(oldIndex, newIndex);
+                        },
+                        itemBuilder: (context, index) {
+                          final card = flashcardProvider.flashcards[index];
+                          return _FlashcardListItem(
+                            key: ValueKey(card.id),
+                            flashcard: card,
+                            index: index,
+                            onDoubleTap: () => _navigateToBrowseAt(context, index),
+                            onEdit: () => _navigateToEditCard(context, card),
+                            onDelete: () => _confirmDeleteCard(context, card),
+                          );
+                        },
                       ),
               ),
             ],
@@ -155,8 +193,18 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
             onPressed: () => _navigateToAddCard(context),
             child: const Icon(Icons.add),
           ),
+        ),
         );
       },
+    );
+  }
+
+  void _navigateToBrowseAt(BuildContext context, int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FlashcardViewerScreen(deckId: widget.deckId, startIndex: index),
+      ),
     );
   }
 
@@ -236,10 +284,6 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         builder: (_) => FlashcardEditorScreen(deckId: widget.deckId),
       ),
     );
-  }
-
-  void _navigateToViewCard(BuildContext context, Flashcard card) {
-    // Navigate to card detail/viewer
   }
 
   void _navigateToEditCard(BuildContext context, Flashcard card) {
@@ -440,13 +484,16 @@ class _StatItem extends StatelessWidget {
 
 class _FlashcardListItem extends StatelessWidget {
   final Flashcard flashcard;
-  final VoidCallback onTap;
+  final int index;
+  final VoidCallback? onDoubleTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _FlashcardListItem({
+    super.key,
     required this.flashcard,
-    required this.onTap,
+    required this.index,
+    this.onDoubleTap,
     required this.onEdit,
     required this.onDelete,
   });
@@ -458,12 +505,25 @@ class _FlashcardListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
-        onTap: onTap,
+        onDoubleTap: onDoubleTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
+              // Drag handle at start only
+              ReorderableDragStartListener(
+                index: index,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.drag_handle,
+                    color: AppColors.textSecondaryLight,
+                    size: 20,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

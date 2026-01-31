@@ -1,6 +1,6 @@
 # Project Summary
-**Last Updated:** 2026-01-29
-**Updated By:** Claude Code - Auth System, Image Settings, Navigation Improvements
+**Last Updated:** 2026-01-31
+**Updated By:** Claude Code - Card Structure Configuration, TTS Improvements
 
 ---
 
@@ -114,7 +114,9 @@ lib/
 │   └── widgets/
 │       ├── common/              # Loading, error, empty states
 │       ├── flashcard/
-│       │   └── flip_card.dart   # 3D flip animation widget
+│       │   └── flip_card.dart   # 3D flip animation + StructuredFlashcardFace
+│       ├── dialogs/
+│       │   └── tts_help_dialog.dart  # TTS installation guide
 │       ├── library/             # Public library widgets
 │       │   ├── public_deck_card.dart # Deck card display
 │       │   ├── rating_widget.dart    # Star rating components
@@ -252,6 +254,9 @@ return _methodNative();  // Firestore SDK
 | **Deck Sync** | ✅ Complete | Auto-detect updates (REST) |
 | **Firebase Auth** | ✅ Complete | Google, Email/Pass, Account UI |
 | **Windows Support** | ✅ Complete | Via REST API (all services) |
+| **Card Structure Config** | ✅ Complete | Customizable front/back fields per deck |
+| **TTS Auto-play** | ✅ Complete | Auto-play on flip, per-deck setting |
+| **TTS Install Guide** | ✅ Complete | Windows voice installation helper |
 | Google Translate | 🚧 Framework | Needs API key |
 | Quiz Modes | ⏳ Planned | Multiple choice |
 
@@ -317,9 +322,10 @@ return _methodNative();  // Firestore SDK
 ### Database Schema Note:
 **SQLite Tables:** `decks`, `flashcards`, `study_sessions`, `review_logs`, `imported_deck_links`
 - Flashcards have SM-2 fields: `easiness_factor`, `interval`, `repetitions`, `next_review_date`
-- Flashcards have image field: `image_url` (URL or local file path)
+- Flashcards have image fields: `image_url`, `front_image_url`, `back_image_url`, `share_image`
 - Decks have library fields: `linked_public_deck_id`, `linked_version`, `is_published`, `published_deck_id`
-- **Database Version:** 3
+- Decks have structure fields: `front_fields`, `back_fields`, `image_display_mode`, `auto_play_tts_on_flip`
+- **Database Version:** 7
 
 ### SQLite on Windows:
 - **Required packages:** `sqflite_common_ffi`, `sqlite3_flutter_libs`
@@ -337,7 +343,22 @@ return _methodNative();  // Firestore SDK
 
 ## 9. Recent Changes (Last 3 Sessions)
 
-1. **2026-01-29 (Session 2)** - Auth System, Image Settings, Navigation Improvements
+1. **2026-01-31** - Card Structure Configuration & TTS Improvements
+   - Added 2-tab interface in Create/Edit Deck (Basic Info + Card Structure)
+   - Added CardFieldType enum and drag-and-drop field configuration
+   - Added ImageDisplayMode for controlling image visibility per side
+   - Added auto-play TTS on flip setting (per-deck, default enabled)
+   - Database migration v6→v7 with new deck columns
+   - Created StructuredFlashcardFace widget for dynamic field rendering
+   - Fixed TTS to only speak word (front) using source language
+   - Created TtsHelpDialog for Windows voice installation guidance
+   - Added TTS language check when entering deck (not on app start)
+   - Fixed ReorderableListView duplicate drag handles
+   - Changed flashcard sort order (oldest first, new cards at bottom)
+   - Added pronunciation button to Study Screen
+   - Fixed "Study Again" button (now reshuffles instead of empty load)
+
+2. **2026-01-29 (Session 2)** - Auth System, Image Settings, Navigation Improvements
    - Added authentication system: AuthProvider, LoginScreen, SignupScreen
    - Added flashcard image size setting in Settings (1000px Windows, 600px mobile)
    - Added image resize on save to optimize storage (uses `image` package)
@@ -351,7 +372,7 @@ return _methodNative();  // Firestore SDK
    - Created tools/firebase_setup.dart for Firebase CLI operations
    - Added 20+ localization keys for auth and settings
 
-2. **2026-01-29 (Session 1)** - Flashcard Images & SQLite Windows Fix
+3. **2026-01-29 (Session 1)** - Flashcard Images & SQLite Windows Fix
    - Fixed SQLite on Windows: added sqflite_common_ffi + sqlite3_flutter_libs
    - Added FFI initialization in app_database.dart for desktop platforms
    - Database migration v2→v3 adding image_url column to flashcards
@@ -360,15 +381,6 @@ return _methodNative();  // Firestore SDK
    - Updated FlashcardFace and CardContent widgets to display images
    - Fixed firestore.indexes.json field names (camelCase → snake_case)
    - Created deploy_indexes.bat script for deploying Firestore indexes
-
-3. **2026-01-28** - Windows Platform Support & Localization
-   - Created FirestoreRestClient for Windows (bypasses crashing C++ SDK)
-   - Updated PublicLibraryService, CategorySeeder, PublicDeckSeeder with dual-mode
-   - Added fromMap() constructors to PublicDeck and PublicFlashcard
-   - Configured localization in app.dart (locale, delegates)
-   - Extended supported language pairs (bidirectional)
-   - Fixed structured query type casting bug
-   - Updated create_deck_screen with improved language selector UI
 
 ---
 

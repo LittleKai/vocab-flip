@@ -57,15 +57,20 @@ class StudyProvider extends ChangeNotifier {
     return (_cardsCorrect / _cardsStudied) * 100;
   }
 
-  Future<void> startStudySession(String deckId) async {
+  Future<void> startStudySession(String deckId, {bool forceReload = false}) async {
     _state = StudyState.loading;
     notifyListeners();
 
     try {
-      _studyQueue = await _flashcardRepository.getDueFlashcards(
-        deckId,
-        limit: _preferences.newCardsPerDay + _preferences.reviewCardsPerDay,
-      );
+      if (forceReload && _studyQueue.isNotEmpty) {
+        // For "Study Again" - reshuffle the same cards
+        _studyQueue.shuffle();
+      } else {
+        _studyQueue = await _flashcardRepository.getDueFlashcards(
+          deckId,
+          limit: _preferences.newCardsPerDay + _preferences.reviewCardsPerDay,
+        );
+      }
 
       if (_studyQueue.isEmpty) {
         _state = StudyState.completed;
