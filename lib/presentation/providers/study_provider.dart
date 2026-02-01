@@ -184,6 +184,24 @@ class StudyProvider extends ChangeNotifier {
     }
   }
 
+  /// Shuffle remaining cards in the queue
+  void shuffleCards() {
+    if (_currentIndex >= _studyQueue.length) return;
+
+    // Get remaining cards (from current index to end)
+    final remainingCards = _studyQueue.sublist(_currentIndex);
+    remainingCards.shuffle();
+
+    // Replace remaining portion with shuffled cards
+    _studyQueue = [
+      ..._studyQueue.sublist(0, _currentIndex),
+      ...remainingCards,
+    ];
+
+    _state = StudyState.studying;
+    notifyListeners();
+  }
+
   void reset() {
     _state = StudyState.idle;
     _studyQueue = [];

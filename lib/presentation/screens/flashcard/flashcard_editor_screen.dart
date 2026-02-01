@@ -11,7 +11,6 @@ import '../../../data/services/image_service.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/dictionary_provider.dart';
 import '../../providers/deck_provider.dart';
-import '../../providers/settings_provider.dart';
 
 class FlashcardEditorScreen extends StatefulWidget {
   final String deckId;
@@ -555,7 +554,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   }
 
   Future<void> _pickImage() async {
-    final maxWidth = context.read<SettingsProvider>().flashcardImageMaxWidth;
+    // Always use 1000px max width for better quality
+    const maxWidth = 1000;
     final savedPath = await _imageService.pickAndSaveImage(maxWidth: maxWidth);
     if (savedPath != null) {
       if (_localImagePath != null && _localImagePath != savedPath) {

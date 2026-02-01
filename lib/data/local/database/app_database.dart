@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -28,7 +28,26 @@ class AppDatabase {
       databaseFactory = databaseFactoryFfi;
     }
 
-    final databasesPath = await getDatabasesPath();
+    // Use Documents folder for user data on all platforms
+    // This ensures data is NOT deleted when app is updated
+    final String databasesPath;
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // Desktop: use Documents/vocabflip folder
+      final documentsDir = await getApplicationDocumentsDirectory();
+      databasesPath = join(documentsDir.path, 'vocabflip');
+      // Create directory if it doesn't exist
+      final dir = Directory(databasesPath);
+      if (!dir.existsSync()) {
+        dir.createSync(recursive: true);
+      }
+
+      // Migrate old database from app installation directory (if exists)
+      await _migrateOldDatabase(databasesPath);
+    } else {
+      // Mobile: use default database path
+      databasesPath = await getDatabasesPath();
+    }
+
     final path = join(databasesPath, AppConstants.databaseName);
     debugPrint('AppDatabase: Database path: $path');
 
@@ -243,6 +262,106 @@ class AppDatabase {
     if (oldVersion < 7) {
       debugPrint('AppDatabase: Applying migration v6 -> v7 (adding auto_play_tts_on_flip to decks)');
       await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN auto_play_tts_on_flip INTEGER DEFAULT 1");
+    }
+  }
+
+  /// Migrate database from old location (app installation directory) to new location (Documents folder)
+  /// This ensures user data is preserved when updating the app
+  Future<void> _migrateOldDatabase(String newDatabasesPath) async {
+    try {
+      final newDbPath = join(newDatabasesPath, AppConstants.databaseName);
+      final newDbFile = File(newDbPath);
+
+      // If new database already exists, no need to migrate
+      if (newDbFile.existsSync()) {
+        debugPrint('AppDatabase: New database already exists, skipping migration');
+        return;
+      }
+
+      // Find old database in app installation directory
+      // On Windows, this is typically where the .exe is located
+      final exePath = Platform.resolvedExecutable;
+      final appDir = dirname(exePath);
+
+      // Check multiple possible old locations
+      final possibleOldPaths = [
+        join(appDir, AppConstants.databaseName),
+        join(appDir, 'data', AppConstants.databaseName),
+        join(appDir, 'databases', AppConstants.databaseName),
+      ];
+
+      File? oldDbFile;
+      for (final oldPath in possibleOldPaths) {
+        final file = File(oldPath);
+        if (file.existsSync()) {
+          oldDbFile = file;
+          debugPrint('AppDatabase: Found old database at: $oldPath');
+          break;
+        }
+      }
+
+      if (oldDbFile == null) {
+        debugPrint('AppDatabase: No old database found to migrate');
+        return;
+      }
+
+      // Copy old database to new location
+      debugPrint('AppDatabase: Migrating database to: $newDbPath');
+      await oldDbFile.copy(newDbPath);
+      debugPrint('AppDatabase: Database migration completed successfully!');
+
+      // Also migrate flashcard_images folder if it exists
+      await _migrateOldImages(appDir, dirname(newDatabasesPath));
+
+      // Delete old database after successful migration (optional - keep as backup)
+      // await oldDbFile.delete();
+      // debugPrint('AppDatabase: Old database deleted');
+
+    } catch (e) {
+      debugPrint('AppDatabase: Error during migration: $e');
+      // Don't rethrow - migration failure shouldn't prevent app from starting
+      // A new database will be created instead
+    }
+  }
+
+  /// Migrate old flashcard images from app directory to Documents folder
+  Future<void> _migrateOldImages(String appDir, String documentsDir) async {
+    try {
+      final oldImagesDir = Directory(join(appDir, 'flashcard_images'));
+      if (!oldImagesDir.existsSync()) {
+        debugPrint('AppDatabase: No old images folder found');
+        return;
+      }
+
+      final newImagesDir = Directory(join(documentsDir, 'flashcard_images'));
+      if (!newImagesDir.existsSync()) {
+        await newImagesDir.create(recursive: true);
+      }
+
+      debugPrint('AppDatabase: Migrating images from ${oldImagesDir.path}');
+
+      final imageFiles = oldImagesDir.listSync();
+      int migratedCount = 0;
+
+      for (final entity in imageFiles) {
+        if (entity is File) {
+          final fileName = basename(entity.path);
+          final newPath = join(newImagesDir.path, fileName);
+          final newFile = File(newPath);
+
+          // Only copy if doesn't already exist in new location
+          if (!newFile.existsSync()) {
+            await entity.copy(newPath);
+            migratedCount++;
+          }
+        }
+      }
+
+      debugPrint('AppDatabase: Migrated $migratedCount images');
+
+    } catch (e) {
+      debugPrint('AppDatabase: Error migrating images: $e');
+      // Don't rethrow - image migration failure is not critical
     }
   }
 

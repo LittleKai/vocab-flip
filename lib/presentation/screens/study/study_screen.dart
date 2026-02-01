@@ -55,12 +55,18 @@ class _StudyScreenState extends State<StudyScreen> {
             ),
             actions: [
               if (studyProvider.state == StudyState.studying ||
-                  studyProvider.state == StudyState.showingAnswer)
+                  studyProvider.state == StudyState.showingAnswer) ...[
+                IconButton(
+                  icon: const Icon(Icons.shuffle),
+                  onPressed: () => studyProvider.shuffleCards(),
+                  tooltip: l10n.shuffle,
+                ),
                 IconButton(
                   icon: const Icon(Icons.skip_next),
                   onPressed: () => studyProvider.skipCard(),
                   tooltip: l10n.skip,
                 ),
+              ],
             ],
           ),
           body: _buildBody(context, studyProvider, deck),
@@ -170,12 +176,13 @@ class _StudyScreenState extends State<StudyScreen> {
               controller: _flipController,
               isFlipped: provider.state == StudyState.showingAnswer,
               onFlip: () {
+                // Only trigger on first flip (front to back)
                 if (provider.state == StudyState.studying) {
                   provider.showAnswer();
-                }
-                // Auto-play TTS on every flip
-                if (deck?.autoPlayTtsOnFlip == true) {
-                  _speakWord(card.front, deck?.sourceLanguage ?? 'en');
+                  // Auto-play TTS only on first flip
+                  if (deck?.autoPlayTtsOnFlip == true) {
+                    _speakWord(card.front, deck?.sourceLanguage ?? 'en');
+                  }
                 }
               },
               front: FlashcardFace(

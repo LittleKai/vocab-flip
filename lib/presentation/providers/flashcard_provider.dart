@@ -142,6 +142,12 @@ class FlashcardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Shuffle flashcards randomly (local only, UI ordering)
+  void shuffleFlashcards() {
+    _flashcards.shuffle();
+    notifyListeners();
+  }
+
   void reset() {
     _flashcards = [];
     _dueFlashcards = [];

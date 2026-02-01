@@ -128,8 +128,16 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                 IconButton(
                   icon: const Icon(Icons.shuffle),
                   onPressed: () {
-                    // TODO: Shuffle cards
+                    flashcardProvider.shuffleFlashcards();
+                    // Reset to first card after shuffle
+                    _pageController.jumpToPage(0);
+                    setState(() {
+                      _currentIndex = 0;
+                      _isFlipped = false;
+                    });
+                    _flipController.reset();
                   },
+                  tooltip: l10n.shuffle,
                 ),
               ],
             ),
@@ -177,9 +185,10 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                         controller: _flipController,
                         isFlipped: _isFlipped,
                         onFlip: () {
+                          // Only play TTS on first flip (front to back)
+                          final wasFlipped = _isFlipped;
                           setState(() => _isFlipped = !_isFlipped);
-                          // Auto-play TTS on every flip
-                          if (deck?.autoPlayTtsOnFlip == true) {
+                          if (!wasFlipped && deck?.autoPlayTtsOnFlip == true) {
                             _speakWord(card.front, deck?.sourceLanguage ?? 'en');
                           }
                         },

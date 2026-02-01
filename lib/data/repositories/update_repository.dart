@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../models/app_version.dart';
 import '../remote/api/github_release_api.dart';
 import '../services/update_download_service.dart';
@@ -24,20 +25,47 @@ class UpdateRepository {
         _installService = installService ?? UpdateInstallService(),
         _preferences = preferences;
 
-  /// Current app version
-  static const String currentVersion = '1.0.0';
-  static const int currentBuildNumber = 1;
+  /// Cached package info
+  static PackageInfo? _packageInfo;
+
+  /// Get current app version from package info
+  static Future<String> getCurrentVersion() async {
+    _packageInfo ??= await PackageInfo.fromPlatform();
+    return _packageInfo!.version;
+  }
+
+  /// Get current build number from package info
+  static Future<int> getCurrentBuildNumber() async {
+    _packageInfo ??= await PackageInfo.fromPlatform();
+    return int.tryParse(_packageInfo!.buildNumber) ?? 1;
+  }
+
+  /// Synchronous version getter (returns cached or fallback)
+  static String get currentVersion => _packageInfo?.version ?? '0.0.0';
+  static int get currentBuildNumber =>
+      int.tryParse(_packageInfo?.buildNumber ?? '1') ?? 1;
 
   /// Check if we should auto-check for updates
   bool get shouldAutoCheck {
-    if (!_preferences.autoCheckUpdates) return false;
+    if (!_preferences.autoCheckUpdates) {
+      debugPrint('UpdateRepository: Auto-check disabled by user');
+      return false;
+    }
 
     final lastCheck = _preferences.lastUpdateCheck;
-    if (lastCheck == null) return true;
+    if (lastCheck == null) {
+      debugPrint('UpdateRepository: First time check, proceeding');
+      return true;
+    }
 
     // Check every 24 hours
     final hoursSinceCheck = DateTime.now().difference(lastCheck).inHours;
-    return hoursSinceCheck >= 24;
+    debugPrint('UpdateRepository: Last check was $hoursSinceCheck hours ago');
+    if (hoursSinceCheck < 24) {
+      debugPrint('UpdateRepository: Skipping check (less than 24h since last check)');
+      return false;
+    }
+    return true;
   }
 
   /// Check for available updates
@@ -45,6 +73,10 @@ class UpdateRepository {
   Future<AppVersion?> checkForUpdates() async {
     try {
       debugPrint('UpdateRepository: Checking for updates...');
+
+      // Get current version from package info
+      final currentVer = await getCurrentVersion();
+      debugPrint('UpdateRepository: Current version: $currentVer');
 
       final latestRelease = await _api.getLatestRelease();
       if (latestRelease == null) {
@@ -56,9 +88,9 @@ class UpdateRepository {
       await _preferences.setLastUpdateCheck(DateTime.now());
 
       // Compare versions
-      if (!latestRelease.isNewerThan(currentVersion)) {
+      if (!latestRelease.isNewerThan(currentVer)) {
         debugPrint(
-            'UpdateRepository: Current version $currentVersion is up to date');
+            'UpdateRepository: Current version $currentVer is up to date');
         return null;
       }
 

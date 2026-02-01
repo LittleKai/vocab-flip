@@ -92,7 +92,15 @@ class UpdateInstallService {
 
       // Create batch script
       final batchPath = path.join(path.dirname(extractedPath), 'update.bat');
-      final batchContent = '''
+
+      // Use proper escaping for batch file paths
+      final sourceEscaped = sourceDir.replaceAll('/', '\\');
+      final appDirEscaped = appDir.replaceAll('/', '\\');
+      final exePathEscaped = exePath.replaceAll('/', '\\');
+      final extractedEscaped = extractedPath.replaceAll('/', '\\');
+
+      // Note: Use """ for string interpolation to work
+      final batchContent = """
 @echo off
 title VocabFlip Update
 echo Updating VocabFlip...
@@ -117,9 +125,9 @@ if "%ERRORLEVEL%"=="0" (
 REM Wait additional 2 seconds for file handles to release
 timeout /t 2 /nobreak >NUL
 
-REM Copy new files
+REM Copy new files (only program files, user data in AppData is not affected)
 echo Copying new files...
-xcopy /E /Y /I "$sourceDir\\*" "$appDir\\" >NUL 2>&1
+xcopy /E /Y /I "$sourceEscaped\\*" "$appDirEscaped\\" >NUL 2>&1
 
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to copy files
@@ -132,14 +140,16 @@ echo Starting VocabFlip...
 timeout /t 1 /nobreak >NUL
 
 REM Start the app
-start "" "$exePath"
+start "" "$exePathEscaped"
 
 :cleanup
-REM Clean up
+REM Clean up extracted files
 timeout /t 2 /nobreak >NUL
-rmdir /S /Q "$extractedPath" >NUL 2>&1
-del "%~f0" >NUL 2>&1
-''';
+rmdir /S /Q "$extractedEscaped" >NUL 2>&1
+
+REM Delete this batch file
+(goto) 2>nul & del "%~f0"
+""";
 
       final batchFile = File(batchPath);
       await batchFile.writeAsString(batchContent);

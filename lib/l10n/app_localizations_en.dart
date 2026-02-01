@@ -358,6 +358,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get skip => 'Skip';
 
   @override
+  String get shuffle => 'Shuffle';
+
+  @override
   String get tryAgain => 'Try Again';
 
   @override
@@ -1297,5 +1300,76 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String updateAvailableVersion(String version) {
     return 'Version $version available';
+  }
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get donate => 'Donate';
+
+  @override
+  String get donateDesc => 'Support the developer';
+
+  @override
+  String get donateMessage =>
+      'If you find this app helpful, consider buying me a coffee! Your support helps keep this project alive.';
+
+  @override
+  String get donateBank => 'Vietcombank - Scan QR to donate';
+
+  @override
+  String get importFromExcel => 'Import from Excel';
+
+  @override
+  String get exportToExcel => 'Export to Excel';
+
+  @override
+  String get errorExportingExcel => 'Error exporting to Excel';
+
+  @override
+  String get excelFileInUse =>
+      'The file is currently open in another program. Please close it and try again.';
+
+  @override
+  String get noCardsToImport => 'No cards to import';
+
+  @override
+  String get importSummary => 'Import Summary:';
+
+  @override
+  String get newCardsToAdd => 'New cards to add';
+
+  @override
+  String get cardsToUpdate => 'Cards to update';
+
+  @override
+  String get errorsFound => 'Errors found';
+
+  @override
+  String importN(int count) {
+    return 'Import $count cards';
+  }
+
+  @override
+  String get importingCards => 'Importing cards...';
+
+  @override
+  String get excelExportedSuccess => 'Excel file exported and folder opened';
+
+  @override
+  String excelFromDifferentDeck(String deckName) {
+    return 'This file was exported from a different deck: \"$deckName\". Do you want to continue?';
+  }
+
+  @override
+  String get continueImport => 'Continue';
+
+  @override
+  String get warning => 'Warning';
+
+  @override
+  String importCompleted(int added, int updated) {
+    return 'Import completed: $added added, $updated updated';
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
@@ -6,6 +8,8 @@ import '../../../core/utils/deck_navigation.dart';
 import '../../../data/models/deck.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/update_provider.dart';
+import '../../widgets/dialogs/update_dialog.dart';
 import '../deck/deck_list_screen.dart';
 import '../statistics/statistics_screen.dart';
 import '../settings/settings_screen.dart';
@@ -21,14 +25,60 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  bool _checkedForUpdates = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DeckProvider>().loadDecks();
-      context.read<SettingsProvider>().loadSettings();
+      _initializeAndCheckUpdates();
     });
+  }
+
+  Future<void> _initializeAndCheckUpdates() async {
+    // Load decks
+    context.read<DeckProvider>().loadDecks();
+
+    // Load settings first (required for update check)
+    await context.read<SettingsProvider>().loadSettings();
+
+    // Then check for updates
+    await _checkForUpdatesOnStartup();
+  }
+
+  Future<void> _checkForUpdatesOnStartup() async {
+    if (_checkedForUpdates) return;
+    _checkedForUpdates = true;
+
+    // Only check on Windows
+    if (kIsWeb || !Platform.isWindows) return;
+
+    final settings = context.read<SettingsProvider>();
+    final updateProvider = context.read<UpdateProvider>();
+
+    // Initialize update provider
+    await updateProvider.init(settings.preferences);
+
+    // Check if should auto-check (respects 24h interval and user preference)
+    if (!updateProvider.shouldAutoCheckOnStartup) {
+      debugPrint('HomeScreen: Skipping update check (24h interval or disabled)');
+      return;
+    }
+
+    debugPrint('HomeScreen: Checking for updates on startup...');
+    await updateProvider.checkForUpdates(silent: true);
+
+    if (updateProvider.hasUpdate && mounted) {
+      debugPrint('HomeScreen: Update available: ${updateProvider.availableUpdate?.version}');
+      // Show update dialog
+      showDialog(
+        context: context,
+        barrierDismissible: !updateProvider.availableUpdate!.isMandatory,
+        builder: (context) => UpdateDialog(
+          version: updateProvider.availableUpdate!,
+        ),
+      );
+    }
   }
 
   Widget _buildScreen(int index) {

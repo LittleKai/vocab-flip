@@ -776,6 +776,12 @@ abstract class AppLocalizations {
   /// **'Skip'**
   String get skip;
 
+  /// No description provided for @shuffle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get shuffle;
+
   /// No description provided for @tryAgain.
   ///
   /// In en, this message translates to:
@@ -2545,6 +2551,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version {version} available'**
   String updateAvailableVersion(String version);
+
+  /// No description provided for @support.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// No description provided for @donate.
+  ///
+  /// In en, this message translates to:
+  /// **'Donate'**
+  String get donate;
+
+  /// No description provided for @donateDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Support the developer'**
+  String get donateDesc;
+
+  /// No description provided for @donateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'If you find this app helpful, consider buying me a coffee! Your support helps keep this project alive.'**
+  String get donateMessage;
+
+  /// No description provided for @donateBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Vietcombank - Scan QR to donate'**
+  String get donateBank;
+
+  /// No description provided for @importFromExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Excel'**
+  String get importFromExcel;
+
+  /// No description provided for @exportToExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Excel'**
+  String get exportToExcel;
+
+  /// No description provided for @errorExportingExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error exporting to Excel'**
+  String get errorExportingExcel;
+
+  /// No description provided for @excelFileInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is currently open in another program. Please close it and try again.'**
+  String get excelFileInUse;
+
+  /// No description provided for @noCardsToImport.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards to import'**
+  String get noCardsToImport;
+
+  /// No description provided for @importSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Summary:'**
+  String get importSummary;
+
+  /// No description provided for @newCardsToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'New cards to add'**
+  String get newCardsToAdd;
+
+  /// No description provided for @cardsToUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards to update'**
+  String get cardsToUpdate;
+
+  /// No description provided for @errorsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors found'**
+  String get errorsFound;
+
+  /// No description provided for @importN.
+  ///
+  /// In en, this message translates to:
+  /// **'Import {count} cards'**
+  String importN(int count);
+
+  /// No description provided for @importingCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing cards...'**
+  String get importingCards;
+
+  /// No description provided for @excelExportedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel file exported and folder opened'**
+  String get excelExportedSuccess;
+
+  /// No description provided for @excelFromDifferentDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'This file was exported from a different deck: \"{deckName}\". Do you want to continue?'**
+  String excelFromDifferentDeck(String deckName);
+
+  /// No description provided for @continueImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueImport;
+
+  /// No description provided for @warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get warning;
+
+  /// No description provided for @importCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Import completed: {added} added, {updated} updated'**
+  String importCompleted(int added, int updated);
 }
 
 class _AppLocalizationsDelegate

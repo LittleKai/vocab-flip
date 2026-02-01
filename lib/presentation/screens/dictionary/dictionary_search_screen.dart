@@ -496,97 +496,373 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
       backContent = definitions.join('\n');
     }
 
+    // Controllers for editable fields
+    final phoneticController = TextEditingController(text: result.phonetic ?? '');
+    final backController = TextEditingController(text: backContent);
+    final exampleController = TextEditingController();
+    final notesController = TextEditingController();
+
+    // Get first example if available
+    for (final meaning in result.meanings) {
+      for (final def in meaning.definitions) {
+        if (def.example != null && def.example!.isNotEmpty) {
+          exampleController.text = def.example!;
+          break;
+        }
+      }
+      if (exampleController.text.isNotEmpty) break;
+    }
+
+    String? selectedDeckId = filteredDecks.isNotEmpty ? filteredDecks.first.id : null;
+
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(l10n.addToDeck),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${l10n.front}: ${result.word}'),
-              if (result.phonetic != null)
-                Text('${l10n.phonetic}: ${result.phonetic}'),
-              const SizedBox(height: 8),
-              Text('${l10n.back}:'),
-              Text(
-                backContent,
-                style: const TextStyle(fontSize: 12),
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.add_card, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(l10n.addToDeck),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(l10n.selectDeck),
-              if (filteredDecks.isEmpty && deckProvider.decks.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'No ${dictProvider.selectedLanguage.nameEn} decks found',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondaryLight,
-                      fontStyle: FontStyle.italic,
-                    ),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Word (read-only) - Card style
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary.withValues(alpha: 0.1),
+                              AppColors.primary.withValues(alpha: 0.05),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.front,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary.withValues(alpha: 0.7),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              result.word,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Phonetic (editable)
+                      TextField(
+                        controller: phoneticController,
+                        decoration: InputDecoration(
+                          labelText: l10n.phonetic,
+                          hintText: l10n.phoneticHint,
+                          prefixIcon: const Icon(Icons.record_voice_over, size: 20),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          isDense: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Back/Meaning (editable)
+                      TextField(
+                        controller: backController,
+                        decoration: InputDecoration(
+                          labelText: l10n.back,
+                          hintText: l10n.enterMeaning,
+                          prefixIcon: const Icon(Icons.translate, size: 20),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          isDense: true,
+                          alignLabelWithHint: true,
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Example (editable)
+                      TextField(
+                        controller: exampleController,
+                        decoration: InputDecoration(
+                          labelText: l10n.example,
+                          hintText: l10n.addExample,
+                          prefixIcon: const Icon(Icons.format_quote, size: 20),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          isDense: true,
+                          alignLabelWithHint: true,
+                        ),
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Notes (editable)
+                      TextField(
+                        controller: notesController,
+                        decoration: InputDecoration(
+                          labelText: l10n.notes,
+                          hintText: l10n.addNotes,
+                          prefixIcon: const Icon(Icons.note, size: 20),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          isDense: true,
+                          alignLabelWithHint: true,
+                        ),
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Deck selection header
+                      Row(
+                        children: [
+                          const Icon(Icons.folder, size: 18, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.selectDeck,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Deck list
+                      if (filteredDecks.isEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.grey.withValues(alpha: 0.3),
+                              style: BorderStyle.solid,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.folder_off,
+                                size: 40,
+                                color: Colors.grey.withValues(alpha: 0.5),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                deckProvider.decks.isNotEmpty
+                                    ? 'No ${dictProvider.selectedLanguage.nameEn} decks found'
+                                    : l10n.noDecksYet,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondaryLight,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  phoneticController.dispose();
+                                  backController.dispose();
+                                  exampleController.dispose();
+                                  notesController.dispose();
+                                  Navigator.pop(dialogContext);
+                                  Navigator.pushNamed(context, '/create-deck');
+                                },
+                                icon: const Icon(Icons.add, size: 18),
+                                label: Text(l10n.createDeck),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 180),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              itemCount: filteredDecks.length,
+                              separatorBuilder: (_, __) => Divider(
+                                height: 1,
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                              ),
+                              itemBuilder: (context, index) {
+                                final deck = filteredDecks[index];
+                                final isSelected = deck.id == selectedDeckId;
+                                return Material(
+                                  color: isSelected
+                                      ? AppColors.primary.withValues(alpha: 0.15)
+                                      : Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      setDialogState(() {
+                                        selectedDeckId = deck.id;
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : AppColors.primary.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Icon(
+                                              Icons.style,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : AppColors.primary,
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  deck.name,
+                                                  style: TextStyle(
+                                                    fontWeight: isSelected
+                                                        ? FontWeight.bold
+                                                        : FontWeight.w500,
+                                                    fontSize: 14,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  '${deck.cardCount} ${l10n.cards.toLowerCase()}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.textSecondaryLight,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (isSelected)
+                                            const Icon(
+                                              Icons.check_circle,
+                                              color: AppColors.primary,
+                                              size: 24,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel),
-            ),
-            if (filteredDecks.isEmpty)
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/create-deck');
-                },
-                child: Text(l10n.createDeck),
-              )
-            else
-              PopupMenuButton<String>(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    l10n.selectDeck,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-                itemBuilder: (context) {
-                  return filteredDecks.map((deck) {
-                    return PopupMenuItem<String>(
-                      value: deck.id,
-                      child: Text(deck.name),
-                    );
-                  }).toList();
-                },
-                onSelected: (deckId) async {
-                  Navigator.pop(context);
-                  await _addFlashcardToDeck(
-                    context,
-                    deckId,
-                    result,
-                    backContent,
-                  );
-                },
               ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    phoneticController.dispose();
+                    backController.dispose();
+                    exampleController.dispose();
+                    notesController.dispose();
+                    Navigator.pop(dialogContext);
+                  },
+                  child: Text(l10n.cancel),
+                ),
+                if (filteredDecks.isNotEmpty)
+                  FilledButton.icon(
+                    onPressed: selectedDeckId == null
+                        ? null
+                        : () async {
+                            final phonetic = phoneticController.text.trim();
+                            final back = backController.text.trim();
+                            final example = exampleController.text.trim();
+                            final notes = notesController.text.trim();
+
+                            phoneticController.dispose();
+                            backController.dispose();
+                            exampleController.dispose();
+                            notesController.dispose();
+
+                            Navigator.pop(dialogContext);
+                            await _addFlashcardToDeckWithDetails(
+                              context,
+                              selectedDeckId!,
+                              result.word,
+                              phonetic.isEmpty ? null : phonetic,
+                              back,
+                              example.isEmpty ? null : example,
+                              notes.isEmpty ? null : notes,
+                            );
+                          },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(l10n.addFlashcard),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  Future<void> _addFlashcardToDeck(
+  Future<void> _addFlashcardToDeckWithDetails(
     BuildContext context,
     String deckId,
-    DictionaryResult result,
-    String backContent,
+    String word,
+    String? phonetic,
+    String back,
+    String? example,
+    String? notes,
   ) async {
     final l10n = AppLocalizations.of(context)!;
     final deckProvider = context.read<DeckProvider>();
@@ -594,15 +870,17 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     try {
       await deckProvider.addFlashcard(
         deckId: deckId,
-        front: result.word,
-        back: backContent,
-        phonetic: result.phonetic,
+        front: word,
+        back: back,
+        phonetic: phonetic,
+        example: example,
+        notes: notes,
       );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${l10n.addedToDeck}: ${result.word}'),
+            content: Text('${l10n.addedToDeck}: $word'),
             backgroundColor: Colors.green,
           ),
         );

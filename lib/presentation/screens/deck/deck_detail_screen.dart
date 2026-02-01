@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/flashcard.dart';
+import '../../../data/models/deck.dart';
 import '../../../data/remote/firebase/firebase_service.dart';
 import '../../../data/services/tts_service.dart';
+import '../../../data/services/excel_service.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/flashcard_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -109,8 +113,27 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                 onSelected: (value) => _handleMenuAction(context, value, deck),
                 itemBuilder: (context) => [
                   PopupMenuItem(value: 'edit', child: Text(l10n.editDeck)),
-                  PopupMenuItem(value: 'export', child: Text(l10n.export)),
-                  PopupMenuItem(value: 'import', child: Text(l10n.importCards)),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'export-excel',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.file_download, size: 20),
+                        const SizedBox(width: 8),
+                        Text(l10n.exportToExcel),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'import-excel',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.upload_file, size: 20),
+                        const SizedBox(width: 8),
+                        Text(l10n.importFromExcel),
+                      ],
+                    ),
+                  ),
                   const PopupMenuDivider(),
                   if (deck.isPublished)
                     PopupMenuItem(value: 'manage-published', child: Text(l10n.managePublished))
@@ -210,16 +233,16 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     );
   }
 
-  void _handleMenuAction(BuildContext context, String action, dynamic deck) {
+  void _handleMenuAction(BuildContext context, String action, Deck deck) {
     switch (action) {
       case 'edit':
         // Navigate to edit deck
         break;
-      case 'export':
-        // Export deck
+      case 'import-excel':
+        _importFromExcel(context, deck);
         break;
-      case 'import':
-        // Import cards
+      case 'export-excel':
+        _exportToExcel(context, deck);
         break;
       case 'publish':
         Navigator.pushNamed(context, '/publish', arguments: deck.id);
@@ -230,6 +253,222 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
       case 'unlink':
         _confirmUnlink(context);
         break;
+    }
+  }
+
+  Future<void> _importFromExcel(BuildContext context, Deck deck) async {
+    final l10n = AppLocalizations.of(context)!;
+    final excelService = ExcelService();
+    final flashcardProvider = context.read<FlashcardProvider>();
+
+    // Pick and import file
+    final result = await excelService.pickAndImportExcel(deck, flashcardProvider.flashcards);
+
+    if (!mounted) return;
+
+    if (result == null) {
+      // User cancelled or error occurred
+      return;
+    }
+
+    // Check if file is from a different deck
+    if (result.deckIdFromFile != null && result.deckIdFromFile != deck.id) {
+      final continueImport = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.warning),
+          content: Text(l10n.excelFromDifferentDeck(result.deckNameFromFile ?? 'Unknown')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.continueImport),
+            ),
+          ],
+        ),
+      );
+      if (continueImport != true) return;
+    }
+
+    if (result.totalCards == 0 && result.errors.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.noCardsToImport)),
+      );
+      return;
+    }
+
+    // Show confirmation dialog with results
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.importFromExcel),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.importSummary),
+              const SizedBox(height: 12),
+              if (result.hasNewCards)
+                _ImportSummaryRow(
+                  icon: Icons.add_circle,
+                  color: AppColors.success,
+                  label: l10n.newCardsToAdd,
+                  count: result.newCards.length,
+                ),
+              if (result.hasUpdatedCards) ...[
+                const SizedBox(height: 8),
+                _ImportSummaryRow(
+                  icon: Icons.edit,
+                  color: AppColors.info,
+                  label: l10n.cardsToUpdate,
+                  count: result.updatedCards.length,
+                ),
+              ],
+              if (result.hasErrors) ...[
+                const SizedBox(height: 8),
+                _ImportSummaryRow(
+                  icon: Icons.error,
+                  color: AppColors.error,
+                  label: l10n.errorsFound,
+                  count: result.errors.length,
+                ),
+                ...result.errors.take(3).map((e) => Padding(
+                      padding: const EdgeInsets.only(left: 32, top: 4),
+                      child: Text(
+                        e,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.error,
+                        ),
+                      ),
+                    )),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          if (result.totalCards > 0)
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.importN(result.totalCards)),
+            ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || result.totalCards == 0) return;
+
+    // Import/Update cards
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(l10n.importingCards),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      int added = 0;
+      int updated = 0;
+
+      // Add new cards
+      for (final card in result.newCards) {
+        await flashcardProvider.createFlashcard(card);
+        added++;
+      }
+
+      // Update existing cards
+      for (final card in result.updatedCards) {
+        await flashcardProvider.updateFlashcard(card);
+        updated++;
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.importCompleted(added, updated)),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l10n.error}: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _exportToExcel(BuildContext context, Deck deck) async {
+    final l10n = AppLocalizations.of(context)!;
+    final excelService = ExcelService();
+    final flashcardProvider = context.read<FlashcardProvider>();
+    final locale = context.read<SettingsProvider>().locale;
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final filePath = await excelService.exportDeckToExcel(deck, flashcardProvider.flashcards, locale: locale);
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
+      if (filePath != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.excelExportedSuccess),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorExportingExcel)),
+        );
+      }
+    } on ExcelFileInUseException {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.excelFileInUse),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.error}: $e')),
+      );
     }
   }
 
@@ -610,6 +849,39 @@ class _FlashcardListItem extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ),
+    );
+  }
+}
+
+class _ImportSummaryRow extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final int count;
+
+  const _ImportSummaryRow({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Text(label),
+        const Spacer(),
+        Text(
+          '$count',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 }

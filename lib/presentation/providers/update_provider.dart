@@ -41,21 +41,31 @@ class UpdateProvider extends ChangeNotifier {
   bool get hasUpdate => _availableUpdate != null;
   bool get hasError => _state == UpdateState.error;
 
-  String get currentVersion => UpdateRepository.currentVersion;
+  String _currentVersion = '...';
+
+  String get currentVersion => _currentVersion;
   bool get isAutoUpdateSupported =>
       !kIsWeb && Platform.isWindows;
 
   bool get autoCheckUpdates => _initialized ? _preferences.autoCheckUpdates : true;
 
-  /// Initialize with preferences
-  void init(AppPreferences preferences) {
+  /// Initialize with preferences (idempotent - safe to call multiple times)
+  Future<void> init(AppPreferences preferences) async {
+    if (_initialized) return; // Already initialized
+
     _preferences = preferences;
     _repository = UpdateRepository(
       owner: 'LittleKai', // GitHub owner
       repo: 'vocab-flip', //  repo name
       preferences: preferences,
     );
+
+    // Load current version from package info
+    _currentVersion = await UpdateRepository.getCurrentVersion();
+    debugPrint('UpdateProvider: Initialized with version $_currentVersion');
+
     _initialized = true;
+    notifyListeners();
   }
 
   /// Check if should auto-check on startup

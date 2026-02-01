@@ -119,6 +119,7 @@
   "nReview": "{count} ôn tập",
 
   "skip": "Bỏ qua",
+  "shuffle": "Xáo trộn",
   "tryAgain": "Thử lại",
   "anError": "Đã xảy ra lỗi",
   "cardsStudied": "Thẻ đã học",
@@ -435,5 +436,28 @@
   "skipVersion": "Bỏ qua phiên bản này",
   "checkingForUpdates": "Chạm để kiểm tra cập nhật",
   "updateFailed": "Cập nhật thất bại",
-  "updateAvailableVersion": "Phiên bản {version} có sẵn"
+  "updateAvailableVersion": "Phiên bản {version} có sẵn",
+
+  "support": "Hỗ trợ",
+  "donate": "Ủng hộ",
+  "donateDesc": "Hỗ trợ nhà phát triển",
+  "donateMessage": "Nếu bạn thấy ứng dụng hữu ích, hãy mời mình một ly cà phê nhé! Sự ủng hộ của bạn giúp dự án tiếp tục phát triển.",
+  "donateBank": "Vietcombank - Quét mã QR để ủng hộ",
+
+  "importFromExcel": "Nhập từ Excel",
+  "exportToExcel": "Xuất ra Excel",
+  "errorExportingExcel": "Lỗi khi xuất file Excel",
+  "excelFileInUse": "File đang được mở trong chương trình khác. Vui lòng đóng file và thử lại.",
+  "noCardsToImport": "Không có thẻ nào để nhập",
+  "importSummary": "Tóm tắt nhập:",
+  "newCardsToAdd": "Thẻ mới sẽ thêm",
+  "cardsToUpdate": "Thẻ sẽ cập nhật",
+  "errorsFound": "Lỗi phát hiện",
+  "importN": "Nhập {count} thẻ",
+  "importingCards": "Đang nhập thẻ...",
+  "excelExportedSuccess": "File Excel đã xuất và thư mục đã mở",
+  "excelFromDifferentDeck": "File này được xuất từ bộ thẻ khác: \"{deckName}\". Bạn có muốn tiếp tục?",
+  "continueImport": "Tiếp tục",
+  "warning": "Cảnh báo",
+  "importCompleted": "Hoàn tất: {added} thẻ mới, {updated} thẻ cập nhật"
 }

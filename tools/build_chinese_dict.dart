@@ -155,10 +155,35 @@ DictEntry? _parseLine(String line) {
     pinyin = pinyinMatches.map((m) => m.group(1)).join(', ');
   }
 
-  // Extract first Hán Việt for the field (usually single character)
-  final hanVietMatch = RegExp(r'Hán Việt:\s*(\S+)').firstMatch(content);
-  if (hanVietMatch != null) {
-    hanViet = hanVietMatch.group(1)?.trim();
+  // Extract Hán Việt - must match the number of Chinese characters in word
+  // Count Chinese characters in word
+  final chineseCharCount = word.runes.where((r) => r >= 0x4E00 && r <= 0x9FFF).length;
+
+  // Find "Hán Việt:" section and extract words
+  final hanVietSectionMatch = RegExp(r'Hán Việt:\s*([^\\]+)').firstMatch(content);
+  if (hanVietSectionMatch != null && chineseCharCount > 0) {
+    final hanVietSection = hanVietSectionMatch.group(1) ?? '';
+    // Split by whitespace and filter only Vietnamese words (uppercase or titlecase)
+    final allWords = hanVietSection.split(RegExp(r'\s+'));
+    final hanVietWords = <String>[];
+
+    for (final w in allWords) {
+      // Only take words that start with uppercase Vietnamese letter
+      // and contain only Vietnamese letters
+      if (w.isNotEmpty &&
+          RegExp(r'^[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴ]').hasMatch(w) &&
+          RegExp(r'^[A-ZÀ-Ỹa-zà-ỹĐđ]+$').hasMatch(w)) {
+        hanVietWords.add(w);
+        if (hanVietWords.length >= chineseCharCount) break;
+      }
+    }
+
+    if (hanVietWords.length == chineseCharCount) {
+      hanViet = hanVietWords.join(' ');
+    } else if (hanVietWords.isNotEmpty) {
+      // Fallback: take what we have if count doesn't match exactly
+      hanViet = hanVietWords.take(chineseCharCount).join(' ');
+    }
   }
 
   // Split by ✚ to get each pronunciation section

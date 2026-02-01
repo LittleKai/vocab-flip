@@ -9,7 +9,6 @@ import 'data/local/preferences/app_preferences.dart';
 import 'data/local/database/chinese_dict_dao.dart';
 import 'data/remote/firebase/category_seeder.dart';
 import 'data/remote/firebase/public_deck_seeder.dart';
-import 'presentation/providers/update_provider.dart';
 
 /// Global flag to track if Firebase is available
 bool isFirebaseInitialized = false;
@@ -82,22 +81,8 @@ void main() async {
 
     debugPrint('Starting VocabFlip app...');
 
-    // Initialize update provider for startup check
-    final updateProvider = UpdateProvider();
-    updateProvider.init(preferences);
-
-    // Run app
+    // Run app (UpdateProvider startup check is handled in HomeScreen)
     runApp(VocabFlipApp(preferences: preferences));
-
-    // Check for updates in background (after app starts, non-blocking)
-    if (updateProvider.shouldAutoCheckOnStartup) {
-      debugPrint('Checking for updates on startup...');
-      updateProvider.checkForUpdates(silent: true).then((_) {
-        if (updateProvider.hasUpdate) {
-          debugPrint('Update available: ${updateProvider.availableUpdate?.version}');
-        }
-      });
-    }
   }, (error, stackTrace) {
     debugPrint('Uncaught error: $error');
     debugPrint('Stack trace: $stackTrace');

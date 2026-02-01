@@ -358,6 +358,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get skip => 'Bỏ qua';
 
   @override
+  String get shuffle => 'Xáo trộn';
+
+  @override
   String get tryAgain => 'Thử lại';
 
   @override
@@ -1292,5 +1295,76 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String updateAvailableVersion(String version) {
     return 'Phiên bản $version có sẵn';
+  }
+
+  @override
+  String get support => 'Hỗ trợ';
+
+  @override
+  String get donate => 'Ủng hộ';
+
+  @override
+  String get donateDesc => 'Hỗ trợ nhà phát triển';
+
+  @override
+  String get donateMessage =>
+      'Nếu bạn thấy ứng dụng hữu ích, hãy mời mình một ly cà phê nhé! Sự ủng hộ của bạn giúp dự án tiếp tục phát triển.';
+
+  @override
+  String get donateBank => 'Vietcombank - Quét mã QR để ủng hộ';
+
+  @override
+  String get importFromExcel => 'Nhập từ Excel';
+
+  @override
+  String get exportToExcel => 'Xuất ra Excel';
+
+  @override
+  String get errorExportingExcel => 'Lỗi khi xuất file Excel';
+
+  @override
+  String get excelFileInUse =>
+      'File đang được mở trong chương trình khác. Vui lòng đóng file và thử lại.';
+
+  @override
+  String get noCardsToImport => 'Không có thẻ nào để nhập';
+
+  @override
+  String get importSummary => 'Tóm tắt nhập:';
+
+  @override
+  String get newCardsToAdd => 'Thẻ mới sẽ thêm';
+
+  @override
+  String get cardsToUpdate => 'Thẻ sẽ cập nhật';
+
+  @override
+  String get errorsFound => 'Lỗi phát hiện';
+
+  @override
+  String importN(int count) {
+    return 'Nhập $count thẻ';
+  }
+
+  @override
+  String get importingCards => 'Đang nhập thẻ...';
+
+  @override
+  String get excelExportedSuccess => 'File Excel đã xuất và thư mục đã mở';
+
+  @override
+  String excelFromDifferentDeck(String deckName) {
+    return 'File này được xuất từ bộ thẻ khác: \"$deckName\". Bạn có muốn tiếp tục?';
+  }
+
+  @override
+  String get continueImport => 'Tiếp tục';
+
+  @override
+  String get warning => 'Cảnh báo';
+
+  @override
+  String importCompleted(int added, int updated) {
+    return 'Hoàn tất: $added thẻ mới, $updated thẻ cập nhật';
   }
 }
