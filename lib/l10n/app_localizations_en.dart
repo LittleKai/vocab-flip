@@ -997,6 +997,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeImage => 'Remove image';
 
   @override
+  String get uploadImage => 'Upload image';
+
+  @override
   String get frontImage => 'Front Image';
 
   @override
@@ -1372,4 +1375,213 @@ class AppLocalizationsEn extends AppLocalizations {
   String importCompleted(int added, int updated) {
     return 'Import completed: $added added, $updated updated';
   }
+
+  @override
+  String get googleDriveBackup => 'Google Drive Backup';
+
+  @override
+  String get notConnectedToGoogleDrive => 'Not Connected to Google Drive';
+
+  @override
+  String get connectToBackupData =>
+      'Connect to backup and restore your flashcard data';
+
+  @override
+  String get connectGoogleDrive => 'Connect to Google Drive';
+
+  @override
+  String get connectedAs => 'Connected as';
+
+  @override
+  String get disconnect => 'Disconnect';
+
+  @override
+  String get createBackup => 'Create Backup';
+
+  @override
+  String get availableBackups => 'Available Backups';
+
+  @override
+  String get noBackupsYet => 'No Backups Yet';
+
+  @override
+  String get createFirstBackup =>
+      'Create your first backup to protect your data';
+
+  @override
+  String get creatingBackup => 'Creating Backup';
+
+  @override
+  String get restoringBackup => 'Restoring Backup';
+
+  @override
+  String get backupComplete => 'Backup Complete';
+
+  @override
+  String get backupFailed => 'Backup Failed';
+
+  @override
+  String get restoreComplete => 'Restore Complete';
+
+  @override
+  String get restoreFailed => 'Restore Failed';
+
+  @override
+  String backupSuccessMessage(int deckCount, int cardCount) {
+    return 'Successfully backed up $deckCount decks with $cardCount cards';
+  }
+
+  @override
+  String restoreSuccessMessage(int deckCount, int cardCount) {
+    return 'Restored $deckCount decks with $cardCount cards';
+  }
+
+  @override
+  String decksSkipped(int count) {
+    return '$count existing decks were skipped';
+  }
+
+  @override
+  String get restoreBackup => 'Restore Backup';
+
+  @override
+  String backupInfo(String date, int deckCount, int cardCount) {
+    return 'Backup from $date\n$deckCount decks, $cardCount cards';
+  }
+
+  @override
+  String get selectRestoreMode => 'Select restore mode:';
+
+  @override
+  String get restoreModeMerge => 'Merge with existing';
+
+  @override
+  String get restoreModeMergeDesc => 'Keep existing decks, add new ones';
+
+  @override
+  String get restoreModeReplace => 'Replace existing';
+
+  @override
+  String get restoreModeReplaceDesc => 'Delete and replace matching decks';
+
+  @override
+  String get deleteBackup => 'Delete Backup';
+
+  @override
+  String deleteBackupConfirm(String date) {
+    return 'Are you sure you want to delete the backup from $date?';
+  }
+
+  @override
+  String get backupDeleted => 'Backup deleted';
+
+  @override
+  String backupSummary(int deckCount, int cardCount, String size) {
+    return '$deckCount decks, $cardCount cards ($size)';
+  }
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get profileUpdated => 'Profile updated';
+
+  @override
+  String get selectAvatar => 'Select Avatar';
+
+  @override
+  String get nickname => 'Nickname';
+
+  @override
+  String get enterNickname => 'Enter your nickname';
+
+  @override
+  String get gender => 'Gender';
+
+  @override
+  String get bio => 'Bio';
+
+  @override
+  String get enterBio => 'Write something about yourself';
+
+  @override
+  String get manageAccount => 'Manage Account';
+
+  @override
+  String get genderMale => 'Male';
+
+  @override
+  String get genderFemale => 'Female';
+
+  @override
+  String get genderOther => 'Other';
+
+  @override
+  String get genderPreferNotToSay => 'Prefer not to say';
+
+  @override
+  String get enterDeckId => 'Enter deck ID...';
+
+  @override
+  String get importById => 'Import by ID';
+
+  @override
+  String uploadingImages(int completed, int total) {
+    return 'Uploading images $completed/$total...';
+  }
+
+  @override
+  String downloadingImages(int completed, int total) {
+    return 'Downloading images $completed/$total...';
+  }
+
+  @override
+  String imageUploadFailed(int count) {
+    return '$count image(s) failed to upload';
+  }
+
+  @override
+  String get shareDeckId => 'Share Deck ID';
+
+  @override
+  String get copyDeckIdToShare => 'Copy deck ID so others can import it';
+
+  @override
+  String get deckIdCopied => 'Deck ID copied to clipboard';
+
+  @override
+  String get deckImage => 'Deck Image';
+
+  @override
+  String get selectDeckToPublish => 'Select a deck to publish';
+
+  @override
+  String get allDecksPublished => 'All your decks are already published';
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get sortNameAZ => 'Name (A-Z)';
+
+  @override
+  String get sortNameZA => 'Name (Z-A)';
+
+  @override
+  String get sortMostCards => 'Most Cards';
+
+  @override
+  String get sortMostDue => 'Most Due';
+
+  @override
+  String get sortRecentlyUpdated => 'Recently Updated';
+
+  @override
+  String get sortOldest => 'Oldest';
+
+  @override
+  String get noMatchingDecks => 'No matching decks';
+
+  @override
+  String get clearFilters => 'Clear Filters';
 }

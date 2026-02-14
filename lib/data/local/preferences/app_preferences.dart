@@ -27,6 +27,14 @@ class AppPreferences {
   static const String _keySkippedVersion = 'skipped_version';
   static const String _keyAutoCheckUpdates = 'auto_check_updates';
 
+  // User profile
+  static const String _keyProfileNickname = 'profile_nickname';
+  static const String _keyProfileGender = 'profile_gender';
+  static const String _keyProfileAvatarIndex = 'profile_avatar_index';
+  static const String _keyProfileCustomAvatarPath = 'profile_custom_avatar_path';
+  static const String _keyProfileBio = 'profile_bio';
+  static const String _keyProfileUpdatedAt = 'profile_updated_at';
+
   // Default font sizes
   static const int defaultMainFontSize = 32;
   static const int defaultPhoneticFontSize = 20;
@@ -170,6 +178,51 @@ class AppPreferences {
   bool get autoCheckUpdates => _prefs.getBool(_keyAutoCheckUpdates) ?? true;
   Future<bool> setAutoCheckUpdates(bool value) =>
       _prefs.setBool(_keyAutoCheckUpdates, value);
+
+  // User profile - nickname
+  String? get profileNickname => _prefs.getString(_keyProfileNickname);
+  Future<bool> setProfileNickname(String? value) {
+    if (value == null || value.isEmpty) {
+      return _prefs.remove(_keyProfileNickname);
+    }
+    return _prefs.setString(_keyProfileNickname, value);
+  }
+
+  // User profile - gender (stored as string)
+  String get profileGender => _prefs.getString(_keyProfileGender) ?? 'preferNotToSay';
+  Future<bool> setProfileGender(String value) =>
+      _prefs.setString(_keyProfileGender, value);
+
+  // User profile - avatar index
+  int get profileAvatarIndex => _prefs.getInt(_keyProfileAvatarIndex) ?? 0;
+  Future<bool> setProfileAvatarIndex(int value) =>
+      _prefs.setInt(_keyProfileAvatarIndex, value);
+
+  // User profile - custom avatar image path
+  String? get profileCustomAvatarPath => _prefs.getString(_keyProfileCustomAvatarPath);
+  Future<bool> setProfileCustomAvatarPath(String? value) {
+    if (value == null || value.isEmpty) {
+      return _prefs.remove(_keyProfileCustomAvatarPath);
+    }
+    return _prefs.setString(_keyProfileCustomAvatarPath, value);
+  }
+
+  // User profile - bio
+  String? get profileBio => _prefs.getString(_keyProfileBio);
+  Future<bool> setProfileBio(String? value) {
+    if (value == null || value.isEmpty) {
+      return _prefs.remove(_keyProfileBio);
+    }
+    return _prefs.setString(_keyProfileBio, value);
+  }
+
+  // User profile - updated at
+  DateTime? get profileUpdatedAt {
+    final timestamp = _prefs.getString(_keyProfileUpdatedAt);
+    return timestamp != null ? DateTime.parse(timestamp) : null;
+  }
+  Future<bool> setProfileUpdatedAt(DateTime value) =>
+      _prefs.setString(_keyProfileUpdatedAt, value.toIso8601String());
 
   // Update streak
   Future<void> updateStreak() async {

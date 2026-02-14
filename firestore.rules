@@ -1,107 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
     // Helper functions
-    function isAuthenticated() {
+    function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isValidPublicDeck() {
-      let data = request.resource.data;
-      return data.name is string && data.name.size() > 0 && data.name.size() <= 100
-          && data.authorId is string
-          && data.sourceLanguage is string
-          && data.targetLanguage is string
-          && data.categoryId is string
-          && data.cardCount is int && data.cardCount > 0;
-    }
-
-    function isValidRating() {
-      let data = request.resource.data;
-      return data.rating is int && data.rating >= 1 && data.rating <= 5
-          && data.userId is string;
-    }
-
-    // Categories - read only for all authenticated users
-    match /categories/{categoryId} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Admin only via Firebase Console
-    }
-
-    // Public decks
+    // Public decks - anyone can read, only authenticated users can create
     match /public_decks/{deckId} {
-      // Anyone authenticated can browse public decks
-      allow read: if isAuthenticated();
-
-      // Only the author can create/update/delete their decks
-      allow create: if isAuthenticated()
-                    && request.resource.data.authorId == request.auth.uid
-                    && isValidPublicDeck();
-
-      allow update: if isAuthenticated()
-                    && resource.data.authorId == request.auth.uid;
-
-      allow delete: if isAuthenticated()
-                    && resource.data.authorId == request.auth.uid;
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() &&
+        resource.data.author_id == request.auth.uid;
 
       // Flashcards subcollection
       match /flashcards/{cardId} {
-        allow read: if isAuthenticated();
-
-        // Only deck author can modify flashcards
-        allow write: if isAuthenticated()
-                     && get(/databases/$(database)/documents/public_decks/$(deckId)).data.authorId == request.auth.uid;
+        allow read: if true;
+        allow write: if isSignedIn() &&
+          get(/databases/$(database)/documents/public_decks/$(deckId)).data.author_id == request.auth.uid;
       }
 
       // Ratings subcollection
       match /ratings/{ratingId} {
-        allow read: if isAuthenticated();
-
-        // Users can only create/update their own rating (ratingId == userId)
-        allow create: if isAuthenticated()
-                      && ratingId == request.auth.uid
-                      && request.resource.data.userId == request.auth.uid
-                      && isValidRating();
-
-        allow update: if isAuthenticated()
-                      && ratingId == request.auth.uid
-                      && resource.data.userId == request.auth.uid;
-
-        allow delete: if isAuthenticated()
-                      && ratingId == request.auth.uid;
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isOwner(ratingId);
       }
     }
 
-    // Users collection - for user profiles and imported deck links
+    // User data - only accessible by the owner
     match /users/{userId} {
-      // Users can only read/write their own data
       allow read, write: if isOwner(userId);
 
-      // Imported deck links subcollection
-      match /imported_decks/{importId} {
+      match /imported_decks/{linkId} {
         allow read, write: if isOwner(userId);
       }
     }
 
-    // Sync notifications
-    match /sync_notifications/{notifId} {
-      // Users can only read notifications for decks they imported
-      allow read: if isAuthenticated()
-                  && resource.data.userId == request.auth.uid;
-
-      // System creates notifications (via Cloud Functions)
-      // Users can mark as read
-      allow update: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
-
-      allow delete: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid;
+    // Sync notifications - only accessible by the target user
+    match /sync_notifications/{notificationId} {
+      allow read: if isSignedIn() &&
+        resource.data.user_id == request.auth.uid;
+      allow update: if isSignedIn() &&
+        resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() &&
+        resource.data.user_id == request.auth.uid;
     }
   }
 }

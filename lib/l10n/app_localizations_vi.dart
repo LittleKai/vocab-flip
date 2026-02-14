@@ -994,6 +994,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get removeImage => 'Xóa hình ảnh';
 
   @override
+  String get uploadImage => 'Tải ảnh lên';
+
+  @override
   String get frontImage => 'Hình mặt trước';
 
   @override
@@ -1367,4 +1370,212 @@ class AppLocalizationsVi extends AppLocalizations {
   String importCompleted(int added, int updated) {
     return 'Hoàn tất: $added thẻ mới, $updated thẻ cập nhật';
   }
+
+  @override
+  String get googleDriveBackup => 'Sao lưu Google Drive';
+
+  @override
+  String get notConnectedToGoogleDrive => 'Chưa kết nối Google Drive';
+
+  @override
+  String get connectToBackupData =>
+      'Kết nối để sao lưu và khôi phục dữ liệu flashcard';
+
+  @override
+  String get connectGoogleDrive => 'Kết nối Google Drive';
+
+  @override
+  String get connectedAs => 'Đã kết nối với';
+
+  @override
+  String get disconnect => 'Ngắt kết nối';
+
+  @override
+  String get createBackup => 'Tạo bản sao lưu';
+
+  @override
+  String get availableBackups => 'Các bản sao lưu';
+
+  @override
+  String get noBackupsYet => 'Chưa có bản sao lưu';
+
+  @override
+  String get createFirstBackup => 'Tạo bản sao lưu đầu tiên để bảo vệ dữ liệu';
+
+  @override
+  String get creatingBackup => 'Đang tạo bản sao lưu';
+
+  @override
+  String get restoringBackup => 'Đang khôi phục';
+
+  @override
+  String get backupComplete => 'Sao lưu hoàn tất';
+
+  @override
+  String get backupFailed => 'Sao lưu thất bại';
+
+  @override
+  String get restoreComplete => 'Khôi phục hoàn tất';
+
+  @override
+  String get restoreFailed => 'Khôi phục thất bại';
+
+  @override
+  String backupSuccessMessage(int deckCount, int cardCount) {
+    return 'Đã sao lưu $deckCount bộ thẻ với $cardCount thẻ';
+  }
+
+  @override
+  String restoreSuccessMessage(int deckCount, int cardCount) {
+    return 'Đã khôi phục $deckCount bộ thẻ với $cardCount thẻ';
+  }
+
+  @override
+  String decksSkipped(int count) {
+    return '$count bộ thẻ đã tồn tại được bỏ qua';
+  }
+
+  @override
+  String get restoreBackup => 'Khôi phục bản sao lưu';
+
+  @override
+  String backupInfo(String date, int deckCount, int cardCount) {
+    return 'Sao lưu từ $date\n$deckCount bộ thẻ, $cardCount thẻ';
+  }
+
+  @override
+  String get selectRestoreMode => 'Chọn chế độ khôi phục:';
+
+  @override
+  String get restoreModeMerge => 'Gộp với dữ liệu hiện có';
+
+  @override
+  String get restoreModeMergeDesc => 'Giữ bộ thẻ hiện có, thêm bộ thẻ mới';
+
+  @override
+  String get restoreModeReplace => 'Thay thế dữ liệu hiện có';
+
+  @override
+  String get restoreModeReplaceDesc => 'Xóa và thay thế bộ thẻ trùng lặp';
+
+  @override
+  String get deleteBackup => 'Xóa bản sao lưu';
+
+  @override
+  String deleteBackupConfirm(String date) {
+    return 'Bạn có chắc muốn xóa bản sao lưu từ $date?';
+  }
+
+  @override
+  String get backupDeleted => 'Đã xóa bản sao lưu';
+
+  @override
+  String backupSummary(int deckCount, int cardCount, String size) {
+    return '$deckCount bộ thẻ, $cardCount thẻ ($size)';
+  }
+
+  @override
+  String get editProfile => 'Chỉnh sửa hồ sơ';
+
+  @override
+  String get profileUpdated => 'Đã cập nhật hồ sơ';
+
+  @override
+  String get selectAvatar => 'Chọn avatar';
+
+  @override
+  String get nickname => 'Biệt danh';
+
+  @override
+  String get enterNickname => 'Nhập biệt danh của bạn';
+
+  @override
+  String get gender => 'Giới tính';
+
+  @override
+  String get bio => 'Giới thiệu';
+
+  @override
+  String get enterBio => 'Viết vài điều về bản thân';
+
+  @override
+  String get manageAccount => 'Quản lý tài khoản';
+
+  @override
+  String get genderMale => 'Nam';
+
+  @override
+  String get genderFemale => 'Nữ';
+
+  @override
+  String get genderOther => 'Khác';
+
+  @override
+  String get genderPreferNotToSay => 'Không muốn nói';
+
+  @override
+  String get enterDeckId => 'Nhập ID bộ thẻ...';
+
+  @override
+  String get importById => 'Nhập theo ID';
+
+  @override
+  String uploadingImages(int completed, int total) {
+    return 'Đang tải ảnh $completed/$total...';
+  }
+
+  @override
+  String downloadingImages(int completed, int total) {
+    return 'Đang tải ảnh về $completed/$total...';
+  }
+
+  @override
+  String imageUploadFailed(int count) {
+    return '$count ảnh tải lên thất bại';
+  }
+
+  @override
+  String get shareDeckId => 'Chia sẻ ID bộ thẻ';
+
+  @override
+  String get copyDeckIdToShare => 'Sao chép ID để người khác nhập bộ thẻ';
+
+  @override
+  String get deckIdCopied => 'Đã sao chép ID bộ thẻ';
+
+  @override
+  String get deckImage => 'Ảnh bộ thẻ';
+
+  @override
+  String get selectDeckToPublish => 'Chọn bộ thẻ để đăng';
+
+  @override
+  String get allDecksPublished => 'Tất cả bộ thẻ đã được đăng';
+
+  @override
+  String get sortBy => 'Sắp xếp';
+
+  @override
+  String get sortNameAZ => 'Tên (A-Z)';
+
+  @override
+  String get sortNameZA => 'Tên (Z-A)';
+
+  @override
+  String get sortMostCards => 'Nhiều thẻ nhất';
+
+  @override
+  String get sortMostDue => 'Cần ôn nhất';
+
+  @override
+  String get sortRecentlyUpdated => 'Cập nhật gần đây';
+
+  @override
+  String get sortOldest => 'Cũ nhất';
+
+  @override
+  String get noMatchingDecks => 'Không tìm thấy bộ thẻ phù hợp';
+
+  @override
+  String get clearFilters => 'Xóa bộ lọc';
 }

@@ -66,11 +66,12 @@ Future<void> deployIndexes() async {
   // Generate indexes file first
   await generateIndexes();
 
-  // Deploy using Firebase CLI
+  // Deploy using Firebase CLI (use runInShell for Windows compatibility)
   final result = await Process.run(
     'firebase',
     ['deploy', '--only', 'firestore:indexes'],
     workingDirectory: Directory.current.path,
+    runInShell: true,
   );
 
   print(result.stdout);
@@ -97,11 +98,12 @@ Future<void> deployRules() async {
   // Generate rules file
   await generateRules();
 
-  // Deploy using Firebase CLI
+  // Deploy using Firebase CLI (use runInShell for Windows compatibility)
   final result = await Process.run(
     'firebase',
     ['deploy', '--only', 'firestore:rules'],
     workingDirectory: Directory.current.path,
+    runInShell: true,
   );
 
   print(result.stdout);
@@ -127,8 +129,7 @@ Future<void> generateIndexes() async {
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "is_active", "order": "ASCENDING" },
-        { "fieldPath": "is_featured", "order": "DESCENDING" },
-        { "fieldPath": "created_at", "order": "DESCENDING" }
+        { "fieldPath": "download_count", "order": "DESCENDING" }
       ]
     },
     {
@@ -136,7 +137,7 @@ Future<void> generateIndexes() async {
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "is_active", "order": "ASCENDING" },
-        { "fieldPath": "downloads", "order": "DESCENDING" }
+        { "fieldPath": "rating_sum", "order": "DESCENDING" }
       ]
     },
     {
@@ -144,8 +145,7 @@ Future<void> generateIndexes() async {
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "is_active", "order": "ASCENDING" },
-        { "fieldPath": "category", "order": "ASCENDING" },
-        { "fieldPath": "created_at", "order": "DESCENDING" }
+        { "fieldPath": "published_at", "order": "DESCENDING" }
       ]
     },
     {
@@ -153,15 +153,51 @@ Future<void> generateIndexes() async {
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "category_id", "order": "ASCENDING" },
+        { "fieldPath": "download_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "category_id", "order": "ASCENDING" },
+        { "fieldPath": "published_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "source_language", "order": "ASCENDING" },
+        { "fieldPath": "download_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "target_language", "order": "ASCENDING" },
+        { "fieldPath": "download_count", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "author_id", "order": "ASCENDING" },
-        { "fieldPath": "created_at", "order": "DESCENDING" }
+        { "fieldPath": "updated_at", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "ratings",
+      "collectionGroup": "public_decks",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "created_at", "order": "DESCENDING" }
+        { "fieldPath": "author_id", "order": "ASCENDING" },
+        { "fieldPath": "published_at", "order": "DESCENDING" }
       ]
     },
     {
@@ -215,6 +251,8 @@ service cloud.firestore {
         resource.data.author_id == request.auth.uid;
 
       // Flashcards subcollection
+      // Fields: front, front_phonetic, back, example, notes, tags, order,
+      //         front_image_url, back_image_url, share_image (Cloudinary image hosting)
       match /flashcards/{cardId} {
         allow read: if true;
         allow write: if isSignedIn() &&

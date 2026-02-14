@@ -35,6 +35,10 @@ class PublicLibraryProvider extends ChangeNotifier {
   bool _hasMoreDecks = true;
   String? _error;
 
+  // Image download progress
+  int _imageDownloadCompleted = 0;
+  int _imageDownloadTotal = 0;
+
   // Getters
   List<PublicDeck> get decks => _decks;
   List<PublicDeck> get featuredDecks => _featuredDecks;
@@ -52,6 +56,8 @@ class PublicLibraryProvider extends ChangeNotifier {
   bool get isImporting => _isImporting;
   bool get hasMoreDecks => _hasMoreDecks;
   String? get error => _error;
+  int get imageDownloadCompleted => _imageDownloadCompleted;
+  int get imageDownloadTotal => _imageDownloadTotal;
 
   /// Initialize the library (load categories and featured decks)
   Future<void> initialize() async {
@@ -282,10 +288,19 @@ class PublicLibraryProvider extends ChangeNotifier {
   Future<Deck?> importDeck(String publicDeckId) async {
     _isImporting = true;
     _error = null;
+    _imageDownloadCompleted = 0;
+    _imageDownloadTotal = 0;
     notifyListeners();
 
     try {
-      final deck = await _repository.importDeck(publicDeckId);
+      final deck = await _repository.importDeck(
+        publicDeckId,
+        onImageProgress: (completed, total, failed) {
+          _imageDownloadCompleted = completed;
+          _imageDownloadTotal = total;
+          notifyListeners();
+        },
+      );
       _isImporting = false;
       notifyListeners();
       return deck;

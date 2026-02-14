@@ -102,8 +102,15 @@ class Deck {
   final List<CardFieldType> backFields;
   final ImageDisplayMode imageDisplayMode;
 
+  // Deck cover image
+  final String? imagePath;
+
   // TTS settings
   final bool autoPlayTtsOnFlip;
+
+  // Category and tags
+  final String? category;
+  final List<String> tags;
 
   // Default structure
   static const List<CardFieldType> defaultFrontFields = [CardFieldType.word, CardFieldType.phonetic];
@@ -129,7 +136,10 @@ class Deck {
     List<CardFieldType>? frontFields,
     List<CardFieldType>? backFields,
     this.imageDisplayMode = ImageDisplayMode.both,
+    this.imagePath,
     this.autoPlayTtsOnFlip = true,
+    this.category,
+    this.tags = const [],
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now(),
@@ -171,7 +181,12 @@ class Deck {
     List<CardFieldType>? frontFields,
     List<CardFieldType>? backFields,
     ImageDisplayMode? imageDisplayMode,
+    String? imagePath,
+    bool clearImagePath = false,
     bool? autoPlayTtsOnFlip,
+    String? category,
+    bool clearCategory = false,
+    List<String>? tags,
   }) {
     return Deck(
       id: id ?? this.id,
@@ -193,7 +208,10 @@ class Deck {
       frontFields: frontFields ?? this.frontFields,
       backFields: backFields ?? this.backFields,
       imageDisplayMode: imageDisplayMode ?? this.imageDisplayMode,
+      imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
       autoPlayTtsOnFlip: autoPlayTtsOnFlip ?? this.autoPlayTtsOnFlip,
+      category: clearCategory ? null : (category ?? this.category),
+      tags: tags ?? this.tags,
     );
   }
 
@@ -229,7 +247,10 @@ class Deck {
       'front_fields': _fieldsToString(frontFields),
       'back_fields': _fieldsToString(backFields),
       'image_display_mode': imageDisplayMode.name,
+      'image_path': imagePath,
       'auto_play_tts_on_flip': autoPlayTtsOnFlip ? 1 : 0,
+      'category': category,
+      'tags': tags.isNotEmpty ? tags.join(',') : null,
     };
   }
 
@@ -262,7 +283,12 @@ class Deck {
         (m) => m.name == (map['image_display_mode'] as String?),
         orElse: () => ImageDisplayMode.both,
       ),
+      imagePath: map['image_path'] as String?,
       autoPlayTtsOnFlip: (map['auto_play_tts_on_flip'] as int?) != 0,
+      category: map['category'] as String?,
+      tags: (map['tags'] as String?)?.isNotEmpty == true
+          ? (map['tags'] as String).split(',')
+          : const [],
     );
   }
 
@@ -277,7 +303,10 @@ class Deck {
       'front_fields': frontFields.map((f) => f.name).toList(),
       'back_fields': backFields.map((f) => f.name).toList(),
       'image_display_mode': imageDisplayMode.name,
+      'image_path': imagePath,
       'auto_play_tts_on_flip': autoPlayTtsOnFlip,
+      'category': category,
+      'tags': tags,
       'cards': cards.map((card) => card.toJson()).toList(),
     };
   }
@@ -316,7 +345,10 @@ class Deck {
         (m) => m.name == (json['image_display_mode'] as String?),
         orElse: () => ImageDisplayMode.both,
       ),
+      imagePath: json['image_path'] as String?,
       autoPlayTtsOnFlip: json['auto_play_tts_on_flip'] as bool? ?? true,
+      category: json['category'] as String?,
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
   }
 

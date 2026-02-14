@@ -21,6 +21,9 @@ class PublicDeck {
   final DateTime updatedAt;
   final DateTime? publishedAt;
   final bool isActive;
+  final String? imageUrl;
+  final String? frontFields;
+  final String? backFields;
 
   PublicDeck({
     required this.id,
@@ -42,6 +45,9 @@ class PublicDeck {
     DateTime? updatedAt,
     this.publishedAt,
     this.isActive = true,
+    this.imageUrl,
+    this.frontFields,
+    this.backFields,
   })  : tags = tags ?? [],
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
@@ -75,6 +81,9 @@ class PublicDeck {
     DateTime? updatedAt,
     DateTime? publishedAt,
     bool? isActive,
+    String? imageUrl,
+    String? frontFields,
+    String? backFields,
   }) {
     return PublicDeck(
       id: id ?? this.id,
@@ -96,6 +105,9 @@ class PublicDeck {
       updatedAt: updatedAt ?? DateTime.now(),
       publishedAt: publishedAt ?? this.publishedAt,
       isActive: isActive ?? this.isActive,
+      imageUrl: imageUrl ?? this.imageUrl,
+      frontFields: frontFields ?? this.frontFields,
+      backFields: backFields ?? this.backFields,
     );
   }
 
@@ -119,6 +131,9 @@ class PublicDeck {
       'updated_at': Timestamp.fromDate(updatedAt),
       'published_at': publishedAt != null ? Timestamp.fromDate(publishedAt!) : null,
       'is_active': isActive,
+      'image_url': imageUrl,
+      'front_fields': frontFields,
+      'back_fields': backFields,
     };
   }
 
@@ -144,6 +159,9 @@ class PublicDeck {
       updatedAt: (data['updated_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
       publishedAt: (data['published_at'] as Timestamp?)?.toDate(),
       isActive: data['is_active'] as bool? ?? true,
+      imageUrl: data['image_url'] as String?,
+      frontFields: data['front_fields'] as String?,
+      backFields: data['back_fields'] as String?,
     );
   }
 
@@ -169,6 +187,9 @@ class PublicDeck {
       updatedAt: _parseDateTime(data['updated_at']),
       publishedAt: data['published_at'] != null ? _parseDateTime(data['published_at']) : null,
       isActive: data['is_active'] as bool? ?? true,
+      imageUrl: data['image_url'] as String?,
+      frontFields: data['front_fields'] as String?,
+      backFields: data['back_fields'] as String?,
     );
   }
 

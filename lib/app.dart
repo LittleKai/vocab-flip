@@ -13,6 +13,8 @@ import 'presentation/providers/publish_provider.dart';
 import 'presentation/providers/sync_provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/update_provider.dart';
+import 'presentation/providers/backup_provider.dart';
+import 'presentation/providers/profile_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/deck/deck_detail_screen.dart';
 import 'presentation/screens/deck/create_deck_screen.dart';
@@ -49,6 +51,10 @@ class VocabFlipApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SyncProvider()),
         ChangeNotifierProvider(
           create: (_) => UpdateProvider(),
+        ),
+        ChangeNotifierProvider(create: (_) => BackupProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ProfileProvider(preferences: preferences),
         ),
       ],
       child: Consumer<SettingsProvider>(

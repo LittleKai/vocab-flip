@@ -30,6 +30,10 @@ class FirestoreRestClient {
       final token = await _authService.getIdToken();
       if (token != null) {
         headers['Authorization'] = 'Bearer $token';
+      } else {
+        debugPrint('FirestoreRest: WARNING - requireAuth=true but getIdToken() returned null. '
+            'userId=${_authService.userId}, isInitialized=${_authService.isInitialized}');
+        throw Exception('User must be signed in to publish');
       }
     }
 

@@ -87,7 +87,10 @@ class AppDatabase {
         front_fields TEXT DEFAULT 'word,phonetic',
         back_fields TEXT DEFAULT 'meaning,example,notes',
         image_display_mode TEXT DEFAULT 'both',
-        auto_play_tts_on_flip INTEGER DEFAULT 1
+        image_path TEXT,
+        auto_play_tts_on_flip INTEGER DEFAULT 1,
+        category TEXT,
+        tags TEXT
       )
     ''');
 
@@ -262,6 +265,17 @@ class AppDatabase {
     if (oldVersion < 7) {
       debugPrint('AppDatabase: Applying migration v6 -> v7 (adding auto_play_tts_on_flip to decks)');
       await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN auto_play_tts_on_flip INTEGER DEFAULT 1");
+    }
+
+    if (oldVersion < 8) {
+      debugPrint('AppDatabase: Applying migration v7 -> v8 (adding image_path to decks)');
+      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN image_path TEXT');
+    }
+
+    if (oldVersion < 9) {
+      debugPrint('AppDatabase: Applying migration v8 -> v9 (adding category and tags to decks)');
+      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN category TEXT');
+      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN tags TEXT');
     }
   }
 

@@ -65,7 +65,7 @@ class Category {
     Category(id: 'jlpt', name: 'JLPT', nameVi: 'JLPT', icon: 'translate', order: 4),
     Category(id: 'hsk', name: 'HSK', nameVi: 'HSK', icon: 'translate', order: 5),
     Category(id: 'travel', name: 'Travel', nameVi: 'Du lịch', icon: 'flight', order: 6),
-    Category(id: 'business', name: 'Business', nameVi: 'Kinh doanh', icon: 'business', order: 7),
+    Category(id: 'business', name: 'Business', nameVi: 'Công việc', icon: 'business', order: 7),
     Category(id: 'daily', name: 'Daily Life', nameVi: 'Hằng ngày', icon: 'home', order: 8),
     Category(id: 'academic', name: 'Academic', nameVi: 'Học thuật', icon: 'menu_book', order: 9),
     Category(id: 'slang', name: 'Slang & Idioms', nameVi: 'Tiếng lóng', icon: 'chat_bubble', order: 10),

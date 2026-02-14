@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
@@ -34,8 +35,19 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
 
   Future<void> _loadDeck() async {
     final deck = await context.read<DeckProvider>().getDeckById(widget.deckId);
-    if (mounted) {
+    if (mounted && deck != null) {
       setState(() => _deck = deck);
+      // Pre-fill category and tags from local deck
+      final provider = context.read<PublishProvider>();
+      if (deck.category != null && deck.category!.isNotEmpty) {
+        provider.setCategory(deck.category);
+      }
+      if (deck.tags.isNotEmpty) {
+        provider.clearTags();
+        for (final tag in deck.tags) {
+          provider.addTag(tag);
+        }
+      }
     }
   }
 
@@ -75,41 +87,72 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _deck!.name,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                  // Deck image
+                  if (_deck!.imagePath != null && _deck!.imagePath!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 64,
+                          height: 64,
+                          child: _deck!.imagePath!.startsWith('http')
+                              ? Image.network(_deck!.imagePath!, fit: BoxFit.cover)
+                              : File(_deck!.imagePath!).existsSync()
+                                  ? Image.file(File(_deck!.imagePath!), fit: BoxFit.cover)
+                                  : Container(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      child: Icon(Icons.style, color: AppColors.primary),
+                                    ),
                         ),
-                  ),
-                  if (_deck!.description != null &&
-                      _deck!.description!.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(_deck!.description!),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.style, size: 16, color: AppColors.textSecondaryLight),
-                      const SizedBox(width: 4),
-                      Text(
-                        l10n.cardsCount(_deck!.cardCount),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondaryLight,
-                            ),
                       ),
-                      const SizedBox(width: 16),
-                      Icon(Icons.translate, size: 16, color: AppColors.textSecondaryLight),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_deck!.sourceLanguage.toUpperCase()} → ${_deck!.targetLanguage.toUpperCase()}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondaryLight,
+                    ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _deck!.name,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        if (_deck!.description != null &&
+                            _deck!.description!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _deck!.description!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.style, size: 16, color: AppColors.textSecondaryLight),
+                            const SizedBox(width: 4),
+                            Text(
+                              l10n.cardsCount(_deck!.cardCount),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondaryLight,
+                                  ),
                             ),
-                      ),
-                    ],
+                            const SizedBox(width: 16),
+                            Icon(Icons.translate, size: 16, color: AppColors.textSecondaryLight),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${_deck!.sourceLanguage.toUpperCase()} → ${_deck!.targetLanguage.toUpperCase()}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondaryLight,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -225,6 +268,49 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Image upload progress
+          if (provider.isUploadingImages && provider.imageUploadTotal > 0) ...[
+            Card(
+              color: AppColors.primary.withOpacity(0.05),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          l10n.uploadingImages(provider.imageUploadCompleted, provider.imageUploadTotal),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: provider.imageUploadTotal > 0
+                          ? provider.imageUploadCompleted / provider.imageUploadTotal
+                          : 0,
+                    ),
+                    if (provider.imageUploadFailed > 0) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.imageUploadFailed(provider.imageUploadFailed),
+                        style: TextStyle(color: AppColors.error, fontSize: 12),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),

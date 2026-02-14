@@ -481,6 +481,7 @@
   "tapToAddImage": "Tap to add image",
   "changeImage": "Change image",
   "removeImage": "Remove image",
+  "uploadImage": "Upload image",
   "frontImage": "Front Image",
   "backImage": "Back Image",
   "shareImageOnBothSides": "Share image on both sides",
@@ -650,5 +651,127 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "googleDriveBackup": "Google Drive Backup",
+  "notConnectedToGoogleDrive": "Not Connected to Google Drive",
+  "connectToBackupData": "Connect to backup and restore your flashcard data",
+  "connectGoogleDrive": "Connect to Google Drive",
+  "connectedAs": "Connected as",
+  "disconnect": "Disconnect",
+  "createBackup": "Create Backup",
+  "availableBackups": "Available Backups",
+  "noBackupsYet": "No Backups Yet",
+  "createFirstBackup": "Create your first backup to protect your data",
+  "creatingBackup": "Creating Backup",
+  "restoringBackup": "Restoring Backup",
+  "backupComplete": "Backup Complete",
+  "backupFailed": "Backup Failed",
+  "restoreComplete": "Restore Complete",
+  "restoreFailed": "Restore Failed",
+  "backupSuccessMessage": "Successfully backed up {deckCount} decks with {cardCount} cards",
+  "@backupSuccessMessage": {
+    "placeholders": {
+      "deckCount": {"type": "int"},
+      "cardCount": {"type": "int"}
+    }
+  },
+  "restoreSuccessMessage": "Restored {deckCount} decks with {cardCount} cards",
+  "@restoreSuccessMessage": {
+    "placeholders": {
+      "deckCount": {"type": "int"},
+      "cardCount": {"type": "int"}
+    }
+  },
+  "decksSkipped": "{count} existing decks were skipped",
+  "@decksSkipped": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "restoreBackup": "Restore Backup",
+  "backupInfo": "Backup from {date}\n{deckCount} decks, {cardCount} cards",
+  "@backupInfo": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "deckCount": {"type": "int"},
+      "cardCount": {"type": "int"}
+    }
+  },
+  "selectRestoreMode": "Select restore mode:",
+  "restoreModeMerge": "Merge with existing",
+  "restoreModeMergeDesc": "Keep existing decks, add new ones",
+  "restoreModeReplace": "Replace existing",
+  "restoreModeReplaceDesc": "Delete and replace matching decks",
+  "deleteBackup": "Delete Backup",
+  "deleteBackupConfirm": "Are you sure you want to delete the backup from {date}?",
+  "@deleteBackupConfirm": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "backupDeleted": "Backup deleted",
+  "backupSummary": "{deckCount} decks, {cardCount} cards ({size})",
+  "@backupSummary": {
+    "placeholders": {
+      "deckCount": {"type": "int"},
+      "cardCount": {"type": "int"},
+      "size": {"type": "String"}
+    }
+  },
+
+  "editProfile": "Edit Profile",
+  "profileUpdated": "Profile updated",
+  "selectAvatar": "Select Avatar",
+  "nickname": "Nickname",
+  "enterNickname": "Enter your nickname",
+  "gender": "Gender",
+  "bio": "Bio",
+  "enterBio": "Write something about yourself",
+  "manageAccount": "Manage Account",
+  "genderMale": "Male",
+  "genderFemale": "Female",
+  "genderOther": "Other",
+  "genderPreferNotToSay": "Prefer not to say",
+
+  "enterDeckId": "Enter deck ID...",
+  "importById": "Import by ID",
+  "uploadingImages": "Uploading images {completed}/{total}...",
+  "@uploadingImages": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "downloadingImages": "Downloading images {completed}/{total}...",
+  "@downloadingImages": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "imageUploadFailed": "{count} image(s) failed to upload",
+  "@imageUploadFailed": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "shareDeckId": "Share Deck ID",
+  "copyDeckIdToShare": "Copy deck ID so others can import it",
+  "deckIdCopied": "Deck ID copied to clipboard",
+
+  "deckImage": "Deck Image",
+  "selectDeckToPublish": "Select a deck to publish",
+  "allDecksPublished": "All your decks are already published",
+
+  "sortBy": "Sort by",
+  "sortNameAZ": "Name (A-Z)",
+  "sortNameZA": "Name (Z-A)",
+  "sortMostCards": "Most Cards",
+  "sortMostDue": "Most Due",
+  "sortRecentlyUpdated": "Recently Updated",
+  "sortOldest": "Oldest",
+  "noMatchingDecks": "No matching decks",
+  "clearFilters": "Clear Filters"
 }

@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
+import '../../../data/models/category.dart';
 import '../../../data/models/deck.dart';
+import '../../../data/services/image_service.dart';
 import '../../providers/deck_provider.dart';
+import '../../widgets/library/tag_input.dart';
 
 class CreateDeckScreen extends StatefulWidget {
   final Deck? deck;
@@ -19,17 +24,23 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _imageService = ImageService();
 
   late TabController _tabController;
   SupportedLanguage _sourceLanguage = SupportedLanguage.english;
   bool _isLoading = false;
   bool _showBackFirst = false;
+  String? _imagePath;
 
   // Card structure configuration
   List<CardFieldType> _frontFields = List.from(Deck.defaultFrontFields);
   List<CardFieldType> _backFields = List.from(Deck.defaultBackFields);
   ImageDisplayMode _imageDisplayMode = ImageDisplayMode.both;
   bool _autoPlayTtsOnFlip = true;
+
+  // Category and tags
+  String? _category;
+  List<String> _tags = [];
 
   bool get _isEditing => widget.deck != null;
 
@@ -46,7 +57,10 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
       _frontFields = List.from(widget.deck!.frontFields);
       _backFields = List.from(widget.deck!.backFields);
       _imageDisplayMode = widget.deck!.imageDisplayMode;
+      _imagePath = widget.deck!.imagePath;
       _autoPlayTtsOnFlip = widget.deck!.autoPlayTtsOnFlip;
+      _category = widget.deck!.category;
+      _tags = List.from(widget.deck!.tags);
     }
   }
 
@@ -111,41 +125,64 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   }
 
   Widget _buildBasicInfoTab(AppLocalizations l10n) {
+    final locale = Localizations.localeOf(context).languageCode;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Deck name
-        TextFormField(
-          controller: _nameController,
-          decoration: InputDecoration(
-            labelText: l10n.deckName,
-            hintText: l10n.deckNameHint,
-            prefixIcon: const Icon(Icons.folder),
-          ),
-          textCapitalization: TextCapitalization.words,
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return l10n.pleaseEnterDeckName;
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-
-        // Description
-        TextFormField(
-          controller: _descriptionController,
-          decoration: InputDecoration(
-            labelText: l10n.descriptionOptional,
-            hintText: l10n.describeWhatDeckAbout,
-            prefixIcon: const Icon(Icons.description),
-          ),
-          maxLines: 3,
-          textCapitalization: TextCapitalization.sentences,
+        // Image + Name/Description row (image only shown if set)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_imagePath != null && File(_imagePath!).existsSync()) ...[
+              _buildSquareImagePicker(l10n),
+              const SizedBox(width: 12),
+            ],
+            // Name + Description
+            Expanded(
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: l10n.deckName,
+                      hintText: l10n.deckNameHint,
+                      prefixIcon: const Icon(Icons.folder),
+                      suffixIcon: _imagePath == null
+                          ? IconButton(
+                              icon: const Icon(Icons.add_photo_alternate_outlined),
+                              tooltip: l10n.image,
+                              onPressed: _pickImage,
+                            )
+                          : null,
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return l10n.pleaseEnterDeckName;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(
+                      labelText: l10n.descriptionOptional,
+                      hintText: l10n.describeWhatDeckAbout,
+                      prefixIcon: const Icon(Icons.description),
+                    ),
+                    maxLines: 2,
+                    textCapitalization: TextCapitalization.sentences,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 24),
 
-        // Source language
+        // Language section
         Text(
           l10n.sourceLanguage,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -153,75 +190,91 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
               ),
         ),
         const SizedBox(height: 8),
-        Text(
-          l10n.languageOfWordsToLearn,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondaryLight,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Source language chips
+            Expanded(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: SupportedLanguage.values
+                    .where((l) => l != SupportedLanguage.vietnamese)
+                    .map((lang) {
+                  final isSelected = _sourceLanguage == lang;
+                  return ChoiceChip(
+                    label: Text('${lang.flag} ${lang.nameEn}'),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _sourceLanguage = lang);
+                      }
+                    },
+                  );
+                }).toList(),
               ),
-        ),
-        const SizedBox(height: 12),
-        _LanguageSelector(
-          selectedLanguage: _sourceLanguage,
-          onLanguageSelected: (lang) {
-            setState(() => _sourceLanguage = lang);
-          },
-          excludeLanguages: const [SupportedLanguage.vietnamese],
+            ),
+            // Arrow icon
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Icon(Icons.arrow_forward, size: 20, color: Colors.grey),
+            ),
+            // Target language chip
+            Chip(
+              avatar: const Text('🇻🇳', style: TextStyle(fontSize: 16)),
+              label: Text(
+                l10n.vietnamese,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              side: const BorderSide(color: AppColors.vietnameseBadge),
+              backgroundColor: AppColors.vietnameseBadge.withValues(alpha: 0.1),
+            ),
+          ],
         ),
         const SizedBox(height: 24),
 
-        // Target language (fixed to Vietnamese)
+        // Category
         Text(
-          l10n.targetLanguage,
+          l10n.category,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
         ),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.vietnameseBadge.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.vietnameseBadge),
+        DropdownButtonFormField<String>(
+          value: _category,
+          decoration: InputDecoration(
+            hintText: l10n.selectCategory,
+            prefixIcon: const Icon(Icons.category),
+            border: const OutlineInputBorder(),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.vietnameseBadge.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Text(
-                    '🇻🇳',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
+          items: Category.predefined.map((cat) {
+            return DropdownMenuItem<String>(
+              value: cat.id,
+              child: Text(cat.getLocalizedName(locale)),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() => _category = value);
+          },
+        ),
+        const SizedBox(height: 24),
+
+        // Tags
+        Text(
+          l10n.tags,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.vietnamese,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const Text(
-                      'Tiếng Việt',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.check_circle,
-                color: AppColors.vietnameseBadge,
-              ),
-            ],
-          ),
+        ),
+        const SizedBox(height: 8),
+        TagInput(
+          tags: _tags,
+          onTagsChanged: (newTags) {
+            setState(() => _tags = newTags);
+          },
+          maxTags: 10,
+          hintText: l10n.addTagsHelp,
         ),
         const SizedBox(height: 24),
 
@@ -273,6 +326,92 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
         ),
       ],
     );
+  }
+
+  Widget _buildSquareImagePicker(AppLocalizations l10n) {
+    const double size = 100;
+
+    if (_imagePath != null && File(_imagePath!).existsSync()) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                File(_imagePath!),
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    InkWell(
+                      onTap: _pickImage,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.edit, color: Colors.white, size: 16),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => setState(() => _imagePath = null),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.close, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return InkWell(
+      onTap: _pickImage,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_photo_alternate_outlined, size: 28, color: Colors.grey.shade400),
+            const SizedBox(height: 4),
+            Text(
+              l10n.image,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage() async {
+    final path = await _imageService.pickAndSaveImage(maxWidth: 1000);
+    if (path != null) {
+      setState(() => _imagePath = path);
+    }
   }
 
   Widget _buildCardStructureTab(AppLocalizations l10n) {
@@ -522,7 +661,12 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
           frontFields: _frontFields,
           backFields: _backFields,
           imageDisplayMode: _imageDisplayMode,
+          imagePath: _imagePath,
+          clearImagePath: _imagePath == null,
           autoPlayTtsOnFlip: _autoPlayTtsOnFlip,
+          category: _category,
+          clearCategory: _category == null,
+          tags: _tags,
         );
         await provider.updateDeck(updatedDeck);
       } else {
@@ -535,7 +679,10 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
           frontFields: _frontFields,
           backFields: _backFields,
           imageDisplayMode: _imageDisplayMode,
+          imagePath: _imagePath,
           autoPlayTtsOnFlip: _autoPlayTtsOnFlip,
+          category: _category,
+          tags: _tags,
         );
         await provider.createDeck(newDeck);
       }
@@ -703,105 +850,6 @@ class _FieldItem extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _LanguageSelector extends StatelessWidget {
-  final SupportedLanguage selectedLanguage;
-  final ValueChanged<SupportedLanguage> onLanguageSelected;
-  final List<SupportedLanguage> excludeLanguages;
-
-  const _LanguageSelector({
-    required this.selectedLanguage,
-    required this.onLanguageSelected,
-    this.excludeLanguages = const [],
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final languages = SupportedLanguage.values
-        .where((l) => !excludeLanguages.contains(l))
-        .toList();
-
-    return Column(
-      children: languages.map((lang) {
-        final isSelected = selectedLanguage == lang;
-        final color = _getLanguageColor(lang);
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: InkWell(
-            onTap: () => onLanguageSelected(lang),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isSelected ? color.withValues(alpha: 0.1) : null,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade300,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        lang.flag,
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          lang.nameEn,
-                          style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.w600 : null,
-                          ),
-                        ),
-                        Text(
-                          lang.nameVi,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isSelected)
-                    Icon(Icons.check_circle, color: color),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Color _getLanguageColor(SupportedLanguage lang) {
-    switch (lang) {
-      case SupportedLanguage.english:
-        return AppColors.englishBadge;
-      case SupportedLanguage.japanese:
-        return AppColors.japaneseBadge;
-      case SupportedLanguage.chinese:
-        return AppColors.chineseBadge;
-      case SupportedLanguage.vietnamese:
-        return AppColors.vietnameseBadge;
-    }
   }
 }
 

@@ -11,6 +11,9 @@ class PublicFlashcard {
   final String? notes;
   final List<String> tags;
   final int order;
+  final String? frontImageUrl;
+  final String? backImageUrl;
+  final bool shareImage;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -24,6 +27,9 @@ class PublicFlashcard {
     this.notes,
     List<String>? tags,
     this.order = 0,
+    this.frontImageUrl,
+    this.backImageUrl,
+    this.shareImage = true,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : tags = tags ?? [],
@@ -40,6 +46,9 @@ class PublicFlashcard {
     String? notes,
     List<String>? tags,
     int? order,
+    String? frontImageUrl,
+    String? backImageUrl,
+    bool? shareImage,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -53,6 +62,9 @@ class PublicFlashcard {
       notes: notes ?? this.notes,
       tags: tags ?? this.tags,
       order: order ?? this.order,
+      frontImageUrl: frontImageUrl ?? this.frontImageUrl,
+      backImageUrl: backImageUrl ?? this.backImageUrl,
+      shareImage: shareImage ?? this.shareImage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -68,6 +80,9 @@ class PublicFlashcard {
       'notes': notes,
       'tags': tags,
       'order': order,
+      'front_image_url': frontImageUrl,
+      'back_image_url': backImageUrl,
+      'share_image': shareImage,
       'created_at': Timestamp.fromDate(createdAt),
       'updated_at': Timestamp.fromDate(updatedAt),
     };
@@ -85,6 +100,9 @@ class PublicFlashcard {
       notes: data['notes'] as String?,
       tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       order: data['order'] as int? ?? 0,
+      frontImageUrl: data['front_image_url'] as String?,
+      backImageUrl: data['back_image_url'] as String?,
+      shareImage: data['share_image'] as bool? ?? true,
       createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updated_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -102,6 +120,9 @@ class PublicFlashcard {
       notes: data['notes'] as String?,
       tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       order: data['order'] as int? ?? 0,
+      frontImageUrl: data['front_image_url'] as String?,
+      backImageUrl: data['back_image_url'] as String?,
+      shareImage: data['share_image'] as bool? ?? true,
       createdAt: _parseDateTime(data['created_at']),
       updatedAt: _parseDateTime(data['updated_at']),
     );

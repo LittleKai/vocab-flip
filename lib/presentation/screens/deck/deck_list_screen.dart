@@ -1,69 +1,203 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/deck_navigation.dart';
+import '../../../data/models/category.dart';
 import '../../../data/models/deck.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/deck/deck_filter_sheet.dart';
 import 'create_deck_screen.dart';
 
-class DeckListScreen extends StatelessWidget {
+class DeckListScreen extends StatefulWidget {
   const DeckListScreen({super.key});
+
+  @override
+  State<DeckListScreen> createState() => _DeckListScreenState();
+}
+
+class _DeckListScreenState extends State<DeckListScreen> {
+  bool _isSearching = false;
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch(DeckProvider provider) {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        provider.setSearchQuery('');
+      }
+    });
+  }
+
+  void _showFilterSheet(BuildContext context, DeckProvider provider) {
+    DeckFilterSheet.show(
+      context: context,
+      currentCategory: provider.filterCategory,
+      currentLanguage: provider.filterLanguage,
+      currentSortBy: provider.sortBy,
+      onApply: (category, language, sortBy) {
+        provider.setDeckFilter(
+          category: category,
+          language: language,
+          sortBy: sortBy,
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.myDecks),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Implement search
-            },
+    return Consumer<DeckProvider>(
+      builder: (context, provider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: _isSearching
+                ? TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: l10n.searchDecks,
+                      border: InputBorder.none,
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => _toggleSearch(provider),
+                      ),
+                    ),
+                    onChanged: (value) => provider.setSearchQuery(value),
+                  )
+                : Text(l10n.myDecks),
+            actions: [
+              if (!_isSearching)
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () => _toggleSearch(provider),
+                ),
+            ],
+          ),
+          body: _buildBody(context, provider, l10n),
+          floatingActionButton: FloatingActionButton(
+            heroTag: 'deck_list_fab',
+            onPressed: () => _navigateToCreateDeck(context),
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(BuildContext context, DeckProvider provider, AppLocalizations l10n) {
+    if (provider.isLoading) {
+      return LoadingWidget(message: l10n.loadingDecks);
+    }
+
+    if (provider.decks.isEmpty) {
+      return EmptyStateWidget(
+        title: l10n.noDecksYet,
+        subtitle: l10n.createFirstDeck,
+        icon: Icons.folder_open,
+        action: ElevatedButton.icon(
+          onPressed: () => _navigateToCreateDeck(context),
+          icon: const Icon(Icons.add),
+          label: Text(l10n.createDeck),
+        ),
+      );
+    }
+
+    final filtered = provider.filteredDecks;
+
+    return RefreshIndicator(
+      onRefresh: () => provider.loadDecks(),
+      child: Column(
+        children: [
+          // Filter bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            child: Row(
+              children: [
+                Text(
+                  l10n.decksCount(filtered.length),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondaryLight,
+                      ),
+                ),
+                const Spacer(),
+                Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.tune),
+                      onPressed: () => _showFilterSheet(context, provider),
+                      tooltip: l10n.filter,
+                    ),
+                    if (provider.hasActiveFilters)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Deck list or no results
+          Expanded(
+            child: filtered.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.noMatchingDecks,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.textSecondaryLight,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton.icon(
+                          onPressed: () {
+                            _searchController.clear();
+                            provider.clearDeckFilters();
+                            setState(() => _isSearching = false);
+                          },
+                          icon: const Icon(Icons.clear_all),
+                          label: Text(l10n.clearFilters),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      return _DeckCard(deck: filtered[index]);
+                    },
+                  ),
           ),
         ],
-      ),
-      body: Consumer<DeckProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return LoadingWidget(message: l10n.loadingDecks);
-          }
-
-          if (provider.decks.isEmpty) {
-            return EmptyStateWidget(
-              title: l10n.noDecksYet,
-              subtitle: l10n.createFirstDeck,
-              icon: Icons.folder_open,
-              action: ElevatedButton.icon(
-                onPressed: () => _navigateToCreateDeck(context),
-                icon: const Icon(Icons.add),
-                label: Text(l10n.createDeck),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => provider.loadDecks(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: provider.decks.length,
-              itemBuilder: (context, index) {
-                return _DeckCard(deck: provider.decks[index]);
-              },
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'deck_list_fab',
-        onPressed: () => _navigateToCreateDeck(context),
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -86,17 +220,40 @@ class _DeckCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final langColor = _getLanguageColor(deck.sourceLanguage);
 
+    final hasImage = deck.imagePath != null && File(deck.imagePath!).existsSync();
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _navigateToBrowse(context),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(12, 0, 4, 4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // First row: Deck name, language, linked icon, menu
+              // Row 1: Image + (Name, Description)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (hasImage) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(deck.imagePath!),
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+              // Deck name, language, linked icon, menu
               Row(
                 children: [
                   Expanded(
@@ -201,19 +358,65 @@ class _DeckCard extends StatelessWidget {
                 ],
               ),
               if (deck.description != null && deck.description!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  deck.description!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondaryLight,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              const SizedBox(height: 12),
-              Row(
+                        Text(
+                          deck.description!,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.textSecondaryLight,
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              // Row 2: Category, Tags, Stats, Study button
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Row(
                 children: [
+                  // Category
+                  if (deck.category != null) ...[
+                    _StatChip(
+                      icon: Icons.category,
+                      label: Category.predefined
+                          .where((c) => c.id == deck.category)
+                          .map((c) => c.getLocalizedName(
+                              Localizations.localeOf(context).languageCode))
+                          .firstOrNull ?? deck.category!,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  // Tags
+                  ...deck.tags.take(3).map((tag) => Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                  )),
+                  if (deck.tags.length > 3)
+                    Text(
+                      '+${deck.tags.length - 3}',
+                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                  if (deck.category != null || deck.tags.isNotEmpty)
+                    const SizedBox(width: 8),
+                  // Card stats
                   _StatChip(
                     icon: Icons.style,
                     label: l10n.nCards(deck.cardCount),
@@ -240,6 +443,7 @@ class _DeckCard extends StatelessWidget {
                       child: Text(l10n.study),
                     ),
                 ],
+              ),
               ),
             ],
           ),

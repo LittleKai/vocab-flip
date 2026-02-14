@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,9 +7,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/update_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../widgets/dialogs/helper_dialog.dart';
 import '../../widgets/dialogs/update_dialog.dart';
+import '../../widgets/dialogs/profile_edit_dialog.dart';
 import '../auth/login_screen.dart';
+import 'backup_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -40,38 +43,95 @@ class SettingsScreen extends StatelessWidget {
           }
           return ListView(
             children: [
-              // Account section
+              // Account & Profile section
               _SectionHeader(title: l10n.account),
-              if (auth.isAuthenticated) ...[
-                ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.primary,
-                    child: Text(
-                      (auth.email?.isNotEmpty == true)
-                          ? auth.email![0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  title: Text(auth.displayName ?? auth.email ?? 'User'),
-                  subtitle: auth.displayName != null ? Text(auth.email ?? '') : null,
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showAccountDialog(context, auth, l10n),
-                ),
-              ] else ...[
-                ListTile(
-                  leading: const Icon(Icons.login),
-                  title: Text(l10n.signIn),
-                  subtitle: Text(l10n.signInWithEmail),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+              Consumer<ProfileProvider>(
+                builder: (context, profileProvider, _) {
+                  final profile = profileProvider.profile;
+
+                  if (auth.isAuthenticated) {
+                    return Column(
+                      children: [
+                        // Profile card
+                        ListTile(
+                          leading: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: ClipOval(
+                              child: profile.hasCustomAvatar
+                                  ? Image.file(
+                                      File(profile.customAvatarUrl!),
+                                      fit: BoxFit.cover,
+                                      width: 48,
+                                      height: 48,
+                                      errorBuilder: (_, __, ___) => Center(
+                                        child: Text(
+                                          profile.avatarEmoji,
+                                          style: const TextStyle(fontSize: 24),
+                                        ),
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        profile.avatarEmoji,
+                                        style: const TextStyle(fontSize: 24),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          title: Text(
+                            profile.getDisplayName(auth.displayName ?? auth.email),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(auth.email ?? ''),
+                              if (profile.bio != null && profile.bio!.isNotEmpty)
+                                Text(
+                                  profile.bio!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondaryLight,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
+                          ),
+                          isThreeLine: profile.bio != null && profile.bio!.isNotEmpty,
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => ProfileEditDialog.show(context),
+                        ),
+                        // Account actions
+                        ListTile(
+                          leading: const Icon(Icons.manage_accounts),
+                          title: Text(l10n.manageAccount),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _showAccountDialog(context, auth, l10n),
+                        ),
+                      ],
                     );
-                  },
-                ),
-              ],
+                  } else {
+                    return ListTile(
+                      leading: const Icon(Icons.login),
+                      title: Text(l10n.signIn),
+                      subtitle: Text(l10n.signInWithEmail),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
 
               const Divider(),
 
@@ -154,35 +214,16 @@ class SettingsScreen extends StatelessWidget {
               // Backup section
               _SectionHeader(title: l10n.backupSync),
               ListTile(
-                leading: const Icon(Icons.cloud_upload),
-                title: Text(l10n.backupToCloud),
+                leading: const Icon(Icons.cloud),
+                title: Text(l10n.googleDriveBackup),
                 subtitle: Text(l10n.saveDataToCloud),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  // TODO: Implement backup
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.firebaseNotConfigured)),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const BackupScreen()),
                   );
                 },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cloud_download),
-                title: Text(l10n.restoreFromCloud),
-                subtitle: Text(l10n.restoreDataFromCloud),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  // TODO: Implement restore
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.firebaseNotConfigured)),
-                  );
-                },
-              ),
-              SwitchListTile(
-                title: Text(l10n.autoSync),
-                subtitle: Text(l10n.autoSyncWhenOnline),
-                value: settings.autoSync,
-                onChanged: (value) => settings.setAutoSync(value),
-                secondary: const Icon(Icons.sync),
               ),
 
               const Divider(),

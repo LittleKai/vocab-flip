@@ -17,7 +17,10 @@ class FirebaseService {
     return _auth!;
   }
 
-  User? get currentUser => _auth?.currentUser;
+  User? get currentUser {
+    _ensureInitialized();
+    return _auth?.currentUser;
+  }
   bool get isSignedIn => currentUser != null;
   bool get isInitialized => _initialized;
   Stream<User?> get authStateChanges =>
@@ -122,12 +125,19 @@ class FirebaseService {
 
   /// Get Firebase ID token for REST API authentication
   Future<String?> getIdToken({bool forceRefresh = false}) async {
-    if (!_initialized || currentUser == null) return null;
+    if (!_initialized) {
+      debugPrint('FirebaseService: getIdToken failed - not initialized');
+      return null;
+    }
+    if (currentUser == null) {
+      debugPrint('FirebaseService: getIdToken failed - currentUser is null (initialized=$_initialized, auth=${_auth != null})');
+      return null;
+    }
 
     try {
       return await currentUser!.getIdToken(forceRefresh);
     } catch (e) {
-      debugPrint('Failed to get ID token: $e');
+      debugPrint('FirebaseService: getIdToken exception: $e');
       return null;
     }
   }

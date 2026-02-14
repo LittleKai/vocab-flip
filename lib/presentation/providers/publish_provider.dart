@@ -9,6 +9,7 @@ enum PublishState {
   idle,
   loading,
   publishing,
+  uploadingImages,
   success,
   error,
 }
@@ -26,6 +27,11 @@ class PublishProvider extends ChangeNotifier {
   String? _error;
   PublicDeck? _lastPublishedDeck;
 
+  // Image upload progress
+  int _imageUploadCompleted = 0;
+  int _imageUploadTotal = 0;
+  int _imageUploadFailed = 0;
+
   // Getters
   PublishState get state => _state;
   List<PublicDeck> get myPublishedDecks => _myPublishedDecks;
@@ -35,7 +41,11 @@ class PublishProvider extends ChangeNotifier {
   String? get error => _error;
   PublicDeck? get lastPublishedDeck => _lastPublishedDeck;
   bool get isLoading => _state == PublishState.loading;
-  bool get isPublishing => _state == PublishState.publishing;
+  bool get isPublishing => _state == PublishState.publishing || _state == PublishState.uploadingImages;
+  int get imageUploadCompleted => _imageUploadCompleted;
+  int get imageUploadTotal => _imageUploadTotal;
+  int get imageUploadFailed => _imageUploadFailed;
+  bool get isUploadingImages => _state == PublishState.uploadingImages;
 
   /// Initialize publish provider
   Future<void> initialize() async {
@@ -128,8 +138,11 @@ class PublishProvider extends ChangeNotifier {
       return false;
     }
 
-    _state = PublishState.publishing;
+    _state = PublishState.uploadingImages;
     _error = null;
+    _imageUploadCompleted = 0;
+    _imageUploadTotal = 0;
+    _imageUploadFailed = 0;
     notifyListeners();
 
     try {
@@ -137,7 +150,17 @@ class PublishProvider extends ChangeNotifier {
         localDeckId: localDeckId,
         categoryId: _selectedCategoryId!,
         tags: _selectedTags,
+        onImageProgress: (completed, total, failed) {
+          _imageUploadCompleted = completed;
+          _imageUploadTotal = total;
+          _imageUploadFailed = failed;
+          _state = PublishState.uploadingImages;
+          notifyListeners();
+        },
       );
+
+      _state = PublishState.publishing;
+      notifyListeners();
 
       // Refresh published decks list
       await loadMyPublishedDecks();
@@ -155,8 +178,11 @@ class PublishProvider extends ChangeNotifier {
 
   /// Update a published deck
   Future<bool> updatePublishedDeck(String localDeckId) async {
-    _state = PublishState.publishing;
+    _state = PublishState.uploadingImages;
     _error = null;
+    _imageUploadCompleted = 0;
+    _imageUploadTotal = 0;
+    _imageUploadFailed = 0;
     notifyListeners();
 
     try {
@@ -164,6 +190,13 @@ class PublishProvider extends ChangeNotifier {
         localDeckId: localDeckId,
         categoryId: _selectedCategoryId,
         tags: _selectedTags.isNotEmpty ? _selectedTags : null,
+        onImageProgress: (completed, total, failed) {
+          _imageUploadCompleted = completed;
+          _imageUploadTotal = total;
+          _imageUploadFailed = failed;
+          _state = PublishState.uploadingImages;
+          notifyListeners();
+        },
       );
 
       // Refresh published decks list

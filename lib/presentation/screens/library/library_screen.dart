@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/public_library_provider.dart';
+import '../../providers/deck_provider.dart';
+import '../../providers/publish_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/library/public_deck_card.dart';
 import '../../widgets/library/filter_sheet.dart';
@@ -29,7 +32,7 @@ class _LibraryScreenState extends State<LibraryScreen>
   void initState() {
     super.initState();
     try {
-      _tabController = TabController(length: 4, vsync: this);
+      _tabController = TabController(length: 5, vsync: this);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _initializeLibrary();
       });
@@ -126,6 +129,7 @@ class _LibraryScreenState extends State<LibraryScreen>
               Tab(text: l10n.topRated),
               Tab(text: l10n.newDecks),
               Tab(text: l10n.browse),
+              Tab(text: l10n.myPublishedDecks),
             ],
           ),
         ),
@@ -136,6 +140,7 @@ class _LibraryScreenState extends State<LibraryScreen>
             _TopRatedTab(),
             _NewestTab(),
             _BrowseTab(),
+            _MyDecksTab(),
           ],
         ),
       );
@@ -280,6 +285,7 @@ class _BrowseTab extends StatefulWidget {
 
 class _BrowseTabState extends State<_BrowseTab> {
   final _scrollController = ScrollController();
+  final _deckIdController = TextEditingController();
 
   @override
   void initState() {
@@ -296,6 +302,7 @@ class _BrowseTabState extends State<_BrowseTab> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _deckIdController.dispose();
     super.dispose();
   }
 
@@ -315,6 +322,9 @@ class _BrowseTabState extends State<_BrowseTab> {
       builder: (context, provider, _) {
         return Column(
           children: [
+            // Import by ID
+            _buildImportByIdRow(context),
+
             // Filter bar
             _buildFilterBar(context, provider),
 
@@ -330,6 +340,48 @@ class _BrowseTabState extends State<_BrowseTab> {
         );
       },
     );
+  }
+
+  Widget _buildImportByIdRow(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _deckIdController,
+              decoration: InputDecoration(
+                hintText: l10n.enterDeckId,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (_) => _importById(context),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward),
+            tooltip: l10n.importById,
+            onPressed: () => _importById(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _importById(BuildContext context) {
+    final id = _deckIdController.text.trim();
+    if (id.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PublicDeckDetailScreen(deckId: id),
+        ),
+      );
+    }
   }
 
   Widget _buildFilterBar(BuildContext context, PublicLibraryProvider provider) {
@@ -436,6 +488,233 @@ class _BrowseTabState extends State<_BrowseTab> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _MyDecksTab extends StatefulWidget {
+  @override
+  State<_MyDecksTab> createState() => _MyDecksTabState();
+}
+
+class _MyDecksTabState extends State<_MyDecksTab> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PublishProvider>().loadMyPublishedDecks();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Stack(
+      children: [
+        Consumer<PublishProvider>(
+          builder: (context, provider, _) {
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (provider.myPublishedDecks.isEmpty) {
+              return _buildEmptyState(context, l10n.noPublishedDecks);
+            }
+
+            return RefreshIndicator(
+              onRefresh: () => provider.loadMyPublishedDecks(),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: provider.myPublishedDecks.length,
+                itemBuilder: (context, index) {
+                  final deck = provider.myPublishedDecks[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: PublicDeckCard(
+                      deck: deck,
+                      onTap: () => _showDeckOptions(context, deck.id),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: FloatingActionButton(
+            onPressed: () => _showPublishDeckPicker(context),
+            tooltip: l10n.publishToLibrary,
+            child: const Icon(Icons.cloud_upload),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showPublishDeckPicker(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final deckProvider = context.read<DeckProvider>();
+    final publishProvider = context.read<PublishProvider>();
+    final navigator = Navigator.of(context);
+    final unpublishedDecks = deckProvider.decks
+        .where((d) => !d.isPublished)
+        .toList();
+
+    if (unpublishedDecks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.allDecksPublished)),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  l10n.selectDeckToPublish,
+                  style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              ...unpublishedDecks.map((deck) => ListTile(
+                leading: const Icon(Icons.style),
+                title: Text(deck.name),
+                subtitle: Text(l10n.cardsCount(deck.cardCount)),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  navigator.pushNamed('/publish', arguments: deck.id).then((_) {
+                    publishProvider.loadMyPublishedDecks();
+                  });
+                },
+              )),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeckOptions(BuildContext context, String publicDeckId) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.share),
+                title: Text(l10n.shareDeckId),
+                subtitle: Text(l10n.copyDeckIdToShare),
+                onTap: () {
+                  Navigator.pop(context);
+                  Clipboard.setData(ClipboardData(text: publicDeckId));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.deckIdCopied)),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.sync),
+                title: Text(l10n.pushUpdate),
+                subtitle: Text(l10n.syncChanges),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.updatingDeck)),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.visibility_off),
+                title: Text(l10n.unpublish),
+                subtitle: Text(l10n.removeFromLibrary),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmUnpublish(context, publicDeckId);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.analytics),
+                title: Text(l10n.viewAnalytics),
+                subtitle: Text(l10n.analyticsComingSoon),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.analyticsComingSoon)),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmUnpublish(BuildContext context, String publicDeckId) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.unpublishConfirm),
+        content: Text(l10n.unpublishDescription),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.deckUnpublished)),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(l10n.unpublish),
+          ),
+        ],
       ),
     );
   }

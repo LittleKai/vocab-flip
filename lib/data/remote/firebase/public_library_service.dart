@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import '../../../core/constants/app_constants.dart';
@@ -64,6 +65,24 @@ class PublicLibraryService {
 
   /// Check if we should use REST API (Windows)
   bool get _useRest => FirestoreRestClient.shouldUseRest;
+
+  /// Generate a unique 4-character alphanumeric ID
+  String _generateShortId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final rng = Random.secure();
+    return List.generate(4, (_) => chars[rng.nextInt(chars.length)]).join();
+  }
+
+  /// Generate a unique short ID, checking for collisions
+  Future<String> _generateUniqueShortId() async {
+    for (int attempt = 0; attempt < 10; attempt++) {
+      final id = _generateShortId();
+      final existing = await getDeck(id);
+      if (existing == null) return id;
+    }
+    // Fallback: unlikely to reach here
+    return _generateShortId();
+  }
 
   CollectionReference<Map<String, dynamic>> get _publicDecksRef =>
       _firestore.collection(AppConstants.collectionPublicDecks);
@@ -278,12 +297,15 @@ class PublicLibraryService {
   Future<List<PublicFlashcard>> _getFlashcardsRest(String publicDeckId) async {
     try {
       final collectionPath = '${AppConstants.collectionPublicDecks}/$publicDeckId/${AppConstants.collectionPublicFlashcards}';
-      final docs = await _restClient.getCollection(
-        collectionPath,
-        orderBy: [OrderBy('order')],
-      );
+      // Use simple list (no orderBy) to avoid structuredQuery, sort client-side
+      final docs = await _restClient.getCollection(collectionPath);
 
-      return docs.map((doc) => PublicFlashcard.fromMap(doc)).toList();
+      debugPrint('getFlashcards REST: fetched ${docs.length} flashcards for deck $publicDeckId');
+
+      final flashcards = docs.map((doc) => PublicFlashcard.fromMap(doc)).toList();
+      // Sort by order field client-side
+      flashcards.sort((a, b) => a.order.compareTo(b.order));
+      return flashcards;
     } catch (e) {
       debugPrint('getFlashcards REST error: $e');
       return [];
@@ -300,6 +322,9 @@ class PublicLibraryService {
     required String categoryId,
     required List<String> tags,
     required List<Map<String, dynamic>> flashcards,
+    String? imageUrl,
+    String? frontFields,
+    String? backFields,
   }) async {
     if (_useRest) {
       return _publishDeckRest(
@@ -311,6 +336,9 @@ class PublicLibraryService {
         categoryId: categoryId,
         tags: tags,
         flashcards: flashcards,
+        imageUrl: imageUrl,
+        frontFields: frontFields,
+        backFields: backFields,
       );
     }
     return _publishDeckNative(
@@ -322,6 +350,9 @@ class PublicLibraryService {
       categoryId: categoryId,
       tags: tags,
       flashcards: flashcards,
+      imageUrl: imageUrl,
+      frontFields: frontFields,
+      backFields: backFields,
     );
   }
 
@@ -334,6 +365,9 @@ class PublicLibraryService {
     required String categoryId,
     required List<String> tags,
     required List<Map<String, dynamic>> flashcards,
+    String? imageUrl,
+    String? frontFields,
+    String? backFields,
   }) async {
     final userId = _authService.userId;
     final userName = _authService.userName ?? 'Anonymous';
@@ -342,10 +376,11 @@ class PublicLibraryService {
       throw Exception('User must be signed in to publish');
     }
 
-    // Create the public deck document
-    final docRef = _publicDecksRef.doc();
+    // Create the public deck document with short 4-char ID
+    final shortId = await _generateUniqueShortId();
+    final docRef = _publicDecksRef.doc(shortId);
     final publicDeck = PublicDeck(
-      id: docRef.id,
+      id: shortId,
       originalLocalId: localDeckId,
       authorId: userId,
       authorName: userName,
@@ -358,6 +393,9 @@ class PublicLibraryService {
       cardCount: flashcards.length,
       version: 1,
       publishedAt: DateTime.now(),
+      imageUrl: imageUrl,
+      frontFields: frontFields,
+      backFields: backFields,
     );
 
     // Use batch write for atomicity
@@ -379,6 +417,9 @@ class PublicLibraryService {
         'example': cardData['example'],
         'notes': cardData['notes'],
         'tags': cardData['tags'] ?? [],
+        'front_image_url': cardData['front_image_url'],
+        'back_image_url': cardData['back_image_url'],
+        'share_image': cardData['share_image'] ?? true,
         'order': i,
         'created_at': Timestamp.now(),
         'updated_at': Timestamp.now(),
@@ -398,6 +439,9 @@ class PublicLibraryService {
     required String categoryId,
     required List<String> tags,
     required List<Map<String, dynamic>> flashcards,
+    String? imageUrl,
+    String? frontFields,
+    String? backFields,
   }) async {
     final userId = _authService.userId;
     final userName = _authService.userName ?? 'Anonymous';
@@ -426,19 +470,24 @@ class PublicLibraryService {
       'created_at': now,
       'updated_at': now,
       'published_at': now,
+      'image_url': imageUrl,
+      'front_fields': frontFields,
+      'back_fields': backFields,
     };
 
-    // Create deck document
+    // Generate short 4-char ID
+    final deckId = await _generateUniqueShortId();
+
+    // Create deck document with custom ID
     final deckDoc = await _restClient.createDocument(
       AppConstants.collectionPublicDecks,
       deckData,
+      documentId: deckId,
     );
 
     if (deckDoc == null) {
       throw Exception('Failed to create deck');
     }
-
-    final deckId = deckDoc['id'] as String;
 
     // Create flashcards using batch
     final batchOps = <BatchOperation>[];
@@ -456,6 +505,9 @@ class PublicLibraryService {
           'example': cardData['example'],
           'notes': cardData['notes'],
           'tags': cardData['tags'] ?? [],
+          'front_image_url': cardData['front_image_url'],
+          'back_image_url': cardData['back_image_url'],
+          'share_image': cardData['share_image'] ?? true,
           'order': i,
           'created_at': now,
           'updated_at': now,
@@ -463,7 +515,18 @@ class PublicLibraryService {
       ));
     }
 
-    await _restClient.batchWrite(batchOps);
+    // Batch write in chunks of 500 (Firestore REST API limit)
+    for (int i = 0; i < batchOps.length; i += 500) {
+      final chunk = batchOps.sublist(i, (i + 500).clamp(0, batchOps.length));
+      final success = await _restClient.batchWrite(chunk);
+      if (!success) {
+        // Clean up: delete the deck document since flashcards failed
+        await _restClient.deleteDocument(AppConstants.collectionPublicDecks, deckId);
+        throw Exception('Failed to write flashcards to Firestore (batch ${i ~/ 500 + 1})');
+      }
+    }
+
+    debugPrint('PublishDeck: Successfully wrote ${batchOps.length} flashcards for deck $deckId');
 
     return PublicDeck(
       id: deckId,
@@ -479,6 +542,9 @@ class PublicLibraryService {
       cardCount: flashcards.length,
       version: 1,
       publishedAt: now,
+      imageUrl: imageUrl,
+      frontFields: frontFields,
+      backFields: backFields,
     );
   }
 
@@ -491,6 +557,9 @@ class PublicLibraryService {
     List<String>? tags,
     List<Map<String, dynamic>>? flashcards,
     String? changeDescription,
+    String? imageUrl,
+    String? frontFields,
+    String? backFields,
   }) async {
     if (_useRest) {
       return _updatePublishedDeckRest(
@@ -500,6 +569,9 @@ class PublicLibraryService {
         categoryId: categoryId,
         tags: tags,
         flashcards: flashcards,
+        imageUrl: imageUrl,
+        frontFields: frontFields,
+        backFields: backFields,
       );
     }
     return _updatePublishedDeckNative(
@@ -509,6 +581,9 @@ class PublicLibraryService {
       categoryId: categoryId,
       tags: tags,
       flashcards: flashcards,
+      imageUrl: imageUrl,
+      frontFields: frontFields,
+      backFields: backFields,
     );
   }
 
@@ -519,6 +594,9 @@ class PublicLibraryService {
     String? categoryId,
     List<String>? tags,
     List<Map<String, dynamic>>? flashcards,
+    String? imageUrl,
+    String? frontFields,
+    String? backFields,
   }) async {
     final userId = _authService.userId;
     if (userId == null) {
@@ -548,6 +626,9 @@ class PublicLibraryService {
     if (categoryId != null) updates['category_id'] = categoryId;
     if (tags != null) updates['tags'] = tags;
     if (flashcards != null) updates['card_count'] = flashcards.length;
+    if (imageUrl != null) updates['image_url'] = imageUrl;
+    if (frontFields != null) updates['front_fields'] = frontFields;
+    if (backFields != null) updates['back_fields'] = backFields;
 
     batch.update(_publicDecksRef.doc(publicDeckId), updates);
 
@@ -579,6 +660,9 @@ class PublicLibraryService {
           'example': cardData['example'],
           'notes': cardData['notes'],
           'tags': cardData['tags'] ?? [],
+          'front_image_url': cardData['front_image_url'],
+          'back_image_url': cardData['back_image_url'],
+          'share_image': cardData['share_image'] ?? true,
           'order': i,
           'created_at': Timestamp.now(),
           'updated_at': Timestamp.now(),
@@ -596,6 +680,9 @@ class PublicLibraryService {
     String? categoryId,
     List<String>? tags,
     List<Map<String, dynamic>>? flashcards,
+    String? imageUrl,
+    String? frontFields,
+    String? backFields,
   }) async {
     final userId = _authService.userId;
     if (userId == null) {
@@ -623,6 +710,9 @@ class PublicLibraryService {
     if (categoryId != null) updates['category_id'] = categoryId;
     if (tags != null) updates['tags'] = tags;
     if (flashcards != null) updates['card_count'] = flashcards.length;
+    if (imageUrl != null) updates['image_url'] = imageUrl;
+    if (frontFields != null) updates['front_fields'] = frontFields;
+    if (backFields != null) updates['back_fields'] = backFields;
 
     await _restClient.updateDocument(AppConstants.collectionPublicDecks, publicDeckId, updates);
 
@@ -652,6 +742,9 @@ class PublicLibraryService {
             'example': cardData['example'],
             'notes': cardData['notes'],
             'tags': cardData['tags'] ?? [],
+            'front_image_url': cardData['front_image_url'],
+            'back_image_url': cardData['back_image_url'],
+            'share_image': cardData['share_image'] ?? true,
             'order': i,
             'created_at': now,
             'updated_at': now,
@@ -659,7 +752,15 @@ class PublicLibraryService {
         ));
       }
 
-      await _restClient.batchWrite(batchOps);
+      // Batch write in chunks of 500 (Firestore REST API limit)
+      for (int i = 0; i < batchOps.length; i += 500) {
+        final chunk = batchOps.sublist(i, (i + 500).clamp(0, batchOps.length));
+        final success = await _restClient.batchWrite(chunk);
+        if (!success) {
+          throw Exception('Failed to write flashcards to Firestore (batch ${i ~/ 500 + 1})');
+        }
+      }
+      debugPrint('UpdateDeck: Successfully wrote ${batchOps.length} operations for deck $publicDeckId');
     }
   }
 

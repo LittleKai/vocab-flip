@@ -1976,6 +1976,12 @@ abstract class AppLocalizations {
   /// **'Remove image'**
   String get removeImage;
 
+  /// No description provided for @uploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload image'**
+  String get uploadImage;
+
   /// No description provided for @frontImage.
   ///
   /// In en, this message translates to:
@@ -2677,6 +2683,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import completed: {added} added, {updated} updated'**
   String importCompleted(int added, int updated);
+
+  /// No description provided for @googleDriveBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive Backup'**
+  String get googleDriveBackup;
+
+  /// No description provided for @notConnectedToGoogleDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Connected to Google Drive'**
+  String get notConnectedToGoogleDrive;
+
+  /// No description provided for @connectToBackupData.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to backup and restore your flashcard data'**
+  String get connectToBackupData;
+
+  /// No description provided for @connectGoogleDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to Google Drive'**
+  String get connectGoogleDrive;
+
+  /// No description provided for @connectedAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected as'**
+  String get connectedAs;
+
+  /// No description provided for @disconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get disconnect;
+
+  /// No description provided for @createBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Backup'**
+  String get createBackup;
+
+  /// No description provided for @availableBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Backups'**
+  String get availableBackups;
+
+  /// No description provided for @noBackupsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No Backups Yet'**
+  String get noBackupsYet;
+
+  /// No description provided for @createFirstBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first backup to protect your data'**
+  String get createFirstBackup;
+
+  /// No description provided for @creatingBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating Backup'**
+  String get creatingBackup;
+
+  /// No description provided for @restoringBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring Backup'**
+  String get restoringBackup;
+
+  /// No description provided for @backupComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Complete'**
+  String get backupComplete;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Failed'**
+  String get backupFailed;
+
+  /// No description provided for @restoreComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Complete'**
+  String get restoreComplete;
+
+  /// No description provided for @restoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Failed'**
+  String get restoreFailed;
+
+  /// No description provided for @backupSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully backed up {deckCount} decks with {cardCount} cards'**
+  String backupSuccessMessage(int deckCount, int cardCount);
+
+  /// No description provided for @restoreSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored {deckCount} decks with {cardCount} cards'**
+  String restoreSuccessMessage(int deckCount, int cardCount);
+
+  /// No description provided for @decksSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} existing decks were skipped'**
+  String decksSkipped(int count);
+
+  /// No description provided for @restoreBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Backup'**
+  String get restoreBackup;
+
+  /// No description provided for @backupInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {date}\n{deckCount} decks, {cardCount} cards'**
+  String backupInfo(String date, int deckCount, int cardCount);
+
+  /// No description provided for @selectRestoreMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Select restore mode:'**
+  String get selectRestoreMode;
+
+  /// No description provided for @restoreModeMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge with existing'**
+  String get restoreModeMerge;
+
+  /// No description provided for @restoreModeMergeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep existing decks, add new ones'**
+  String get restoreModeMergeDesc;
+
+  /// No description provided for @restoreModeReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace existing'**
+  String get restoreModeReplace;
+
+  /// No description provided for @restoreModeReplaceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete and replace matching decks'**
+  String get restoreModeReplaceDesc;
+
+  /// No description provided for @deleteBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Backup'**
+  String get deleteBackup;
+
+  /// No description provided for @deleteBackupConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete the backup from {date}?'**
+  String deleteBackupConfirm(String date);
+
+  /// No description provided for @backupDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup deleted'**
+  String get backupDeleted;
+
+  /// No description provided for @backupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{deckCount} decks, {cardCount} cards ({size})'**
+  String backupSummary(int deckCount, int cardCount, String size);
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileUpdated;
+
+  /// No description provided for @selectAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Avatar'**
+  String get selectAvatar;
+
+  /// No description provided for @nickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname'**
+  String get nickname;
+
+  /// No description provided for @enterNickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your nickname'**
+  String get enterNickname;
+
+  /// No description provided for @gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get gender;
+
+  /// No description provided for @bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bio;
+
+  /// No description provided for @enterBio.
+  ///
+  /// In en, this message translates to:
+  /// **'Write something about yourself'**
+  String get enterBio;
+
+  /// No description provided for @manageAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Account'**
+  String get manageAccount;
+
+  /// No description provided for @genderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get genderMale;
+
+  /// No description provided for @genderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get genderFemale;
+
+  /// No description provided for @genderOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get genderOther;
+
+  /// No description provided for @genderPreferNotToSay.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer not to say'**
+  String get genderPreferNotToSay;
+
+  /// No description provided for @enterDeckId.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter deck ID...'**
+  String get enterDeckId;
+
+  /// No description provided for @importById.
+  ///
+  /// In en, this message translates to:
+  /// **'Import by ID'**
+  String get importById;
+
+  /// No description provided for @uploadingImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading images {completed}/{total}...'**
+  String uploadingImages(int completed, int total);
+
+  /// No description provided for @downloadingImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading images {completed}/{total}...'**
+  String downloadingImages(int completed, int total);
+
+  /// No description provided for @imageUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} image(s) failed to upload'**
+  String imageUploadFailed(int count);
+
+  /// No description provided for @shareDeckId.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Deck ID'**
+  String get shareDeckId;
+
+  /// No description provided for @copyDeckIdToShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy deck ID so others can import it'**
+  String get copyDeckIdToShare;
+
+  /// No description provided for @deckIdCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck ID copied to clipboard'**
+  String get deckIdCopied;
+
+  /// No description provided for @deckImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck Image'**
+  String get deckImage;
+
+  /// No description provided for @selectDeckToPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a deck to publish'**
+  String get selectDeckToPublish;
+
+  /// No description provided for @allDecksPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'All your decks are already published'**
+  String get allDecksPublished;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get sortBy;
+
+  /// No description provided for @sortNameAZ.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A-Z)'**
+  String get sortNameAZ;
+
+  /// No description provided for @sortNameZA.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Z-A)'**
+  String get sortNameZA;
+
+  /// No description provided for @sortMostCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Cards'**
+  String get sortMostCards;
+
+  /// No description provided for @sortMostDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Due'**
+  String get sortMostDue;
+
+  /// No description provided for @sortRecentlyUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Updated'**
+  String get sortRecentlyUpdated;
+
+  /// No description provided for @sortOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest'**
+  String get sortOldest;
+
+  /// No description provided for @noMatchingDecks.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching decks'**
+  String get noMatchingDecks;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Filters'**
+  String get clearFilters;
 }
 
 class _AppLocalizationsDelegate

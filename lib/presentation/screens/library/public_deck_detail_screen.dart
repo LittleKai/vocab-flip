@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -92,47 +95,126 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title and author
-                    Text(
-                      deck.name,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                    // Deck image + title row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Deck image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 72,
+                            height: 72,
+                            child: (deck.imageUrl != null && deck.imageUrl!.isNotEmpty)
+                                ? (deck.imageUrl!.startsWith('http')
+                                    ? Image.network(
+                                        deck.imageUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          color: AppColors.primary.withOpacity(0.1),
+                                          child: Icon(Icons.style, color: AppColors.primary, size: 36),
+                                        ),
+                                      )
+                                    : (File(deck.imageUrl!).existsSync()
+                                        ? Image.file(File(deck.imageUrl!), fit: BoxFit.cover)
+                                        : Container(
+                                            color: AppColors.primary.withOpacity(0.1),
+                                            child: Icon(Icons.style, color: AppColors.primary, size: 36),
+                                          )))
+                                : Container(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    child: Icon(Icons.style, color: AppColors.primary, size: 36),
+                                  ),
                           ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                deck.name,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                                    child: Text(
+                                      deck.authorName.isNotEmpty
+                                          ? deck.authorName[0].toUpperCase()
+                                          : '?',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    deck.authorName,
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
+
+                    // Rating stars
+                    const SizedBox(height: 12),
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
-                          child: Text(
-                            deck.authorName.isNotEmpty
-                                ? deck.authorName[0].toUpperCase()
-                                : '?',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        RatingWidget(
+                          rating: deck.averageRating,
+                          ratingCount: deck.ratingCount,
+                          size: 18,
+                        ),
+                        if (deck.hasRatings) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            deck.averageRating.toStringAsFixed(1),
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          deck.authorName,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+                        ],
                       ],
                     ),
 
                     if (deck.description != null &&
                         deck.description!.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Text(
                         deck.description!,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+
+                    // Upload date
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondaryLight),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat('dd/MM/yyyy').format(deck.publishedAt ?? deck.createdAt),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondaryLight,
+                              ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
 
                     // Stats row
                     Row(
@@ -145,6 +227,57 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                         _StatChip(
                           icon: Icons.download,
                           label: l10n.downloadsCount(deck.downloadCount),
+                        ),
+                      ],
+                    ),
+
+                    // Front/Back fields
+                    if (deck.frontFields != null || deck.backFields != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          if (deck.frontFields != null) ...[
+                            Icon(Icons.flip_to_front, size: 14, color: AppColors.textSecondaryLight),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatFields(deck.frontFields!),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondaryLight,
+                                  ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          if (deck.backFields != null) ...[
+                            Icon(Icons.flip_to_back, size: 14, color: AppColors.textSecondaryLight),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatFields(deck.backFields!),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondaryLight,
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+
+                    // Deck ID
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.fingerprint, size: 14, color: AppColors.textSecondaryLight),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            deck.id,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondaryLight,
+                                  fontFamily: 'monospace',
+                                  fontSize: 11,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -392,25 +525,51 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
         ],
       ),
       child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _isImported
-                ? null
-                : provider.isImporting
+        child: Row(
+          children: [
+            // Browse button (only if already imported)
+            if (_isImported)
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _browseDeck(context),
+                  icon: const Icon(Icons.visibility),
+                  label: Text(l10n.browse),
+                ),
+              ),
+            if (_isImported)
+              const SizedBox(width: 12),
+            // Import button
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _isImported
                     ? null
-                    : () => _importDeck(context, provider),
-            child: provider.isImporting
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(_isImported ? l10n.alreadyImported : l10n.importDeck),
-          ),
+                    : provider.isImporting
+                        ? null
+                        : () => _importDeck(context, provider),
+                child: provider.isImporting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(_isImported ? l10n.alreadyImported : l10n.importDeck),
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _browseDeck(BuildContext context) async {
+    // Find local deck linked to this public deck
+    final deckProvider = context.read<DeckProvider>();
+    final localDeck = deckProvider.decks.firstWhere(
+      (d) => d.linkedPublicDeckId == widget.deckId,
+      orElse: () => deckProvider.decks.first,
+    );
+    Navigator.popUntil(context, (route) => route.isFirst);
+    DeckNavigation.navigateToBrowse(context, localDeck.id);
   }
 
   Widget _buildErrorState(BuildContext context, String? error) {
@@ -445,9 +604,9 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   void _shareDeck(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    // TODO: Implement share functionality
+    Clipboard.setData(ClipboardData(text: widget.deckId));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.shareComingSoon)),
+      SnackBar(content: Text(l10n.deckIdCopied)),
     );
   }
 
@@ -496,6 +655,19 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
       );
       provider.clearError();
     }
+  }
+
+  String _formatFields(String fields) {
+    return fields.split(',').map((f) {
+      switch (f.trim()) {
+        case 'word': return 'Word';
+        case 'phonetic': return 'Phonetic';
+        case 'meaning': return 'Meaning';
+        case 'example': return 'Example';
+        case 'notes': return 'Notes';
+        default: return f.trim();
+      }
+    }).join(', ');
   }
 }
 
