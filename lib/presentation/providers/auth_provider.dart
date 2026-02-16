@@ -11,6 +11,7 @@ enum AuthStatus {
 }
 
 class AuthProvider extends ChangeNotifier {
+  static const String _adminEmail = 'aduc5525@gmail.com';
   final FirebaseService _firebaseService = FirebaseService();
 
   AuthStatus _status = AuthStatus.initial;
@@ -24,6 +25,7 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
   User? get user => _user;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
+  bool get isAdmin => isAuthenticated && _user?.email == _adminEmail;
   bool get isLoading => _status == AuthStatus.loading;
   String? get email => _user?.email;
   String? get displayName => _user?.displayName;

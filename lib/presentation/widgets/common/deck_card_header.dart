@@ -38,8 +38,11 @@ class DeckCardHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildDeckImage(context, imagePath),
-        const SizedBox(width: 10),
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: buildDeckImage(context, imagePath),
+        ),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,6 +52,7 @@ class DeckCardHeader extends StatelessWidget {
                 name,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -119,7 +123,7 @@ class DeckCardHeader extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,
-          fontSize: 12,
+          fontSize: 13,
         ),
       ),
     );
@@ -131,18 +135,18 @@ class DeckCardHeader extends StatelessWidget {
     if (Platform.isAndroid) {
       return Tooltip(
         message: text,
-        child: Icon(icon, size: 15, color: color),
+        child: Icon(icon, size: 16, color: color),
       );
     }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: color),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 2),
         Text(
           text,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: 12,
+                fontSize: 13,
                 color: color,
               ),
         ),
@@ -153,7 +157,7 @@ class DeckCardHeader extends StatelessWidget {
   static Widget buildDeckImage(BuildContext context, String? imagePath) {
     Widget fallback = Container(
       color: AppColors.primary.withOpacity(0.1),
-      child: Icon(Icons.style, color: AppColors.primary, size: 28),
+      child: Icon(Icons.style, color: AppColors.primary, size: 32),
     );
 
     Widget imageWidget;
@@ -175,8 +179,8 @@ class DeckCardHeader extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
-        width: 56,
-        height: 56,
+        width: 64,
+        height: 64,
         child: imageWidget,
       ),
     );

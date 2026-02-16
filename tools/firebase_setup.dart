@@ -299,6 +299,13 @@ service cloud.firestore {
       }
     }
 
+    // Feedback - signed-in users can create, admin can read
+    match /feedback/{feedbackId} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && request.auth.token.email == 'aduc5525@gmail.com';
+      allow update, delete: if false;
+    }
+
     // Sync notifications - only accessible by the target user
     match /sync_notifications/{notificationId} {
       allow read: if isSignedIn() &&

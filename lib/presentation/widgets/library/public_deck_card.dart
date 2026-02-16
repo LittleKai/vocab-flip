@@ -42,7 +42,7 @@ class PublicDeckCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -56,11 +56,8 @@ class PublicDeckCard extends StatelessWidget {
                 targetLanguage: deck.targetLanguage,
                 reverseFieldOrder: deck.showBackFirst,
                 trailing: showDeckId ? _buildDeckIdBadge(context) : null,
+                subtitle: _buildAuthorDate(context),
               ),
-
-              // Author row
-              const SizedBox(height: 6),
-              _buildAuthorDate(context),
 
               // Description row
               if (deck.description != null && deck.description!.isNotEmpty) ...[
@@ -93,7 +90,7 @@ class PublicDeckCard extends StatelessWidget {
                       child: Text(
                         '#$tag',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
+                              fontSize: 12,
                               color: AppColors.textSecondary(context),
                             ),
                       ),
@@ -129,7 +126,7 @@ class PublicDeckCard extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: AppColors.secondary,
                                   fontWeight: FontWeight.w500,
-                                  fontSize: 11,
+                                  fontSize: 12,
                                 ),
                           ),
                         ],
@@ -145,7 +142,7 @@ class PublicDeckCard extends StatelessWidget {
                     '${deck.averageRating.toStringAsFixed(1)}(${deck.ratingCount})',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          fontSize: 11,
+                          fontSize: 12,
                         ),
                   ),
 
@@ -158,7 +155,7 @@ class PublicDeckCard extends StatelessWidget {
                     '${deck.cardCount}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.info,
-                          fontSize: 11,
+                          fontSize: 12,
                         ),
                   ),
 
@@ -171,7 +168,7 @@ class PublicDeckCard extends StatelessWidget {
                     _formatCount(deck.downloadCount),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.secondary,
-                          fontSize: 11,
+                          fontSize: 12,
                         ),
                   ),
                 ],

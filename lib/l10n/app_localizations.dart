@@ -3181,6 +3181,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count}★'**
   String nStarRating(int count);
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Feedback'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get feedbackCategoryLabel;
+
+  /// No description provided for @feedbackCategoryBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug Report'**
+  String get feedbackCategoryBug;
+
+  /// No description provided for @feedbackCategoryFeature.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature Request'**
+  String get feedbackCategoryFeature;
+
+  /// No description provided for @feedbackCategoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General Feedback'**
+  String get feedbackCategoryGeneral;
+
+  /// No description provided for @feedbackCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get feedbackCategoryOther;
+
+  /// No description provided for @feedbackMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback'**
+  String get feedbackMessageHint;
+
+  /// No description provided for @feedbackEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Email (optional)'**
+  String get feedbackEmailHint;
+
+  /// No description provided for @feedbackEmailHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Only if you\'d like a reply'**
+  String get feedbackEmailHelper;
+
+  /// No description provided for @feedbackSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get feedbackSubmit;
+
+  /// No description provided for @feedbackSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your feedback!'**
+  String get feedbackSuccess;
+
+  /// No description provided for @feedbackError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send feedback. Please try again.'**
+  String get feedbackError;
+
+  /// No description provided for @feedbackMessageRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your feedback'**
+  String get feedbackMessageRequired;
+
+  /// No description provided for @adminSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get adminSection;
+
+  /// No description provided for @adminFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'User Feedback'**
+  String get adminFeedback;
+
+  /// No description provided for @noFeedbackYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No feedback received yet'**
+  String get noFeedbackYet;
+
+  /// No description provided for @nNewFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new'**
+  String nNewFeedback(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -23,6 +23,7 @@ class AppConstants {
   static const String collectionImportedDecks = 'imported_decks';
   static const String collectionSyncNotifications = 'sync_notifications';
   static const String collectionPublicProfiles = 'public_profiles';
+  static const String collectionFeedback = 'feedback';
 
   // SM-2 Algorithm defaults
   static const double defaultEasinessFactor = 2.5;

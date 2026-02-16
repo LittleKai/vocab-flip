@@ -10,6 +10,7 @@ import '../../providers/sync_provider.dart';
 import '../../widgets/common/deck_card_header.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/common/responsive_grid.dart';
 import '../../widgets/deck/deck_filter_sheet.dart';
 import 'create_deck_screen.dart';
 
@@ -188,9 +189,10 @@ class _DeckListScreenState extends State<DeckListScreen> {
                       ],
                     ),
                   )
-                : ListView.builder(
+                : ResponsiveGrid(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: filtered.length,
+                    mainAxisExtent: 175,
                     itemBuilder: (context, index) {
                       return _DeckCard(deck: filtered[index]);
                     },
@@ -225,7 +227,7 @@ class _DeckCard extends StatelessWidget {
         onTap: () => _navigateToBrowse(context),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 4, 4),
+          padding: const EdgeInsets.fromLTRB(14, 4, 6, 6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -324,7 +326,7 @@ class _DeckCard extends StatelessWidget {
                       child: Text(
                         '#$tag',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                           color: AppColors.textSecondary(context),
                         ),
                       ),
@@ -367,7 +369,7 @@ class _DeckCard extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.secondary,
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                   ),
                             ),
                           ],
@@ -513,11 +515,11 @@ class _StatChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: effectiveColor),
+        Icon(icon, size: 17, color: effectiveColor),
         const SizedBox(width: 4),
         Text(
           label,
-          style: TextStyle(color: effectiveColor, fontSize: 12),
+          style: TextStyle(color: effectiveColor, fontSize: 13),
         ),
       ],
     );

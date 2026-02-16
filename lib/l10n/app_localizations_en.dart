@@ -1648,4 +1648,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String nStarRating(int count) {
     return '$count★';
   }
+
+  @override
+  String get feedbackTitle => 'Send Feedback';
+
+  @override
+  String get feedbackCategoryLabel => 'Category';
+
+  @override
+  String get feedbackCategoryBug => 'Bug Report';
+
+  @override
+  String get feedbackCategoryFeature => 'Feature Request';
+
+  @override
+  String get feedbackCategoryGeneral => 'General Feedback';
+
+  @override
+  String get feedbackCategoryOther => 'Other';
+
+  @override
+  String get feedbackMessageHint => 'Your feedback';
+
+  @override
+  String get feedbackEmailHint => 'Email (optional)';
+
+  @override
+  String get feedbackEmailHelper => 'Only if you\'d like a reply';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackSuccess => 'Thank you for your feedback!';
+
+  @override
+  String get feedbackError => 'Failed to send feedback. Please try again.';
+
+  @override
+  String get feedbackMessageRequired => 'Please enter your feedback';
+
+  @override
+  String get adminSection => 'Admin';
+
+  @override
+  String get adminFeedback => 'User Feedback';
+
+  @override
+  String get noFeedbackYet => 'No feedback received yet';
+
+  @override
+  String nNewFeedback(int count) {
+    return '$count new';
+  }
 }

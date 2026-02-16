@@ -802,5 +802,31 @@
         "type": "int"
       }
     }
+  },
+
+  "feedbackTitle": "Send Feedback",
+  "feedbackCategoryLabel": "Category",
+  "feedbackCategoryBug": "Bug Report",
+  "feedbackCategoryFeature": "Feature Request",
+  "feedbackCategoryGeneral": "General Feedback",
+  "feedbackCategoryOther": "Other",
+  "feedbackMessageHint": "Your feedback",
+  "feedbackEmailHint": "Email (optional)",
+  "feedbackEmailHelper": "Only if you'd like a reply",
+  "feedbackSubmit": "Submit",
+  "feedbackSuccess": "Thank you for your feedback!",
+  "feedbackError": "Failed to send feedback. Please try again.",
+  "feedbackMessageRequired": "Please enter your feedback",
+
+  "adminSection": "Admin",
+  "adminFeedback": "User Feedback",
+  "noFeedbackYet": "No feedback received yet",
+  "nNewFeedback": "{count} new",
+  "@nNewFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -14,6 +14,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../widgets/library/public_deck_card.dart';
 import '../../widgets/library/filter_sheet.dart';
 import '../../widgets/sync/sync_badge.dart';
+import '../../widgets/common/responsive_grid.dart';
 import 'public_deck_detail_screen.dart';
 
 /// Main library browse screen
@@ -106,6 +107,8 @@ class _LibraryScreenState extends State<LibraryScreen>
           ],
           bottom: TabBar(
             controller: _tabController,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             tabs: [
               Tab(text: l10n.browse),
               Tab(text: l10n.newDecks),
@@ -154,18 +157,16 @@ class _NewestTab extends StatelessWidget {
 
         return RefreshIndicator(
           onRefresh: () => provider.loadNewestDecks(),
-          child: ListView.builder(
+          child: ResponsiveGrid(
             padding: const EdgeInsets.all(16),
             itemCount: provider.newestDecks.length,
+            mainAxisExtent: 180,
             itemBuilder: (context, index) {
               final deck = provider.newestDecks[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: PublicDeckCard(
-                  deck: deck,
-                  onTap: () => _openDeckDetail(context, deck.id),
-                  showDeckId: false,
-                ),
+              return PublicDeckCard(
+                deck: deck,
+                onTap: () => _openDeckDetail(context, deck.id),
+                showDeckId: false,
               );
             },
           ),
@@ -374,28 +375,25 @@ class _BrowseTabState extends State<_BrowseTab> {
 
     return RefreshIndicator(
       onRefresh: () => provider.browse(refresh: true),
-      child: ListView.builder(
+      child: ResponsiveGrid(
         controller: _scrollController,
         padding: const EdgeInsets.all(16),
-        itemCount: provider.decks.length + (provider.hasMoreDecks ? 1 : 0),
+        itemCount: provider.decks.length,
+        mainAxisExtent: 180,
+        trailing: provider.hasMoreDecks
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : null,
         itemBuilder: (context, index) {
-          if (index >= provider.decks.length) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-
           final deck = provider.decks[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: PublicDeckCard(
-              deck: deck,
-              onTap: () => _openDeckDetail(context, deck.id),
-              showDeckId: false,
-            ),
+          return PublicDeckCard(
+            deck: deck,
+            onTap: () => _openDeckDetail(context, deck.id),
+            showDeckId: false,
           );
         },
       ),
@@ -435,17 +433,15 @@ class _MyDecksTabState extends State<_MyDecksTab> {
 
             return RefreshIndicator(
               onRefresh: () => provider.loadMyPublishedDecks(),
-              child: ListView.builder(
+              child: ResponsiveGrid(
                 padding: const EdgeInsets.all(16),
                 itemCount: provider.myPublishedDecks.length,
+                mainAxisExtent: 180,
                 itemBuilder: (context, index) {
                   final deck = provider.myPublishedDecks[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: PublicDeckCard(
-                      deck: deck,
-                      onTap: () => _showDeckOptions(context, deck.id),
-                    ),
+                  return PublicDeckCard(
+                    deck: deck,
+                    onTap: () => _showDeckOptions(context, deck.id),
                   );
                 },
               ),

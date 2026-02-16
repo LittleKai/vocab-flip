@@ -1641,4 +1641,57 @@ class AppLocalizationsVi extends AppLocalizations {
   String nStarRating(int count) {
     return '$count★';
   }
+
+  @override
+  String get feedbackTitle => 'Gửi phản hồi';
+
+  @override
+  String get feedbackCategoryLabel => 'Danh mục';
+
+  @override
+  String get feedbackCategoryBug => 'Báo lỗi';
+
+  @override
+  String get feedbackCategoryFeature => 'Yêu cầu tính năng';
+
+  @override
+  String get feedbackCategoryGeneral => 'Phản hồi chung';
+
+  @override
+  String get feedbackCategoryOther => 'Khác';
+
+  @override
+  String get feedbackMessageHint => 'Nội dung phản hồi';
+
+  @override
+  String get feedbackEmailHint => 'Email (tùy chọn)';
+
+  @override
+  String get feedbackEmailHelper => 'Chỉ khi bạn muốn nhận phản hồi';
+
+  @override
+  String get feedbackSubmit => 'Gửi';
+
+  @override
+  String get feedbackSuccess => 'Cảm ơn bạn đã gửi phản hồi!';
+
+  @override
+  String get feedbackError => 'Gửi phản hồi thất bại. Vui lòng thử lại.';
+
+  @override
+  String get feedbackMessageRequired => 'Vui lòng nhập nội dung phản hồi';
+
+  @override
+  String get adminSection => 'Quản trị';
+
+  @override
+  String get adminFeedback => 'Phản hồi người dùng';
+
+  @override
+  String get noFeedbackYet => 'Chưa có phản hồi nào';
+
+  @override
+  String nNewFeedback(int count) {
+    return '$count mới';
+  }
 }

@@ -14,6 +14,8 @@ import '../../providers/profile_provider.dart';
 import '../../widgets/dialogs/helper_dialog.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/dialogs/profile_edit_dialog.dart';
+import '../../widgets/dialogs/feedback_dialog.dart';
+import '../../providers/admin_feedback_provider.dart';
 import 'backup_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -127,6 +129,46 @@ class SettingsScreen extends StatelessWidget {
                 },
               ),
 
+              // Admin section (only for admin user)
+              if (auth.isAdmin) ...[
+                const Divider(),
+                _SectionHeader(title: l10n.adminSection),
+                Consumer<AdminFeedbackProvider>(
+                  builder: (context, adminProvider, _) {
+                    return ListTile(
+                      leading: const Icon(Icons.feedback),
+                      title: Text(l10n.adminFeedback),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (adminProvider.unreadCount > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                l10n.nNewFeedback(adminProvider.unreadCount),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
+                      onTap: () => Navigator.pushNamed(context, '/admin-feedback'),
+                    );
+                  },
+                ),
+              ],
+
               const Divider(),
 
               // Appearance section
@@ -222,29 +264,6 @@ class SettingsScreen extends StatelessWidget {
 
               const Divider(),
 
-              // Import/Export section
-              _SectionHeader(title: l10n.importExport),
-              ListTile(
-                leading: const Icon(Icons.file_download),
-                title: Text(l10n.importDeck),
-                subtitle: Text(l10n.importFromJson),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  // TODO: Implement import
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.file_upload),
-                title: Text(l10n.exportAllDecks),
-                subtitle: Text(l10n.exportToJson),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  // TODO: Implement export
-                },
-              ),
-
-              const Divider(),
-
               // About section
               _SectionHeader(title: l10n.about),
               ListTile(
@@ -257,7 +276,7 @@ class SettingsScreen extends StatelessWidget {
                 title: Text(l10n.sendFeedback),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  // TODO: Implement feedback
+                  FeedbackDialog.show(context);
                 },
               ),
               ListTile(

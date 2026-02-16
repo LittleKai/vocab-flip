@@ -551,5 +551,31 @@
   "flashcards": "Flashcards",
   "enterYourNickname": "Biệt danh của bạn (tùy chọn)",
   "noReviewsYet": "Chưa có đánh giá",
-  "nStarRating": "{count}★"
+  "nStarRating": "{count}★",
+
+  "feedbackTitle": "Gửi phản hồi",
+  "feedbackCategoryLabel": "Danh mục",
+  "feedbackCategoryBug": "Báo lỗi",
+  "feedbackCategoryFeature": "Yêu cầu tính năng",
+  "feedbackCategoryGeneral": "Phản hồi chung",
+  "feedbackCategoryOther": "Khác",
+  "feedbackMessageHint": "Nội dung phản hồi",
+  "feedbackEmailHint": "Email (tùy chọn)",
+  "feedbackEmailHelper": "Chỉ khi bạn muốn nhận phản hồi",
+  "feedbackSubmit": "Gửi",
+  "feedbackSuccess": "Cảm ơn bạn đã gửi phản hồi!",
+  "feedbackError": "Gửi phản hồi thất bại. Vui lòng thử lại.",
+  "feedbackMessageRequired": "Vui lòng nhập nội dung phản hồi",
+
+  "adminSection": "Quản trị",
+  "adminFeedback": "Phản hồi người dùng",
+  "noFeedbackYet": "Chưa có phản hồi nào",
+  "nNewFeedback": "{count} mới",
+  "@nNewFeedback": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

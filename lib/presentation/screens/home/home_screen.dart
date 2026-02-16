@@ -5,10 +5,12 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/deck_navigation.dart';
 import '../../../data/models/deck.dart';
+import '../../widgets/common/deck_card_header.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/update_provider.dart';
 import '../../widgets/dialogs/update_dialog.dart';
+import '../../widgets/common/responsive_grid.dart';
 import '../deck/deck_list_screen.dart';
 import '../statistics/statistics_screen.dart';
 import '../settings/settings_screen.dart';
@@ -229,7 +231,7 @@ class _HomeTab extends StatelessWidget {
           Text(
             l10n.readyToLearn,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withOpacity(0.8),
                 ),
           ),
           const SizedBox(height: 16),
@@ -340,7 +342,10 @@ class _HomeTab extends StatelessWidget {
             ),
           )
         else
-          ...dueDecks.take(3).map((deck) => _DueDeckCard(deck: deck)),
+          _ResponsiveCardList(
+            items: dueDecks.take(3).toList(),
+            itemBuilder: (deck) => _DueDeckCard(deck: deck),
+          ),
       ],
     );
   }
@@ -360,7 +365,10 @@ class _HomeTab extends StatelessWidget {
               ),
         ),
         const SizedBox(height: 12),
-        ...provider.decks.take(3).map((deck) => _RecentDeckCard(deck: deck)),
+        _ResponsiveCardList(
+          items: provider.decks.take(3).toList(),
+          itemBuilder: (deck) => _RecentDeckCard(deck: deck),
+        ),
       ],
     );
   }
@@ -415,57 +423,82 @@ class _DueDeckCard extends StatelessWidget {
 
   const _DueDeckCard({required this.deck});
 
-  Color _getLanguageColor(String langCode) {
-    switch (langCode) {
-      case 'en': return AppColors.englishBadge;
-      case 'ja': return AppColors.japaneseBadge;
-      case 'zh': return AppColors.chineseBadge;
-      default: return AppColors.primary;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final langColor = _getLanguageColor(deck.sourceLanguage);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppColors.accent.withOpacity(0.1),
-          child: const Icon(Icons.schedule, color: AppColors.accent),
-        ),
-        title: Row(
-          children: [
-            Expanded(child: Text(deck.name)),
-            // Front/Back mode icon
-            Icon(
-              deck.showBackFirst ? Icons.flip_to_back : Icons.flip_to_front,
-              size: 14,
-              color: deck.showBackFirst ? AppColors.secondary : AppColors.primary,
-            ),
-            const SizedBox(width: 4),
-            // Language badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: langColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
+      margin: const EdgeInsets.only(bottom: 10),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => DeckNavigation.navigateToStudy(context, deck.id),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              DeckCardHeader.buildDeckImage(context, deck.imagePath),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Deck name + language badge
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            deck.name,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        DeckCardHeader.buildLanguageBadge(context, deck.sourceLanguage),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Due count + card count
+                    Row(
+                      children: [
+                        Icon(Icons.schedule, size: 15, color: AppColors.accent),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.cardsDue(deck.dueCount),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(Icons.style, size: 15, color: AppColors.info),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.nCards(deck.cardCount),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary(context),
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              child: Text(
-                deck.sourceLanguage.toUpperCase(),
-                style: TextStyle(color: langColor, fontWeight: FontWeight.bold, fontSize: 9),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 34,
+                child: ElevatedButton(
+                  onPressed: () => DeckNavigation.navigateToStudy(context, deck.id),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  child: Text(l10n.study),
+                ),
               ),
-            ),
-          ],
-        ),
-        subtitle: Text(l10n.cardsDue(deck.dueCount)),
-        trailing: ElevatedButton(
-          onPressed: () {
-            Navigator.pushNamed(context, '/study', arguments: deck.id);
-          },
-          child: Text(l10n.study),
+            ],
+          ),
         ),
       ),
     );
@@ -477,55 +510,116 @@ class _RecentDeckCard extends StatelessWidget {
 
   const _RecentDeckCard({required this.deck});
 
-  Color _getLanguageColor(String langCode) {
-    switch (langCode) {
-      case 'en': return AppColors.englishBadge;
-      case 'ja': return AppColors.japaneseBadge;
-      case 'zh': return AppColors.chineseBadge;
-      default: return AppColors.primary;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final langColor = _getLanguageColor(deck.sourceLanguage);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          child: const Icon(Icons.folder, color: AppColors.primary),
-        ),
-        title: Row(
-          children: [
-            Expanded(child: Text(deck.name)),
-            // Front/Back mode icon
-            Icon(
-              deck.showBackFirst ? Icons.flip_to_back : Icons.flip_to_front,
-              size: 14,
-              color: deck.showBackFirst ? AppColors.secondary : AppColors.primary,
-            ),
-            const SizedBox(width: 4),
-            // Language badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: langColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                deck.sourceLanguage.toUpperCase(),
-                style: TextStyle(color: langColor, fontWeight: FontWeight.bold, fontSize: 9),
-              ),
-            ),
-          ],
-        ),
-        subtitle: Text(l10n.nCards(deck.cardCount)),
-        trailing: const Icon(Icons.chevron_right),
+      margin: const EdgeInsets.only(bottom: 10),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
         onTap: () => DeckNavigation.navigateToBrowse(context, deck.id),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              DeckCardHeader.buildDeckImage(context, deck.imagePath),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Deck name + language badge
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            deck.name,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        DeckCardHeader.buildLanguageBadge(context, deck.sourceLanguage),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Card count + due info
+                    Row(
+                      children: [
+                        Icon(Icons.style, size: 15, color: AppColors.info),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.nCards(deck.cardCount),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary(context),
+                              ),
+                        ),
+                        if (deck.dueCount > 0) ...[
+                          const SizedBox(width: 12),
+                          Icon(Icons.schedule, size: 15, color: AppColors.accent),
+                          const SizedBox(width: 4),
+                          Text(
+                            l10n.cardsDue(deck.dueCount),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.accent,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: AppColors.textSecondary(context)),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+}
+
+/// Lays out items in a responsive grid inside a non-scrollable context.
+/// Uses shrinkWrap GridView for multi-column, or Column for single column.
+class _ResponsiveCardList<T> extends StatelessWidget {
+  final List<T> items;
+  final Widget Function(T) itemBuilder;
+
+  const _ResponsiveCardList({
+    required this.items,
+    required this.itemBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = ResponsiveGrid.columnCount(constraints.maxWidth);
+
+        if (columns == 1) {
+          return Column(
+            children: items.map((item) => itemBuilder(item)).toList(),
+          );
+        }
+
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: 8,
+            mainAxisExtent: 100,
+          ),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          itemBuilder: (context, index) => itemBuilder(items[index]),
+        );
+      },
     );
   }
 }

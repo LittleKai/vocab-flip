@@ -15,6 +15,7 @@ import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/update_provider.dart';
 import 'presentation/providers/backup_provider.dart';
 import 'presentation/providers/profile_provider.dart';
+import 'presentation/providers/admin_feedback_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/deck/deck_detail_screen.dart';
 import 'presentation/screens/deck/create_deck_screen.dart';
@@ -23,6 +24,7 @@ import 'presentation/screens/library/public_deck_detail_screen.dart';
 import 'presentation/screens/publish/publish_deck_screen.dart';
 import 'presentation/screens/publish/manage_published_screen.dart';
 import 'presentation/screens/sync/sync_notifications_screen.dart';
+import 'presentation/screens/admin/admin_feedback_screen.dart';
 import 'data/local/preferences/app_preferences.dart';
 
 class VocabFlipApp extends StatelessWidget {
@@ -58,6 +60,9 @@ class VocabFlipApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => BackupProvider()),
         ChangeNotifierProvider.value(value: profileProvider),
+        ChangeNotifierProvider(
+          create: (_) => AdminFeedbackProvider(preferences: preferences),
+        ),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, child) {
@@ -120,6 +125,10 @@ class VocabFlipApp extends StatelessWidget {
       case '/create-deck':
         return MaterialPageRoute(
           builder: (_) => const CreateDeckScreen(),
+        );
+      case '/admin-feedback':
+        return MaterialPageRoute(
+          builder: (_) => const AdminFeedbackScreen(),
         );
       default:
         return null;

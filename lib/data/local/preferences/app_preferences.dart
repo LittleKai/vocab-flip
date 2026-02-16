@@ -45,6 +45,7 @@ class AppPreferences {
   static const String _keyProfileBio = 'profile_bio';
   static const String _keyProfileUpdatedAt = 'profile_updated_at';
   static const String _keyProfileCloudAvatarUrl = 'profile_cloud_avatar_url';
+  static const String _keyAdminFeedbackLastRead = 'admin_feedback_last_read_at';
 
   // Default font sizes
   static const int defaultMainFontSize = 32;
@@ -277,6 +278,14 @@ class AppPreferences {
   }
   Future<bool> setProfileUpdatedAt(DateTime value) =>
       _prefs.setString(_keyProfileUpdatedAt, value.toIso8601String());
+
+  // Admin feedback last read
+  DateTime? get adminFeedbackLastReadAt {
+    final timestamp = _prefs.getString(_keyAdminFeedbackLastRead);
+    return timestamp != null ? DateTime.parse(timestamp) : null;
+  }
+  Future<bool> setAdminFeedbackLastReadAt(DateTime value) =>
+      _prefs.setString(_keyAdminFeedbackLastRead, value.toIso8601String());
 
   // Update streak
   Future<void> updateStreak() async {
