@@ -199,6 +199,19 @@ class AppDatabase {
     ''');
   }
 
+  /// Safely add a column to a table, ignoring if it already exists
+  Future<void> _safeAddColumn(Database db, String table, String columnDef) async {
+    try {
+      await db.execute('ALTER TABLE $table ADD COLUMN $columnDef');
+    } catch (e) {
+      if (e.toString().contains('duplicate column')) {
+        debugPrint('AppDatabase: Column already exists, skipping: $columnDef');
+      } else {
+        rethrow;
+      }
+    }
+  }
+
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     debugPrint('AppDatabase: Upgrading database from v$oldVersion to v$newVersion');
 
@@ -206,10 +219,10 @@ class AppDatabase {
     if (oldVersion < 2) {
       debugPrint('AppDatabase: Applying migration v1 -> v2');
       // Add public library fields to decks table
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN linked_public_deck_id TEXT');
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN linked_version INTEGER');
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN is_published INTEGER DEFAULT 0');
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN published_deck_id TEXT');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'linked_public_deck_id TEXT');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'linked_version INTEGER');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'is_published INTEGER DEFAULT 0');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'published_deck_id TEXT');
 
       // Create imported deck links table
       await db.execute('''
@@ -237,51 +250,47 @@ class AppDatabase {
 
     if (oldVersion < 3) {
       debugPrint('AppDatabase: Applying migration v2 -> v3 (adding image_url to flashcards)');
-      // Add image_url column to flashcards table
-      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN image_url TEXT');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'image_url TEXT');
     }
 
     if (oldVersion < 4) {
       debugPrint('AppDatabase: Applying migration v3 -> v4 (adding front/back image support)');
-      // Add front_image_url, back_image_url, and share_image columns
-      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN front_image_url TEXT');
-      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN back_image_url TEXT');
-      await db.execute('ALTER TABLE ${AppConstants.tableFlashcards} ADD COLUMN share_image INTEGER DEFAULT 1');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'front_image_url TEXT');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'back_image_url TEXT');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'share_image INTEGER DEFAULT 1');
     }
 
     if (oldVersion < 5) {
       debugPrint('AppDatabase: Applying migration v4 -> v5 (adding show_back_first to decks)');
-      // Add show_back_first column to decks table
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN show_back_first INTEGER DEFAULT 0');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'show_back_first INTEGER DEFAULT 0');
     }
 
     if (oldVersion < 6) {
       debugPrint('AppDatabase: Applying migration v5 -> v6 (adding card structure to decks)');
-      // Add card structure columns to decks table
-      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN front_fields TEXT DEFAULT 'word,phonetic'");
-      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN back_fields TEXT DEFAULT 'meaning,example,notes'");
-      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN image_display_mode TEXT DEFAULT 'both'");
+      await _safeAddColumn(db, AppConstants.tableDecks, "front_fields TEXT DEFAULT 'word,phonetic'");
+      await _safeAddColumn(db, AppConstants.tableDecks, "back_fields TEXT DEFAULT 'meaning,example,notes'");
+      await _safeAddColumn(db, AppConstants.tableDecks, "image_display_mode TEXT DEFAULT 'both'");
     }
 
     if (oldVersion < 7) {
       debugPrint('AppDatabase: Applying migration v6 -> v7 (adding auto_play_tts_on_flip to decks)');
-      await db.execute("ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN auto_play_tts_on_flip INTEGER DEFAULT 1");
+      await _safeAddColumn(db, AppConstants.tableDecks, 'auto_play_tts_on_flip INTEGER DEFAULT 1');
     }
 
     if (oldVersion < 8) {
       debugPrint('AppDatabase: Applying migration v7 -> v8 (adding image_path to decks)');
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN image_path TEXT');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'image_path TEXT');
     }
 
     if (oldVersion < 9) {
       debugPrint('AppDatabase: Applying migration v8 -> v9 (adding category and tags to decks)');
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN category TEXT');
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN tags TEXT');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'category TEXT');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'tags TEXT');
     }
 
     if (oldVersion < 10) {
       debugPrint('AppDatabase: Applying migration v9 -> v10 (adding was_imported to decks)');
-      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN was_imported INTEGER DEFAULT 0');
+      await _safeAddColumn(db, AppConstants.tableDecks, 'was_imported INTEGER DEFAULT 0');
       // Mark existing linked decks as was_imported
       await db.execute('UPDATE ${AppConstants.tableDecks} SET was_imported = 1 WHERE linked_public_deck_id IS NOT NULL');
     }
