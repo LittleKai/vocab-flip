@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -36,11 +35,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeAndCheckUpdates() async {
+    if (!mounted) return;
     // Load decks
     context.read<DeckProvider>().loadDecks();
 
     // Load settings first (required for update check)
     await context.read<SettingsProvider>().loadSettings();
+    if (!mounted) return;
 
     // Then check for updates
     await _checkForUpdatesOnStartup();
@@ -50,26 +51,23 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_checkedForUpdates) return;
     _checkedForUpdates = true;
 
-    // Only check on Windows
-    if (kIsWeb || !Platform.isWindows) return;
+    // Skip on web
+    if (kIsWeb) return;
+    if (!mounted) return;
 
     final settings = context.read<SettingsProvider>();
     final updateProvider = context.read<UpdateProvider>();
 
     // Initialize update provider
     await updateProvider.init(settings.preferences);
+    if (!mounted) return;
 
     // Check if should auto-check (respects 24h interval and user preference)
-    if (!updateProvider.shouldAutoCheckOnStartup) {
-      debugPrint('HomeScreen: Skipping update check (24h interval or disabled)');
-      return;
-    }
+    if (!updateProvider.shouldAutoCheckOnStartup) return;
 
-    debugPrint('HomeScreen: Checking for updates on startup...');
     await updateProvider.checkForUpdates(silent: true);
 
     if (updateProvider.hasUpdate && mounted) {
-      debugPrint('HomeScreen: Update available: ${updateProvider.availableUpdate?.version}');
       // Show update dialog
       showDialog(
         context: context,

@@ -108,16 +108,13 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
           padding: const EdgeInsets.all(16),
           child: ElevatedButton(
             onPressed: _isLoading ? null : _submit,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_isEditing ? l10n.updateDeck : l10n.createDeck),
-            ),
+            child: _isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(_isEditing ? l10n.updateDeck : l10n.createDeck),
           ),
         ),
       ),
@@ -207,7 +204,16 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
-                        setState(() => _sourceLanguage = lang);
+                        setState(() {
+                          _sourceLanguage = lang;
+                          // Clear category if it's not valid for the new language
+                          if (_category != null) {
+                            final cat = Category.getById(_category!);
+                            if (cat != null && cat.language != null && cat.language != lang.code) {
+                              _category = null;
+                            }
+                          }
+                        });
                       }
                     },
                   );
@@ -248,7 +254,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
             prefixIcon: const Icon(Icons.category),
             border: const OutlineInputBorder(),
           ),
-          items: Category.predefined.map((cat) {
+          items: Category.forLanguage(_sourceLanguage.code).map((cat) {
             return DropdownMenuItem<String>(
               value: cat.id,
               child: Text(cat.getLocalizedName(locale)),

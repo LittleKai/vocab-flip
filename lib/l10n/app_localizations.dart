@@ -242,6 +242,12 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get cancel;
 
+  /// No description provided for @go.
+  ///
+  /// In en, this message translates to:
+  /// **'Go'**
+  String get go;
+
   /// No description provided for @delete.
   ///
   /// In en, this message translates to:
@@ -703,6 +709,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Publish to Library'**
   String get publishToLibrary;
+
+  /// No description provided for @displayNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please set your display name before publishing'**
+  String get displayNameRequired;
+
+  /// No description provided for @displayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your display name'**
+  String get displayNameHint;
+
+  /// No description provided for @setDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Display Name'**
+  String get setDisplayName;
 
   /// No description provided for @unlinkFromLibrary.
   ///
@@ -1445,7 +1469,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchDecks.
   ///
   /// In en, this message translates to:
-  /// **'Search decks...'**
+  /// **'Search by name or tag...'**
   String get searchDecks;
 
   /// No description provided for @popularSearches.
@@ -1513,6 +1537,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rate'**
   String get rate;
+
+  /// No description provided for @signInToRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to rate this deck'**
+  String get signInToRate;
 
   /// No description provided for @yourRating.
   ///
@@ -1657,6 +1687,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deck published successfully!'**
   String get deckPublished;
+
+  /// No description provided for @deckUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck updated successfully!'**
+  String get deckUpdated;
 
   /// No description provided for @myPublishedDecks.
   ///
@@ -2588,6 +2624,24 @@ abstract class AppLocalizations {
   /// **'Vietcombank - Scan QR to donate'**
   String get donateBank;
 
+  /// No description provided for @saveQrImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save QR Image'**
+  String get saveQrImage;
+
+  /// No description provided for @qrSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'QR image saved'**
+  String get qrSaved;
+
+  /// No description provided for @qrSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save QR image'**
+  String get qrSaveFailed;
+
   /// No description provided for @importFromExcel.
   ///
   /// In en, this message translates to:
@@ -2876,6 +2930,12 @@ abstract class AppLocalizations {
   /// **'Profile updated'**
   String get profileUpdated;
 
+  /// No description provided for @nicknameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This nickname is already taken'**
+  String get nicknameTaken;
+
   /// No description provided for @selectAvatar.
   ///
   /// In en, this message translates to:
@@ -3061,6 +3121,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Filters'**
   String get clearFilters;
+
+  /// No description provided for @reimportDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-import to local'**
+  String get reimportDeck;
+
+  /// No description provided for @reimportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Local deck was deleted. Re-import from published version.'**
+  String get reimportDescription;
+
+  /// No description provided for @reimportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck re-imported successfully'**
+  String get reimportSuccess;
+
+  /// No description provided for @viewReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'View Reviews'**
+  String get viewReviews;
+
+  /// No description provided for @filterByRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by rating'**
+  String get filterByRating;
+
+  /// No description provided for @allRatings.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allRatings;
+
+  /// No description provided for @flashcards.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcards'**
+  String get flashcards;
+
+  /// No description provided for @enterYourNickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nickname (optional)'**
+  String get enterYourNickname;
+
+  /// No description provided for @noReviewsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get noReviewsYet;
+
+  /// No description provided for @nStarRating.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}★'**
+  String nStarRating(int count);
 }
 
 class _AppLocalizationsDelegate

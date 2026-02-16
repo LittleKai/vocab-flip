@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/app_version.dart';
 import '../../data/repositories/update_repository.dart';
 import '../../data/services/update_download_service.dart';
@@ -44,8 +45,21 @@ class UpdateProvider extends ChangeNotifier {
   String _currentVersion = '...';
 
   String get currentVersion => _currentVersion;
+  /// Whether the platform supports auto-check for updates
+  /// Windows: full auto-update (download + install)
+  /// Android: check + notify (open download link)
   bool get isAutoUpdateSupported =>
-      !kIsWeb && Platform.isWindows;
+      !kIsWeb && (Platform.isWindows || Platform.isAndroid);
+
+  String get releasesUrl => 'https://github.com/LittleKai/vocab-flip/releases';
+
+  /// Open GitHub releases page in browser (for platforms without auto-update)
+  Future<void> openReleasesPage() async {
+    final uri = Uri.parse(releasesUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   bool get autoCheckUpdates => _initialized ? _preferences.autoCheckUpdates : true;
 

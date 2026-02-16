@@ -24,6 +24,7 @@
   "tags": "Nhãn",
   "save": "Lưu",
   "cancel": "Hủy",
+  "go": "Đi",
   "delete": "Xóa",
   "search": "Tìm kiếm",
   "searchDictionary": "Tra từ điển",
@@ -105,6 +106,9 @@
   "export": "Xuất",
   "importCards": "Nhập thẻ",
   "publishToLibrary": "Đăng lên thư viện",
+  "displayNameRequired": "Vui lòng đặt tên hiển thị trước khi đăng",
+  "displayNameHint": "Nhập tên hiển thị",
+  "setDisplayName": "Đặt tên hiển thị",
   "unlinkFromLibrary": "Hủy liên kết",
   "managePublished": "Quản lý đã đăng",
   "loadingDecks": "Đang tải bộ thẻ...",
@@ -237,7 +241,7 @@
   "noDecksFound": "Không tìm thấy bộ thẻ",
   "unableToConnect": "Không thể kết nối đến thư viện",
   "retry": "Thử lại",
-  "searchDecks": "Tìm kiếm bộ thẻ...",
+  "searchDecks": "Tìm theo tên hoặc tag...",
   "popularSearches": "Tìm kiếm phổ biến",
   "browseByCategory": "Duyệt theo danh mục",
   "noResultsFor": "Không có kết quả cho \"{query}\"",
@@ -250,6 +254,7 @@
   "previewCards": "Xem trước thẻ",
   "editReview": "Sửa đánh giá",
   "rate": "Đánh giá",
+  "signInToRate": "Đăng nhập để đánh giá bộ thẻ này",
   "yourRating": "Đánh giá của bạn: ",
   "anonymous": "Ẩn danh",
   "noCardsPreview": "Không có thẻ để xem trước",
@@ -275,6 +280,7 @@
   "avoidCopyrighted": "Tránh sử dụng tài liệu có bản quyền",
   "canUpdateAnytime": "Bạn có thể cập nhật hoặc gỡ bất cứ lúc nào",
   "deckPublished": "Đã đăng bộ thẻ thành công!",
+  "deckUpdated": "Đã cập nhật bộ thẻ thành công!",
 
   "myPublishedDecks": "Bộ thẻ đã đăng",
   "active": "Hoạt động",
@@ -444,6 +450,9 @@
   "donateDesc": "Hỗ trợ nhà phát triển",
   "donateMessage": "Nếu bạn thấy ứng dụng hữu ích, hãy mời mình một ly cà phê nhé! Sự ủng hộ của bạn giúp dự án tiếp tục phát triển.",
   "donateBank": "Vietcombank - Quét mã QR để ủng hộ",
+  "saveQrImage": "Lưu ảnh QR",
+  "qrSaved": "Đã lưu ảnh QR",
+  "qrSaveFailed": "Không thể lưu ảnh QR",
 
   "importFromExcel": "Nhập từ Excel",
   "exportToExcel": "Xuất ra Excel",
@@ -495,6 +504,7 @@
 
   "editProfile": "Chỉnh sửa hồ sơ",
   "profileUpdated": "Đã cập nhật hồ sơ",
+  "nicknameTaken": "Nickname này đã được sử dụng",
   "selectAvatar": "Chọn avatar",
   "nickname": "Biệt danh",
   "enterNickname": "Nhập biệt danh của bạn",
@@ -529,5 +539,17 @@
   "sortRecentlyUpdated": "Cập nhật gần đây",
   "sortOldest": "Cũ nhất",
   "noMatchingDecks": "Không tìm thấy bộ thẻ phù hợp",
-  "clearFilters": "Xóa bộ lọc"
+  "clearFilters": "Xóa bộ lọc",
+
+  "reimportDeck": "Nhập lại về máy",
+  "reimportDescription": "Deck local đã bị xóa. Nhập lại từ bản đã publish.",
+  "reimportSuccess": "Đã nhập lại deck thành công",
+
+  "viewReviews": "Xem đánh giá",
+  "filterByRating": "Lọc theo đánh giá",
+  "allRatings": "Tất cả",
+  "flashcards": "Flashcards",
+  "enterYourNickname": "Biệt danh của bạn (tùy chọn)",
+  "noReviewsYet": "Chưa có đánh giá",
+  "nStarRating": "{count}★"
 }

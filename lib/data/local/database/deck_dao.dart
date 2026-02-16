@@ -41,8 +41,25 @@ class DeckDao {
     );
   }
 
+  /// Update only specific fields of a deck (safe partial update)
+  Future<int> updateFields(String deckId, Map<String, dynamic> fields) async {
+    final db = await _db;
+    return await db.update(
+      AppConstants.tableDecks,
+      fields,
+      where: 'id = ?',
+      whereArgs: [deckId],
+    );
+  }
+
   Future<int> delete(String id) async {
     final db = await _db;
+    // Also remove import link if exists
+    await db.delete(
+      AppConstants.tableImportedDeckLinks,
+      where: 'local_deck_id = ?',
+      whereArgs: [id],
+    );
     return await db.delete(
       AppConstants.tableDecks,
       where: 'id = ?',

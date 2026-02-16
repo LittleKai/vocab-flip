@@ -131,7 +131,7 @@ class PublishProvider extends ChangeNotifier {
   }
 
   /// Publish a deck to the library
-  Future<bool> publishDeck(String localDeckId) async {
+  Future<bool> publishDeck(String localDeckId, {String? authorName}) async {
     if (_selectedCategoryId == null) {
       _error = 'Please select a category';
       notifyListeners();
@@ -150,6 +150,7 @@ class PublishProvider extends ChangeNotifier {
         localDeckId: localDeckId,
         categoryId: _selectedCategoryId!,
         tags: _selectedTags,
+        authorName: authorName,
         onImageProgress: (completed, total, failed) {
           _imageUploadCompleted = completed;
           _imageUploadTotal = total;
@@ -213,7 +214,7 @@ class PublishProvider extends ChangeNotifier {
     }
   }
 
-  /// Unpublish a deck
+  /// Unpublish a deck by local deck ID
   Future<bool> unpublishDeck(String localDeckId) async {
     _state = PublishState.loading;
     _error = null;
@@ -229,6 +230,30 @@ class PublishProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      _error = e.toString();
+      _state = PublishState.error;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Unpublish a deck by public deck ID (used from library screen)
+  Future<bool> unpublishByPublicId(String publicDeckId) async {
+    _state = PublishState.loading;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _repository.unpublishByPublicId(publicDeckId);
+
+      // Refresh published decks list
+      await loadMyPublishedDecks();
+
+      _state = PublishState.idle;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Unpublish error: $e');
       _error = e.toString();
       _state = PublishState.error;
       notifyListeners();

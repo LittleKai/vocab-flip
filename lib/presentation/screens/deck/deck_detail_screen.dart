@@ -18,6 +18,7 @@ import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/sync/sync_badge.dart';
 import '../../widgets/dialogs/tts_help_dialog.dart';
+import '../deck/create_deck_screen.dart';
 import '../flashcard/flashcard_editor_screen.dart';
 import '../flashcard/flashcard_viewer_screen.dart';
 import '../study/study_screen.dart';
@@ -39,7 +40,9 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       await context.read<DeckProvider>().selectDeck(widget.deckId);
+      if (!mounted) return;
       context.read<FlashcardProvider>().loadFlashcards(widget.deckId);
       context.read<SyncProvider>().checkForUpdates();
       _focusNode.requestFocus();
@@ -137,7 +140,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                   const PopupMenuDivider(),
                   if (deck.isPublished)
                     PopupMenuItem(value: 'manage-published', child: Text(l10n.managePublished))
-                  else if (!deck.isLinked && FirebaseService().isSignedIn)
+                  else if (deck.canPublish && FirebaseService().isSignedIn)
                     PopupMenuItem(value: 'publish', child: Text(l10n.publishToLibrary)),
                   if (deck.isLinked)
                     PopupMenuItem(value: 'unlink', child: Text(l10n.unlinkFromLibrary)),
@@ -145,73 +148,76 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
               ),
             ],
           ),
-          body: Column(
-            children: [
-              // Deck stats header
-              _DeckHeader(deck: deck),
+          body: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                // Deck stats header
+                _DeckHeader(deck: deck),
 
-              // Action buttons
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: flashcardProvider.flashcards.isEmpty
-                            ? null
-                            : () => _navigateToViewer(context),
-                        icon: const Icon(Icons.visibility),
-                        label: Text(l10n.browse),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: deck.dueCount == 0
-                            ? null
-                            : () => _navigateToStudy(context),
-                        icon: const Icon(Icons.school),
-                        label: Text(l10n.studyN(deck.dueCount)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Flashcard list
-              Expanded(
-                child: flashcardProvider.flashcards.isEmpty
-                    ? EmptyStateWidget(
-                        title: l10n.noFlashcardsYet,
-                        subtitle: l10n.addFlashcardsToStart,
-                        icon: Icons.style,
-                        action: ElevatedButton.icon(
-                          onPressed: () => _navigateToAddCard(context),
-                          icon: const Icon(Icons.add),
-                          label: Text(l10n.addFlashcard),
+                // Action buttons
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: flashcardProvider.flashcards.isEmpty
+                              ? null
+                              : () => _navigateToViewer(context),
+                          icon: const Icon(Icons.visibility),
+                          label: Text(l10n.browse),
                         ),
-                      )
-                    : ReorderableListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: flashcardProvider.flashcards.length,
-                        buildDefaultDragHandles: false,
-                        onReorder: (oldIndex, newIndex) {
-                          flashcardProvider.reorderFlashcards(oldIndex, newIndex);
-                        },
-                        itemBuilder: (context, index) {
-                          final card = flashcardProvider.flashcards[index];
-                          return _FlashcardListItem(
-                            key: ValueKey(card.id),
-                            flashcard: card,
-                            index: index,
-                            onDoubleTap: () => _navigateToBrowseAt(context, index),
-                            onEdit: () => _navigateToEditCard(context, card),
-                            onDelete: () => _confirmDeleteCard(context, card),
-                          );
-                        },
                       ),
-              ),
-            ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: deck.dueCount == 0
+                              ? null
+                              : () => _navigateToStudy(context),
+                          icon: const Icon(Icons.school),
+                          label: Text(l10n.studyN(deck.dueCount)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Flashcard list
+                Expanded(
+                  child: flashcardProvider.flashcards.isEmpty
+                      ? EmptyStateWidget(
+                          title: l10n.noFlashcardsYet,
+                          subtitle: l10n.addFlashcardsToStart,
+                          icon: Icons.style,
+                          action: ElevatedButton.icon(
+                            onPressed: () => _navigateToAddCard(context),
+                            icon: const Icon(Icons.add),
+                            label: Text(l10n.addFlashcard),
+                          ),
+                        )
+                      : ReorderableListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: flashcardProvider.flashcards.length,
+                          buildDefaultDragHandles: false,
+                          onReorder: (oldIndex, newIndex) {
+                            flashcardProvider.reorderFlashcards(oldIndex, newIndex);
+                          },
+                          itemBuilder: (context, index) {
+                            final card = flashcardProvider.flashcards[index];
+                            return _FlashcardListItem(
+                              key: ValueKey(card.id),
+                              flashcard: card,
+                              index: index,
+                              onDoubleTap: () => _navigateToBrowseAt(context, index),
+                              onEdit: () => _navigateToEditCard(context, card),
+                              onDelete: () => _confirmDeleteCard(context, card),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
           ),
           floatingActionButton: FloatingActionButton(
             heroTag: 'deck_detail_fab',
@@ -236,7 +242,12 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   void _handleMenuAction(BuildContext context, String action, Deck deck) {
     switch (action) {
       case 'edit':
-        // Navigate to edit deck
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CreateDeckScreen(deck: deck),
+          ),
+        );
         break;
       case 'import-excel':
         _importFromExcel(context, deck);
@@ -486,12 +497,16 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
             child: Text(l10n.cancel),
           ),
           ElevatedButton(
-            onPressed: () {
-              context.read<SyncProvider>().unlinkDeck(widget.deckId);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.deckUnlinked)),
-              );
+            onPressed: () async {
+              await context.read<SyncProvider>().unlinkDeck(widget.deckId);
+              if (context.mounted) {
+                // Reload deck to reflect unlinked state
+                context.read<DeckProvider>().selectDeck(widget.deckId);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.deckUnlinked)),
+                );
+              }
             },
             child: Text(l10n.unlink),
           ),
@@ -577,107 +592,120 @@ class _DeckHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Show linked status and sync badge
-          if (deck.isLinked) ...[
-            Consumer<SyncProvider>(
-              builder: (context, syncProvider, _) {
-                final hasUpdate = syncProvider.hasUpdateForDeck(deck.id);
-                final update = syncProvider.getUpdateForDeck(deck.id);
-                final isSyncing = syncProvider.syncingDeckId == deck.id;
+          // Row 1: Status badges (linked + published) inline
+          if (deck.isLinked || deck.isPublished) ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                if (deck.isLinked)
+                  Consumer<SyncProvider>(
+                    builder: (context, syncProvider, _) {
+                      final hasUpdate = syncProvider.hasUpdateForDeck(deck.id);
+                      final update = syncProvider.getUpdateForDeck(deck.id);
+                      final isSyncing = syncProvider.syncingDeckId == deck.id;
 
-                return Row(
-                  children: [
-                    LinkedDeckIndicator(
-                      hasUpdate: hasUpdate,
-                      onSyncTap: hasUpdate && !isSyncing
-                          ? () => syncProvider.syncDeck(deck.id)
-                          : null,
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          LinkedDeckIndicator(
+                            hasUpdate: hasUpdate,
+                            onSyncTap: hasUpdate && !isSyncing
+                                ? () => syncProvider.syncDeck(deck.id)
+                                : null,
+                          ),
+                          if (isSyncing) ...[
+                            const SizedBox(width: 6),
+                            const SyncBadge(isSyncing: true),
+                          ] else if (hasUpdate && update != null) ...[
+                            const SizedBox(width: 6),
+                            SyncBadge(
+                              hasUpdate: true,
+                              versionsBehind: update.versionsBehind,
+                              onTap: () => syncProvider.syncDeck(deck.id),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
+                if (deck.isPublished)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    if (isSyncing) ...[
-                      const SizedBox(width: 8),
-                      const SyncBadge(isSyncing: true),
-                    ] else if (hasUpdate && update != null) ...[
-                      const SizedBox(width: 8),
-                      SyncBadge(
-                        hasUpdate: true,
-                        versionsBehind: update.versionsBehind,
-                        onTap: () => syncProvider.syncDeck(deck.id),
-                      ),
-                    ],
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-          ],
-          // Show published status
-          if (deck.isPublished) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.public, size: 14, color: AppColors.success),
-                  const SizedBox(width: 4),
-                  Text(
-                    l10n.published,
-                    style: TextStyle(
-                      color: AppColors.success,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.public, size: 13, color: AppColors.success),
+                        const SizedBox(width: 3),
+                        Text(
+                          l10n.published,
+                          style: TextStyle(
+                            color: AppColors.success,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
+
+          // Row 2: Description
           if (deck.description != null && deck.description!.isNotEmpty) ...[
             Text(
               deck.description!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondaryLight,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary(context),
                   ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
+
+          // Row 3: Stats as compact inline chips
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _StatItem(
+              _StatChip(
                 label: l10n.total,
                 value: '${deck.cardCount}',
                 color: AppColors.primary,
               ),
-              _StatItem(
+              const SizedBox(width: 12),
+              _StatChip(
                 label: l10n.newCards,
                 value: '${deck.newCount}',
                 color: AppColors.info,
               ),
-              _StatItem(
+              const SizedBox(width: 12),
+              _StatChip(
                 label: l10n.learning,
                 value: '${deck.learningCount}',
                 color: AppColors.warning,
               ),
-              _StatItem(
+              const SizedBox(width: 12),
+              _StatChip(
                 label: l10n.reviewCards,
                 value: '${deck.reviewCount}',
                 color: AppColors.secondary,
@@ -690,12 +718,12 @@ class _DeckHeader extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _StatChip extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
 
-  const _StatItem({
+  const _StatChip({
     required this.label,
     required this.value,
     required this.color,
@@ -703,20 +731,24 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: color,
+            fontSize: 16,
+          ),
         ),
+        const SizedBox(width: 3),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
+          style: TextStyle(
+            color: AppColors.textSecondary(context),
+            fontSize: 11,
+          ),
         ),
       ],
     );

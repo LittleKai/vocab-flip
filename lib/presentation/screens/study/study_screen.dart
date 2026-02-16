@@ -211,20 +211,23 @@ class _StudyScreenState extends State<StudyScreen> {
         ),
 
         // Action buttons
-        Padding(
-          padding: const EdgeInsets.all(24),
-          child: provider.state == StudyState.studying
-              ? SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => provider.showAnswer(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(l10n.showAnswer),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: provider.state == StudyState.studying
+                ? SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => provider.showAnswer(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(l10n.showAnswer),
+                      ),
                     ),
-                  ),
-                )
-              : _buildRatingButtons(context, provider),
+                  )
+                : _buildRatingButtons(context, provider),
+          ),
         ),
       ],
     );

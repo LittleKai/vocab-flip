@@ -17,6 +17,9 @@ class AuthProvider extends ChangeNotifier {
   String? _error;
   User? _user;
 
+  /// Callback triggered after successful sign-in (used to sync profile, etc.)
+  void Function()? onSignIn;
+
   AuthStatus get status => _status;
   String? get error => _error;
   User? get user => _user;
@@ -44,101 +47,33 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  Future<bool> signInWithEmail(String email, String password) async {
-    _status = AuthStatus.loading;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final credential = await _firebaseService.auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      if (credential.user != null) {
-        _user = credential.user;
-        _status = AuthStatus.authenticated;
-        notifyListeners();
-        return true;
-      }
-
-      _status = AuthStatus.unauthenticated;
-      _error = 'Sign in failed';
-      notifyListeners();
-      return false;
-    } on FirebaseAuthException catch (e) {
-      _status = AuthStatus.error;
-      _error = _getErrorMessage(e.code);
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _status = AuthStatus.error;
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> signUpWithEmail(String email, String password, {String? displayName}) async {
-    _status = AuthStatus.loading;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final credential = await _firebaseService.auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      if (credential.user != null) {
-        // Update display name if provided
-        if (displayName != null && displayName.isNotEmpty) {
-          await credential.user!.updateDisplayName(displayName);
-        }
-
-        _user = credential.user;
-        _status = AuthStatus.authenticated;
-        notifyListeners();
-        return true;
-      }
-
-      _status = AuthStatus.unauthenticated;
-      _error = 'Sign up failed';
-      notifyListeners();
-      return false;
-    } on FirebaseAuthException catch (e) {
-      _status = AuthStatus.error;
-      _error = _getErrorMessage(e.code);
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _status = AuthStatus.error;
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
   Future<bool> signInWithGoogle() async {
+    debugPrint('AuthProvider.signInWithGoogle: Starting...');
     _status = AuthStatus.loading;
     _error = null;
     notifyListeners();
 
     try {
       final credential = await _firebaseService.signInWithGoogle();
+      debugPrint('AuthProvider.signInWithGoogle: credential=${credential != null ? 'present' : 'null'}, user=${credential?.user?.email ?? 'null'}');
 
       if (credential?.user != null) {
         _user = credential!.user;
         _status = AuthStatus.authenticated;
         notifyListeners();
+        debugPrint('AuthProvider.signInWithGoogle: Success, calling onSignIn...');
+        onSignIn?.call();
         return true;
       }
 
       _status = AuthStatus.unauthenticated;
       _error = 'Google sign in was cancelled';
+      debugPrint('AuthProvider.signInWithGoogle: Cancelled or null credential');
       notifyListeners();
       return false;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('AuthProvider.signInWithGoogle ERROR: $e');
+      debugPrint('AuthProvider.signInWithGoogle STACK: $stack');
       _status = AuthStatus.error;
       _error = e.toString();
       notifyListeners();
@@ -158,53 +93,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> resetPassword(String email) async {
-    _error = null;
-
-    try {
-      await _firebaseService.auth.sendPasswordResetEmail(email: email);
-      return true;
-    } on FirebaseAuthException catch (e) {
-      _error = _getErrorMessage(e.code);
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
   void clearError() {
     _error = null;
     if (_status == AuthStatus.error) {
       _status = _user != null ? AuthStatus.authenticated : AuthStatus.unauthenticated;
     }
     notifyListeners();
-  }
-
-  String _getErrorMessage(String code) {
-    switch (code) {
-      case 'user-not-found':
-        return 'No user found with this email.';
-      case 'wrong-password':
-        return 'Wrong password provided.';
-      case 'email-already-in-use':
-        return 'An account already exists with this email.';
-      case 'invalid-email':
-        return 'The email address is invalid.';
-      case 'weak-password':
-        return 'The password is too weak.';
-      case 'operation-not-allowed':
-        return 'Email/password accounts are not enabled.';
-      case 'user-disabled':
-        return 'This account has been disabled.';
-      case 'too-many-requests':
-        return 'Too many attempts. Please try again later.';
-      case 'network-request-failed':
-        return 'Network error. Please check your connection.';
-      default:
-        return 'An error occurred. Please try again.';
-    }
   }
 }

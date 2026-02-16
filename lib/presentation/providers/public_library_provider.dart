@@ -1,16 +1,47 @@
 import 'package:flutter/foundation.dart' hide Category;
+import '../../data/local/preferences/app_preferences.dart';
 import '../../main.dart' show isFirebaseInitialized;
 import '../../data/models/public_deck.dart';
 import '../../data/models/public_flashcard.dart';
+import '../../data/models/public_profile.dart';
 import '../../data/models/deck_rating.dart';
 import '../../data/models/category.dart';
 import '../../data/models/deck.dart';
 import '../../data/repositories/public_library_repository.dart';
 import '../../data/remote/firebase/public_library_service.dart';
 
+LibrarySortBy _parseLibrarySortBy(String value) {
+  return LibrarySortBy.values.firstWhere(
+    (e) => e.name == value,
+    orElse: () => LibrarySortBy.popular,
+  );
+}
+
 /// Provider for public library browsing, searching, and importing
 class PublicLibraryProvider extends ChangeNotifier {
   final PublicLibraryRepository _repository = PublicLibraryRepository();
+  final AppPreferences? _preferences;
+
+  PublicLibraryProvider({AppPreferences? preferences})
+      : _preferences = preferences {
+    _loadSavedFilters();
+  }
+
+  void _loadSavedFilters() {
+    if (_preferences == null) return;
+    _filter = LibraryFilter(
+      categoryId: _preferences.libFilterCategory,
+      sourceLanguage: _preferences.libFilterSourceLang,
+      sortBy: _parseLibrarySortBy(_preferences.libFilterSortBy),
+    );
+  }
+
+  void _saveFilters() {
+    if (_preferences == null) return;
+    _preferences.setLibFilterCategory(_filter.categoryId);
+    _preferences.setLibFilterSourceLang(_filter.sourceLanguage);
+    _preferences.setLibFilterSortBy(_filter.sortBy.name);
+  }
 
   /// Check if Firebase is available
   bool get isFirebaseAvailable => isFirebaseInitialized;
@@ -21,6 +52,7 @@ class PublicLibraryProvider extends ChangeNotifier {
   List<PublicDeck> _topRatedDecks = [];
   List<PublicDeck> _newestDecks = [];
   List<Category> _categories = [];
+  final Map<String, PublicProfile?> _authorProfiles = {};
   PublicDeck? _selectedDeck;
   List<PublicFlashcard> _previewFlashcards = [];
   DeckRating? _userRating;
@@ -61,94 +93,61 @@ class PublicLibraryProvider extends ChangeNotifier {
 
   /// Initialize the library (load categories and featured decks)
   Future<void> initialize() async {
-    debugPrint('PublicLibraryProvider.initialize() called');
-    debugPrint('isFirebaseAvailable: $isFirebaseAvailable');
-
     if (!isFirebaseAvailable) {
-      debugPrint('Firebase not available, setting error');
       _error = 'Firebase is not available. Please check your internet connection.';
       notifyListeners();
       return;
     }
 
-    debugPrint('Setting loading state...');
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      debugPrint('Loading categories...');
       await loadCategories();
-      debugPrint('Categories loaded');
-
-      debugPrint('Loading featured decks...');
-      await loadFeaturedDecks();
-      debugPrint('Featured decks loaded');
-
-      debugPrint('Loading top rated decks...');
-      await loadTopRatedDecks();
-      debugPrint('Top rated decks loaded');
-
-      debugPrint('Loading newest decks...');
       await loadNewestDecks();
-      debugPrint('Newest decks loaded');
-    } catch (e, stack) {
-      debugPrint('Error in initialize: $e');
-      debugPrint('Stack: $stack');
+    } catch (e) {
       _error = e.toString();
     }
 
-    debugPrint('Setting loading complete');
     _isLoading = false;
     notifyListeners();
-    debugPrint('initialize() completed');
   }
 
   /// Load categories
   Future<void> loadCategories() async {
     try {
-      debugPrint('loadCategories: calling repository...');
       _categories = await _repository.getCategories();
-      debugPrint('loadCategories: got ${_categories.length} categories');
-    } catch (e, stack) {
+    } catch (e) {
       debugPrint('Error loading categories: $e');
-      debugPrint('Stack: $stack');
     }
   }
 
   /// Load featured decks
   Future<void> loadFeaturedDecks() async {
     try {
-      debugPrint('loadFeaturedDecks: calling repository...');
       _featuredDecks = await _repository.getFeaturedDecks();
-      debugPrint('loadFeaturedDecks: got ${_featuredDecks.length} decks');
-    } catch (e, stack) {
+    } catch (e) {
       debugPrint('Error loading featured decks: $e');
-      debugPrint('Stack: $stack');
     }
   }
 
   /// Load top rated decks
   Future<void> loadTopRatedDecks() async {
     try {
-      debugPrint('loadTopRatedDecks: calling repository...');
       _topRatedDecks = await _repository.getTopRatedDecks();
-      debugPrint('loadTopRatedDecks: got ${_topRatedDecks.length} decks');
-    } catch (e, stack) {
+    } catch (e) {
       debugPrint('Error loading top rated decks: $e');
-      debugPrint('Stack: $stack');
     }
   }
 
   /// Load newest decks
   Future<void> loadNewestDecks() async {
     try {
-      debugPrint('loadNewestDecks: calling repository...');
       _newestDecks = await _repository.getNewestDecks();
-      debugPrint('loadNewestDecks: got ${_newestDecks.length} decks');
-    } catch (e, stack) {
+      _prefetchAuthorProfiles(_newestDecks);
+    } catch (e) {
       debugPrint('Error loading newest decks: $e');
-      debugPrint('Stack: $stack');
     }
   }
 
@@ -179,6 +178,8 @@ class PublicLibraryProvider extends ChangeNotifier {
       }
 
       _hasMoreDecks = newDecks.length >= 20;
+      // Prefetch author profiles in background
+      _prefetchAuthorProfiles(_decks);
     } catch (e) {
       _error = e.toString();
     }
@@ -190,6 +191,7 @@ class PublicLibraryProvider extends ChangeNotifier {
 
   /// Search decks
   Future<void> search(String query) async {
+    debugPrint('[PublicLibraryProvider] search("$query") called');
     _searchQuery = query;
     _isLoading = true;
     _error = null;
@@ -197,12 +199,22 @@ class PublicLibraryProvider extends ChangeNotifier {
 
     try {
       if (query.isEmpty) {
+        debugPrint('[PublicLibraryProvider] search: empty query, calling browse()');
         await browse(refresh: true);
       } else {
+        debugPrint('[PublicLibraryProvider] search: calling repository.search("$query")');
         _decks = await _repository.search(query);
+        debugPrint('[PublicLibraryProvider] search: got ${_decks.length} results');
+        if (_decks.isNotEmpty) {
+          debugPrint('[PublicLibraryProvider] search: first result name="${_decks.first.name}"');
+        }
         _hasMoreDecks = false;
+        // Prefetch author profiles in background
+        _prefetchAuthorProfiles(_decks);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('[PublicLibraryProvider] search ERROR: $e');
+      debugPrint('[PublicLibraryProvider] search stack: $stackTrace');
       _error = e.toString();
     }
 
@@ -213,12 +225,14 @@ class PublicLibraryProvider extends ChangeNotifier {
   /// Update filter
   void setFilter(LibraryFilter newFilter) {
     _filter = newFilter;
+    _saveFilters();
     browse(refresh: true);
   }
 
   /// Set category filter
   void setCategory(String? categoryId) {
     _filter = _filter.copyWith(categoryId: categoryId);
+    _saveFilters();
     browse(refresh: true);
   }
 
@@ -228,12 +242,14 @@ class PublicLibraryProvider extends ChangeNotifier {
       sourceLanguage: source,
       targetLanguage: target,
     );
+    _saveFilters();
     browse(refresh: true);
   }
 
   /// Set sort order
   void setSortBy(LibrarySortBy sortBy) {
     _filter = _filter.copyWith(sortBy: sortBy);
+    _saveFilters();
     browse(refresh: true);
   }
 
@@ -241,6 +257,7 @@ class PublicLibraryProvider extends ChangeNotifier {
   void clearFilters() {
     _filter = const LibraryFilter();
     _searchQuery = '';
+    _saveFilters();
     browse(refresh: true);
   }
 
@@ -317,7 +334,7 @@ class PublicLibraryProvider extends ChangeNotifier {
       _repository.isImported(publicDeckId);
 
   /// Rate the selected deck
-  Future<void> rateDeck(int rating, {String? review}) async {
+  Future<void> rateDeck(int rating, {String? review, String? nickname}) async {
     if (_selectedDeck == null) return;
 
     try {
@@ -325,6 +342,7 @@ class PublicLibraryProvider extends ChangeNotifier {
         publicDeckId: _selectedDeck!.id,
         rating: rating,
         review: review,
+        nickname: nickname,
       );
 
       // Refresh the deck to get updated rating stats
@@ -351,6 +369,43 @@ class PublicLibraryProvider extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
     }
+  }
+
+  // ===== Author Profiles =====
+
+  /// Get cached author profile (sync, for UI)
+  PublicProfile? getCachedAuthorProfile(String authorId) {
+    return _authorProfiles[authorId];
+  }
+
+  /// Fetch and cache an author profile
+  Future<PublicProfile?> getAuthorProfile(String authorId) async {
+    if (_authorProfiles.containsKey(authorId)) {
+      return _authorProfiles[authorId];
+    }
+    try {
+      final profile = await _repository.getAuthorProfile(authorId);
+      _authorProfiles[authorId] = profile;
+      return profile;
+    } catch (e) {
+      debugPrint('PublicLibraryProvider: getAuthorProfile error: $e');
+      return null;
+    }
+  }
+
+  /// Prefetch author profiles for a list of decks
+  Future<void> _prefetchAuthorProfiles(List<PublicDeck> decks) async {
+    final uniqueIds = decks
+        .map((d) => d.authorId)
+        .where((id) => id.isNotEmpty && !_authorProfiles.containsKey(id))
+        .toSet();
+
+    if (uniqueIds.isEmpty) return;
+
+    await Future.wait(
+      uniqueIds.map((id) => getAuthorProfile(id)),
+    );
+    notifyListeners();
   }
 
   /// Clear error

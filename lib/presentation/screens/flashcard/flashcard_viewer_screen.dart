@@ -202,34 +202,37 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
               ),
 
               // Navigation buttons
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                      onPressed: _currentIndex > 0 ? _previousCard : null,
-                      icon: const Icon(Icons.arrow_back_ios),
-                      iconSize: 32,
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        final card = flashcards[_currentIndex];
-                        // Always speak word (front) using source language
-                        _speakWord(card.front, deck?.sourceLanguage ?? 'en');
-                      },
-                      icon: const Icon(Icons.volume_up),
-                      iconSize: 32,
-                      color: AppColors.primary,
-                    ),
-                    IconButton(
-                      onPressed: _currentIndex < flashcards.length - 1
-                          ? _nextCard
-                          : null,
-                      icon: const Icon(Icons.arrow_forward_ios),
-                      iconSize: 32,
-                    ),
-                  ],
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        onPressed: _currentIndex > 0 ? _previousCard : null,
+                        icon: const Icon(Icons.arrow_back_ios),
+                        iconSize: 32,
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          final card = flashcards[_currentIndex];
+                          // Always speak word (front) using source language
+                          _speakWord(card.front, deck?.sourceLanguage ?? 'en');
+                        },
+                        icon: const Icon(Icons.volume_up),
+                        iconSize: 32,
+                        color: AppColors.primary,
+                      ),
+                      IconButton(
+                        onPressed: _currentIndex < flashcards.length - 1
+                            ? _nextCard
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios),
+                        iconSize: 32,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

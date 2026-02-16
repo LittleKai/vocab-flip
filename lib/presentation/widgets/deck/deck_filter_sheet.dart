@@ -147,7 +147,7 @@ class _DeckFilterSheetState extends State<DeckFilterSheet> {
                           }
                         },
                       ),
-                      ...Category.predefined.map((category) {
+                      ...Category.forLanguage(_sourceLanguage).map((category) {
                         return ChoiceChip(
                           label: Text(category.getLocalizedName(locale)),
                           selected: _categoryId == category.id,
@@ -179,13 +179,22 @@ class _DeckFilterSheetState extends State<DeckFilterSheet> {
                           }
                         },
                       ),
-                      ...SupportedLanguage.values.map((lang) {
+                      ...SupportedLanguage.values
+                          .where((lang) => lang != SupportedLanguage.vietnamese)
+                          .map((lang) {
                         return ChoiceChip(
                           label: Text('${lang.flag} ${lang.getName(locale)}'),
                           selected: _sourceLanguage == lang.code,
                           onSelected: (selected) {
                             setState(() {
                               _sourceLanguage = selected ? lang.code : null;
+                              // Clear category if not valid for the new language
+                              if (_categoryId != null) {
+                                final cat = Category.getById(_categoryId!);
+                                if (cat != null && cat.language != null && cat.language != _sourceLanguage) {
+                                  _categoryId = null;
+                                }
+                              }
                             });
                           },
                         );

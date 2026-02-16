@@ -27,6 +27,16 @@ class AppPreferences {
   static const String _keySkippedVersion = 'skipped_version';
   static const String _keyAutoCheckUpdates = 'auto_check_updates';
 
+  // Deck list filter
+  static const String _keyDeckFilterCategory = 'deck_filter_category';
+  static const String _keyDeckFilterLanguage = 'deck_filter_language';
+  static const String _keyDeckFilterSortBy = 'deck_filter_sort_by';
+
+  // Library filter
+  static const String _keyLibFilterCategory = 'lib_filter_category';
+  static const String _keyLibFilterSourceLang = 'lib_filter_source_lang';
+  static const String _keyLibFilterSortBy = 'lib_filter_sort_by';
+
   // User profile
   static const String _keyProfileNickname = 'profile_nickname';
   static const String _keyProfileGender = 'profile_gender';
@@ -34,6 +44,7 @@ class AppPreferences {
   static const String _keyProfileCustomAvatarPath = 'profile_custom_avatar_path';
   static const String _keyProfileBio = 'profile_bio';
   static const String _keyProfileUpdatedAt = 'profile_updated_at';
+  static const String _keyProfileCloudAvatarUrl = 'profile_cloud_avatar_url';
 
   // Default font sizes
   static const int defaultMainFontSize = 32;
@@ -179,6 +190,40 @@ class AppPreferences {
   Future<bool> setAutoCheckUpdates(bool value) =>
       _prefs.setBool(_keyAutoCheckUpdates, value);
 
+  // Deck list filter
+  String? get deckFilterCategory => _prefs.getString(_keyDeckFilterCategory);
+  Future<bool> setDeckFilterCategory(String? value) {
+    if (value == null) return _prefs.remove(_keyDeckFilterCategory);
+    return _prefs.setString(_keyDeckFilterCategory, value);
+  }
+
+  String? get deckFilterLanguage => _prefs.getString(_keyDeckFilterLanguage);
+  Future<bool> setDeckFilterLanguage(String? value) {
+    if (value == null) return _prefs.remove(_keyDeckFilterLanguage);
+    return _prefs.setString(_keyDeckFilterLanguage, value);
+  }
+
+  String get deckFilterSortBy => _prefs.getString(_keyDeckFilterSortBy) ?? 'recentlyUpdated';
+  Future<bool> setDeckFilterSortBy(String value) =>
+      _prefs.setString(_keyDeckFilterSortBy, value);
+
+  // Library filter
+  String? get libFilterCategory => _prefs.getString(_keyLibFilterCategory);
+  Future<bool> setLibFilterCategory(String? value) {
+    if (value == null) return _prefs.remove(_keyLibFilterCategory);
+    return _prefs.setString(_keyLibFilterCategory, value);
+  }
+
+  String? get libFilterSourceLang => _prefs.getString(_keyLibFilterSourceLang);
+  Future<bool> setLibFilterSourceLang(String? value) {
+    if (value == null) return _prefs.remove(_keyLibFilterSourceLang);
+    return _prefs.setString(_keyLibFilterSourceLang, value);
+  }
+
+  String get libFilterSortBy => _prefs.getString(_keyLibFilterSortBy) ?? 'popular';
+  Future<bool> setLibFilterSortBy(String value) =>
+      _prefs.setString(_keyLibFilterSortBy, value);
+
   // User profile - nickname
   String? get profileNickname => _prefs.getString(_keyProfileNickname);
   Future<bool> setProfileNickname(String? value) {
@@ -214,6 +259,15 @@ class AppPreferences {
       return _prefs.remove(_keyProfileBio);
     }
     return _prefs.setString(_keyProfileBio, value);
+  }
+
+  // User profile - cloud avatar URL (Cloudinary)
+  String? get profileCloudAvatarUrl => _prefs.getString(_keyProfileCloudAvatarUrl);
+  Future<bool> setProfileCloudAvatarUrl(String? value) {
+    if (value == null || value.isEmpty) {
+      return _prefs.remove(_keyProfileCloudAvatarUrl);
+    }
+    return _prefs.setString(_keyProfileCloudAvatarUrl, value);
   }
 
   // User profile - updated at

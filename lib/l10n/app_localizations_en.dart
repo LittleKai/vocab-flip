@@ -81,6 +81,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
+  String get go => 'Go';
+
+  @override
   String get delete => 'Delete';
 
   @override
@@ -314,6 +317,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get publishToLibrary => 'Publish to Library';
+
+  @override
+  String get displayNameRequired =>
+      'Please set your display name before publishing';
+
+  @override
+  String get displayNameHint => 'Enter your display name';
+
+  @override
+  String get setDisplayName => 'Set Display Name';
 
   @override
   String get unlinkFromLibrary => 'Unlink from Library';
@@ -702,7 +715,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Retry';
 
   @override
-  String get searchDecks => 'Search decks...';
+  String get searchDecks => 'Search by name or tag...';
 
   @override
   String get popularSearches => 'Popular Searches';
@@ -743,6 +756,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rate => 'Rate';
+
+  @override
+  String get signInToRate => 'Sign in to rate this deck';
 
   @override
   String get yourRating => 'Your rating: ';
@@ -825,6 +841,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deckPublished => 'Deck published successfully!';
+
+  @override
+  String get deckUpdated => 'Deck updated successfully!';
 
   @override
   String get myPublishedDecks => 'My Published Decks';
@@ -1322,6 +1341,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get donateBank => 'Vietcombank - Scan QR to donate';
 
   @override
+  String get saveQrImage => 'Save QR Image';
+
+  @override
+  String get qrSaved => 'QR image saved';
+
+  @override
+  String get qrSaveFailed => 'Failed to save QR image';
+
+  @override
   String get importFromExcel => 'Import from Excel';
 
   @override
@@ -1487,6 +1515,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileUpdated => 'Profile updated';
 
   @override
+  String get nicknameTaken => 'This nickname is already taken';
+
+  @override
   String get selectAvatar => 'Select Avatar';
 
   @override
@@ -1584,4 +1615,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearFilters => 'Clear Filters';
+
+  @override
+  String get reimportDeck => 'Re-import to local';
+
+  @override
+  String get reimportDescription =>
+      'Local deck was deleted. Re-import from published version.';
+
+  @override
+  String get reimportSuccess => 'Deck re-imported successfully';
+
+  @override
+  String get viewReviews => 'View Reviews';
+
+  @override
+  String get filterByRating => 'Filter by rating';
+
+  @override
+  String get allRatings => 'All';
+
+  @override
+  String get flashcards => 'Flashcards';
+
+  @override
+  String get enterYourNickname => 'Your nickname (optional)';
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String nStarRating(int count) {
+    return '$count★';
+  }
 }

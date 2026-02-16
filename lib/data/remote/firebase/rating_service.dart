@@ -31,9 +31,10 @@ class RatingService {
     required String publicDeckId,
     required int rating,
     String? review,
+    String? nickname,
   }) async {
     final userId = _authService.userId;
-    final userName = _authService.userName;
+    final userName = nickname ?? _authService.userName ?? 'Anonymous';
 
     if (userId == null) {
       throw Exception('User must be signed in to rate');

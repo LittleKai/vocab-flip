@@ -32,10 +32,14 @@ class VocabFlipApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = ProfileProvider(preferences: preferences);
+    final authProvider = AuthProvider()
+      ..onSignIn = () => profileProvider.loadFromFirebase();
+
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => DeckProvider()),
+        ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider(create: (_) => DeckProvider(preferences: preferences)),
         ChangeNotifierProvider(create: (_) => FlashcardProvider()),
         ChangeNotifierProvider(
           create: (_) => StudyProvider(preferences: preferences),
@@ -46,16 +50,14 @@ class VocabFlipApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => SettingsProvider(preferences: preferences),
         ),
-        ChangeNotifierProvider(create: (_) => PublicLibraryProvider()),
+        ChangeNotifierProvider(create: (_) => PublicLibraryProvider(preferences: preferences)),
         ChangeNotifierProvider(create: (_) => PublishProvider()),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
         ChangeNotifierProvider(
           create: (_) => UpdateProvider(),
         ),
         ChangeNotifierProvider(create: (_) => BackupProvider()),
-        ChangeNotifierProvider(
-          create: (_) => ProfileProvider(preferences: preferences),
-        ),
+        ChangeNotifierProvider.value(value: profileProvider),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, child) {

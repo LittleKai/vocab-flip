@@ -24,6 +24,7 @@
   "tags": "Tags",
   "save": "Save",
   "cancel": "Cancel",
+  "go": "Go",
   "delete": "Delete",
   "search": "Search",
   "searchDictionary": "Search Dictionary",
@@ -119,6 +120,9 @@
   "export": "Export",
   "importCards": "Import Cards",
   "publishToLibrary": "Publish to Library",
+  "displayNameRequired": "Please set your display name before publishing",
+  "displayNameHint": "Enter your display name",
+  "setDisplayName": "Set Display Name",
   "unlinkFromLibrary": "Unlink from Library",
   "managePublished": "Manage Published",
   "loadingDecks": "Loading decks...",
@@ -296,7 +300,7 @@
   "noDecksFound": "No decks found",
   "unableToConnect": "Unable to connect to library",
   "retry": "Retry",
-  "searchDecks": "Search decks...",
+  "searchDecks": "Search by name or tag...",
   "popularSearches": "Popular Searches",
   "browseByCategory": "Browse by Category",
   "noResultsFor": "No results for \"{query}\"",
@@ -333,6 +337,7 @@
   "previewCards": "Preview Cards",
   "editReview": "Edit Review",
   "rate": "Rate",
+  "signInToRate": "Sign in to rate this deck",
   "yourRating": "Your rating: ",
   "anonymous": "Anonymous",
   "noCardsPreview": "No cards to preview",
@@ -393,6 +398,7 @@
   "avoidCopyrighted": "Avoid copyrighted material",
   "canUpdateAnytime": "You can update or unpublish anytime",
   "deckPublished": "Deck published successfully!",
+  "deckUpdated": "Deck updated successfully!",
 
   "myPublishedDecks": "My Published Decks",
   "active": "Active",
@@ -611,6 +617,9 @@
   "donateDesc": "Support the developer",
   "donateMessage": "If you find this app helpful, consider buying me a coffee! Your support helps keep this project alive.",
   "donateBank": "Vietcombank - Scan QR to donate",
+  "saveQrImage": "Save QR Image",
+  "qrSaved": "QR image saved",
+  "qrSaveFailed": "Failed to save QR image",
 
   "importFromExcel": "Import from Excel",
   "exportToExcel": "Export to Excel",
@@ -722,6 +731,7 @@
 
   "editProfile": "Edit Profile",
   "profileUpdated": "Profile updated",
+  "nicknameTaken": "This nickname is already taken",
   "selectAvatar": "Select Avatar",
   "nickname": "Nickname",
   "enterNickname": "Enter your nickname",
@@ -773,5 +783,24 @@
   "sortRecentlyUpdated": "Recently Updated",
   "sortOldest": "Oldest",
   "noMatchingDecks": "No matching decks",
-  "clearFilters": "Clear Filters"
+  "clearFilters": "Clear Filters",
+
+  "reimportDeck": "Re-import to local",
+  "reimportDescription": "Local deck was deleted. Re-import from published version.",
+  "reimportSuccess": "Deck re-imported successfully",
+
+  "viewReviews": "View Reviews",
+  "filterByRating": "Filter by rating",
+  "allRatings": "All",
+  "flashcards": "Flashcards",
+  "enterYourNickname": "Your nickname (optional)",
+  "noReviewsYet": "No reviews yet",
+  "nStarRating": "{count}★",
+  "@nStarRating": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

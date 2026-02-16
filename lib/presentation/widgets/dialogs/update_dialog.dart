@@ -1,5 +1,8 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/app_version.dart';
 import '../../../l10n/app_localizations.dart';
@@ -187,6 +190,18 @@ class UpdateDialog extends StatelessWidget {
   }
 
   void _startDownload(BuildContext context) {
-    UpdateProgressDialog.show(context);
+    if (!kIsWeb && Platform.isAndroid) {
+      // On Android: open APK download URL or releases page
+      final updateProvider = context.read<UpdateProvider>();
+      final apkUrl = version.apkDownloadUrl;
+      if (apkUrl.isNotEmpty) {
+        launchUrl(Uri.parse(apkUrl), mode: LaunchMode.externalApplication);
+      } else {
+        updateProvider.openReleasesPage();
+      }
+    } else {
+      // On Windows: download + extract + install
+      UpdateProgressDialog.show(context);
+    }
   }
 }

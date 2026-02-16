@@ -93,6 +93,7 @@ class Deck {
   final int? linkedVersion; // Version when last synced
   final bool isPublished; // Whether this deck is published to library
   final String? publishedDeckId; // ID on public library if published
+  final bool wasImported; // True if deck was ever imported from library (permanent, survives unlink)
 
   // Display mode: show back first instead of front
   final bool showBackFirst;
@@ -132,6 +133,7 @@ class Deck {
     this.linkedVersion,
     this.isPublished = false,
     this.publishedDeckId,
+    this.wasImported = false,
     this.showBackFirst = false,
     List<CardFieldType>? frontFields,
     List<CardFieldType>? backFields,
@@ -161,6 +163,9 @@ class Deck {
   /// Check if this deck is linked to a public deck (imported from library)
   bool get isLinked => linkedPublicDeckId != null;
 
+  /// Check if this deck can be published (never imported from library)
+  bool get canPublish => !wasImported && !isLinked;
+
   Deck copyWith({
     String? id,
     String? name,
@@ -177,6 +182,7 @@ class Deck {
     int? linkedVersion,
     bool? isPublished,
     String? publishedDeckId,
+    bool? wasImported,
     bool? showBackFirst,
     List<CardFieldType>? frontFields,
     List<CardFieldType>? backFields,
@@ -204,6 +210,7 @@ class Deck {
       linkedVersion: linkedVersion ?? this.linkedVersion,
       isPublished: isPublished ?? this.isPublished,
       publishedDeckId: publishedDeckId ?? this.publishedDeckId,
+      wasImported: wasImported ?? this.wasImported,
       showBackFirst: showBackFirst ?? this.showBackFirst,
       frontFields: frontFields ?? this.frontFields,
       backFields: backFields ?? this.backFields,
@@ -243,6 +250,7 @@ class Deck {
       'linked_version': linkedVersion,
       'is_published': isPublished ? 1 : 0,
       'published_deck_id': publishedDeckId,
+      'was_imported': wasImported ? 1 : 0,
       'show_back_first': showBackFirst ? 1 : 0,
       'front_fields': _fieldsToString(frontFields),
       'back_fields': _fieldsToString(backFields),
@@ -276,6 +284,7 @@ class Deck {
       linkedVersion: map['linked_version'] as int?,
       isPublished: (map['is_published'] as int?) == 1,
       publishedDeckId: map['published_deck_id'] as String?,
+      wasImported: (map['was_imported'] as int?) == 1,
       showBackFirst: (map['show_back_first'] as int?) == 1,
       frontFields: _stringToFields(map['front_fields'] as String?, defaultFrontFields),
       backFields: _stringToFields(map['back_fields'] as String?, defaultBackFields),

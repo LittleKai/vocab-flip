@@ -1,15 +1,21 @@
+import 'dart:io' show Platform;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:uuid/uuid.dart';
 import '../models/deck.dart';
 import '../models/flashcard.dart';
 import '../models/public_deck.dart';
 import '../models/public_flashcard.dart';
+import '../models/public_profile.dart';
 import '../models/deck_rating.dart';
 import '../models/category.dart';
 import '../models/imported_deck_link.dart';
 import '../models/sync_notification.dart';
+import '../../core/constants/app_constants.dart';
 import '../remote/firebase/public_library_service.dart';
 import '../remote/firebase/rating_service.dart';
 import '../remote/firebase/sync_service.dart';
+import '../remote/firebase/firestore_rest_client.dart';
 import '../local/database/deck_dao.dart';
 import '../local/database/flashcard_dao.dart';
 import '../services/cloudinary_service.dart';
@@ -23,6 +29,19 @@ class PublicLibraryRepository {
   final DeckDao _deckDao = DeckDao();
   final FlashcardDao _flashcardDao = FlashcardDao();
   final CloudinaryService _cloudinaryService = CloudinaryService();
+  final FirestoreRestClient _firestoreClient = FirestoreRestClient();
+
+  bool get _useRest => !kIsWeb && Platform.isWindows;
+
+  /// Parse comma-separated field types string to List<CardFieldType>
+  static List<CardFieldType>? _parseFieldTypes(String? str) {
+    if (str == null || str.isEmpty) return null;
+    try {
+      return str.split(',').map((s) => CardFieldType.values.firstWhere((f) => f.name == s)).toList();
+    } catch (_) {
+      return null;
+    }
+  }
 
   // ===== Browse & Search =====
 
@@ -58,6 +77,33 @@ class PublicLibraryRepository {
   /// Get newest decks
   Future<List<PublicDeck>> getNewestDecks({int limit = 10}) =>
       _libraryService.getNewestDecks(limit: limit);
+
+  // ===== Author Profiles =====
+
+  /// Get a public profile for an author
+  Future<PublicProfile?> getAuthorProfile(String authorId) async {
+    try {
+      if (_useRest) {
+        final data = await _firestoreClient.getDocument(
+          AppConstants.collectionPublicProfiles, authorId,
+        );
+        if (data != null) {
+          return PublicProfile.fromFirestore(authorId, data);
+        }
+      } else {
+        final doc = await FirebaseFirestore.instance
+            .collection(AppConstants.collectionPublicProfiles)
+            .doc(authorId)
+            .get();
+        if (doc.exists && doc.data() != null) {
+          return PublicProfile.fromFirestore(authorId, doc.data()!);
+        }
+      }
+    } catch (e) {
+      debugPrint('PublicLibraryRepository: getAuthorProfile error: $e');
+    }
+    return null;
+  }
 
   // ===== Import =====
 
@@ -103,6 +149,12 @@ class PublicLibraryRepository {
       targetLanguage: publicDeck.targetLanguage,
       linkedPublicDeckId: publicDeckId,
       linkedVersion: publicDeck.version,
+      wasImported: true,
+      category: publicDeck.categoryId,
+      tags: publicDeck.tags,
+      imagePath: publicDeck.imageUrl,
+      frontFields: _parseFieldTypes(publicDeck.frontFields),
+      backFields: _parseFieldTypes(publicDeck.backFields),
     );
 
     // Insert deck to local DB
@@ -269,21 +321,11 @@ class PublicLibraryRepository {
     // Delete the link
     await _syncService.deleteImportLink(link.id);
 
-    // Update the local deck
-    final localDeck = await _deckDao.getById(localDeckId);
-    if (localDeck != null) {
-      final updatedDeck = Deck(
-        id: localDeck.id,
-        name: localDeck.name,
-        description: localDeck.description,
-        sourceLanguage: localDeck.sourceLanguage,
-        targetLanguage: localDeck.targetLanguage,
-        createdAt: localDeck.createdAt,
-        linkedPublicDeckId: null,
-        linkedVersion: null,
-      );
-      await _deckDao.update(updatedDeck);
-    }
+    // Clear link fields only (safe partial update, preserves all other data)
+    await _deckDao.updateFields(localDeckId, {
+      'linked_public_deck_id': null,
+      'linked_version': null,
+    });
   }
 
   // ===== Publish =====
@@ -294,6 +336,7 @@ class PublicLibraryRepository {
     required String localDeckId,
     required String categoryId,
     required List<String> tags,
+    String? authorName,
     ImageProgressCallback? onImageProgress,
   }) async {
     // Get local deck and flashcards
@@ -379,6 +422,9 @@ class PublicLibraryRepository {
       imageUrl: deckImageUrl,
       frontFields: frontFieldsStr,
       backFields: backFieldsStr,
+      authorName: authorName,
+      imageDisplayMode: deck.imageDisplayMode.name,
+      showBackFirst: deck.showBackFirst,
     );
 
     // Update local deck with published info
@@ -478,6 +524,8 @@ class PublicLibraryRepository {
       imageUrl: deckImageUrl,
       frontFields: frontFieldsStr,
       backFields: backFieldsStr,
+      imageDisplayMode: deck.imageDisplayMode.name,
+      showBackFirst: deck.showBackFirst,
     );
   }
 
@@ -490,18 +538,26 @@ class PublicLibraryRepository {
 
     await _libraryService.unpublishDeck(deck.publishedDeckId!);
 
-    // Update local deck
-    final updatedDeck = Deck(
-      id: deck.id,
-      name: deck.name,
-      description: deck.description,
-      sourceLanguage: deck.sourceLanguage,
-      targetLanguage: deck.targetLanguage,
-      createdAt: deck.createdAt,
-      isPublished: false,
-      publishedDeckId: null,
-    );
-    await _deckDao.update(updatedDeck);
+    // Update only publish-related fields (safe partial update)
+    await _deckDao.updateFields(localDeckId, {
+      'is_published': 0,
+      'published_deck_id': null,
+    });
+  }
+
+  /// Unpublish a deck by public deck ID (used from library screen)
+  Future<void> unpublishByPublicId(String publicDeckId) async {
+    await _libraryService.unpublishDeck(publicDeckId);
+
+    // Find and update local deck (safe partial update - only publish fields)
+    final localDecks = await _deckDao.getAll();
+    final localDeck = localDecks.where((d) => d.publishedDeckId == publicDeckId).firstOrNull;
+    if (localDeck != null) {
+      await _deckDao.updateFields(localDeck.id, {
+        'is_published': 0,
+        'published_deck_id': null,
+      });
+    }
   }
 
   /// Get decks published by the current user
@@ -515,10 +571,12 @@ class PublicLibraryRepository {
     required String publicDeckId,
     required int rating,
     String? review,
+    String? nickname,
   }) => _ratingService.rateDeck(
     publicDeckId: publicDeckId,
     rating: rating,
     review: review,
+    nickname: nickname,
   );
 
   /// Get user's rating for a deck

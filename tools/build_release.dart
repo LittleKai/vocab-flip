@@ -2,103 +2,152 @@
 
 import 'dart:io';
 import 'package:archive/archive.dart';
-import 'package:yaml/yaml.dart';
 
-/// Tool to build Windows release and create ZIP package
-/// Usage: dart run tools/build_release.dart
-void main() async {
+/// Build Android APK + Windows, copy to release/ folder
+/// Usage: dart run tools/build_release.dart [android|windows|all]
+///   - no argument or "all": build both
+///   - "android": build Android only
+///   - "windows": build Windows only
+void main(List<String> args) async {
+  final target = args.isEmpty ? 'all' : args.first.toLowerCase();
+  final buildAndroid = target == 'all' || target == 'android';
+  final buildWindows = target == 'all' || target == 'windows';
+
+  if (!buildAndroid && !buildWindows) {
+    print('Usage: dart run tools/build_release.dart [android|windows|all]');
+    exit(1);
+  }
+
   print('===========================================');
-  print('  VocabFlip Windows Release Builder');
+  print('  VocabFlip Release Builder');
   print('===========================================\n');
 
-  // Get project root directory
   final scriptDir = File(Platform.script.toFilePath()).parent;
   final projectDir = scriptDir.parent;
 
-  // Read version from pubspec.yaml
-  print('[1/4] Reading version from pubspec.yaml...');
-  final pubspecFile = File('${projectDir.path}/pubspec.yaml');
-  if (!pubspecFile.existsSync()) {
-    print('ERROR: pubspec.yaml not found!');
-    exit(1);
+  // Create release folder
+  final releaseDir = Directory('${projectDir.path}/release');
+  if (!releaseDir.existsSync()) {
+    releaseDir.createSync();
+    print('[*] Created release/ folder\n');
   }
 
-  final pubspecContent = await pubspecFile.readAsString();
-  final pubspec = loadYaml(pubspecContent);
-  final version = pubspec['version'] as String;
-  final versionNumber = version.split('+').first; // Remove build number
+  var step = 1;
+  final totalSteps = (buildAndroid ? 2 : 0) + (buildWindows ? 2 : 0);
 
-  print('   Version: $versionNumber\n');
+  // --- Android ---
+  if (buildAndroid) {
+    print('[$step/$totalSteps] Building Android APK...');
+    print('   This may take a few minutes...\n');
+    step++;
 
-  // Run flutter build
-  print('[2/4] Building Windows release...');
-  print('   This may take a few minutes...\n');
+    final buildResult = await Process.run(
+      'flutter',
+      ['build', 'apk', '--release'],
+      workingDirectory: projectDir.path,
+      runInShell: true,
+    );
 
-  final buildResult = await Process.run(
-    'flutter',
-    ['build', 'windows', '--release'],
-    workingDirectory: projectDir.path,
-    runInShell: true,
-  );
-
-  if (buildResult.exitCode != 0) {
-    print('ERROR: Build failed!');
-    print(buildResult.stderr);
-    exit(1);
-  }
-
-  print('   Build completed successfully!\n');
-
-  // Locate build output
-  final buildDir = Directory('${projectDir.path}/build/windows/x64/runner/Release');
-  if (!buildDir.existsSync()) {
-    // Try alternate path for older Flutter versions
-    final altBuildDir = Directory('${projectDir.path}/build/windows/runner/Release');
-    if (!altBuildDir.existsSync()) {
-      print('ERROR: Build output not found!');
-      print('   Expected: ${buildDir.path}');
+    if (buildResult.exitCode != 0) {
+      print('ERROR: Android build failed!');
+      print(buildResult.stderr);
       exit(1);
     }
+
+    print('   Android build completed!\n');
+
+    print('[$step/$totalSteps] Copying APK to release/...');
+    step++;
+
+    final apkSource = File(
+      '${projectDir.path}/build/app/outputs/flutter-apk/app-release.apk',
+    );
+
+    if (!apkSource.existsSync()) {
+      print('ERROR: APK not found at ${apkSource.path}');
+      exit(1);
+    }
+
+    final apkDest = File('${releaseDir.path}/vocabflip.apk');
+    apkSource.copySync(apkDest.path);
+
+    final apkSizeMB =
+        (apkDest.lengthSync() / 1024 / 1024).toStringAsFixed(2);
+    print('   Copied: vocabflip.apk ($apkSizeMB MB)\n');
   }
 
-  print('[3/4] Creating ZIP archive...');
+  // --- Windows ---
+  if (buildWindows) {
+    print('[$step/$totalSteps] Building Windows release...');
+    print('   This may take a few minutes...\n');
+    step++;
 
-  // Create ZIP
-  final archive = Archive();
-  final buildPath = buildDir.path;
+    final buildResult = await Process.run(
+      'flutter',
+      ['build', 'windows', '--release'],
+      workingDirectory: projectDir.path,
+      runInShell: true,
+    );
 
-  await _addDirectoryToArchive(archive, buildDir, 'vocabflip');
+    if (buildResult.exitCode != 0) {
+      print('ERROR: Windows build failed!');
+      print(buildResult.stderr);
+      exit(1);
+    }
 
-  // Encode ZIP
-  final zipEncoder = ZipEncoder();
-  final zipData = zipEncoder.encode(archive);
+    print('   Windows build completed!\n');
 
-  if (zipData == null) {
-    print('ERROR: Failed to create ZIP!');
-    exit(1);
+    print('[$step/$totalSteps] Creating ZIP and copying to release/...');
+    step++;
+
+    // Find build output
+    var buildDir = Directory(
+      '${projectDir.path}/build/windows/x64/runner/Release',
+    );
+    if (!buildDir.existsSync()) {
+      buildDir = Directory(
+        '${projectDir.path}/build/windows/runner/Release',
+      );
+      if (!buildDir.existsSync()) {
+        print('ERROR: Windows build output not found!');
+        exit(1);
+      }
+    }
+
+    // Create ZIP
+    final archive = Archive();
+    await _addDirectoryToArchive(archive, buildDir, 'vocabflip');
+
+    final zipEncoder = ZipEncoder();
+    final zipData = zipEncoder.encode(archive);
+
+    if (zipData == null) {
+      print('ERROR: Failed to create ZIP!');
+      exit(1);
+    }
+
+    final zipDest = File('${releaseDir.path}/vocabflip-windows.zip');
+    await zipDest.writeAsBytes(zipData);
+
+    final zipSizeMB =
+        (zipDest.lengthSync() / 1024 / 1024).toStringAsFixed(2);
+    print('   Created: vocabflip-windows.zip ($zipSizeMB MB)\n');
   }
 
-  // Save ZIP to Documents
-  final outputDir = r'C:\Users\XEON\Documents';
-  final zipFileName = 'vocabflip-windows-v$versionNumber.zip';
-  final zipPath = '$outputDir\\$zipFileName';
-
-  final zipFile = File(zipPath);
-  await zipFile.writeAsBytes(zipData);
-
-  final zipSizeMB = (zipFile.lengthSync() / 1024 / 1024).toStringAsFixed(2);
-
-  print('   ZIP created: $zipPath');
-  print('   Size: $zipSizeMB MB\n');
-
-  // Open folder
-  print('[4/4] Opening output folder...');
-  await Process.run('explorer.exe', ['/select,', zipPath], runInShell: true);
-
-  print('\n===========================================');
-  print('  Build completed successfully!');
-  print('  Output: $zipFileName');
+  // Summary
+  print('===========================================');
+  print('  Build completed!');
+  print('  Output folder: release/');
+  if (buildAndroid) print('    - vocabflip.apk');
+  if (buildWindows) print('    - vocabflip-windows.zip');
   print('===========================================\n');
+
+  // Open release folder
+  await Process.run(
+    'explorer.exe',
+    [releaseDir.path.replaceAll('/', '\\')],
+    runInShell: true,
+  );
 }
 
 /// Recursively add directory contents to archive

@@ -50,10 +50,10 @@ class FirestoreRestClient {
   // ============ Document Operations ============
 
   /// Get a single document
-  Future<Map<String, dynamic>?> getDocument(String collectionPath, String documentId) async {
+  Future<Map<String, dynamic>?> getDocument(String collectionPath, String documentId, {bool requireAuth = false}) async {
     try {
       final url = _buildUrl('$collectionPath/$documentId');
-      final response = await http.get(Uri.parse(url), headers: await _getHeaders());
+      final response = await http.get(Uri.parse(url), headers: await _getHeaders(requireAuth: requireAuth));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -77,11 +77,12 @@ class FirestoreRestClient {
     List<OrderBy>? orderBy,
     int? limit,
     String? pageToken,
+    bool requireAuth = false,
   }) async {
     try {
       // Use structured query for filtering
       if (where != null && where.isNotEmpty) {
-        return _runStructuredQuery(collectionPath, where: where, orderBy: orderBy, limit: limit);
+        return _runStructuredQuery(collectionPath, where: where, orderBy: orderBy, limit: limit, requireAuth: requireAuth);
       }
 
       // Simple list for no filters
@@ -90,7 +91,7 @@ class FirestoreRestClient {
       if (pageToken != null) queryParams['pageToken'] = pageToken;
 
       final url = _buildUrl(collectionPath, queryParams: queryParams);
-      final response = await http.get(Uri.parse(url), headers: await _getHeaders());
+      final response = await http.get(Uri.parse(url), headers: await _getHeaders(requireAuth: requireAuth));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -112,6 +113,7 @@ class FirestoreRestClient {
     List<QueryFilter>? where,
     List<OrderBy>? orderBy,
     int? limit,
+    bool requireAuth = false,
   }) async {
     try {
       final collectionId = collectionPath.split('/').last;
@@ -163,7 +165,7 @@ class FirestoreRestClient {
 
       final response = await http.post(
         Uri.parse(baseQueryUrl),
-        headers: await _getHeaders(),
+        headers: await _getHeaders(requireAuth: requireAuth),
         body: json.encode(query),
       );
 
@@ -227,13 +229,8 @@ class FirestoreRestClient {
   }) async {
     try {
       final firestoreData = _toFirestoreDocument(data);
-      String url;
-
-      if (documentId != null) {
-        url = _buildUrl('$collectionPath?documentId=$documentId');
-      } else {
-        url = _buildUrl(collectionPath);
-      }
+      final queryParams = documentId != null ? {'documentId': documentId} : null;
+      final url = _buildUrl(collectionPath, queryParams: queryParams);
 
       final response = await http.post(
         Uri.parse(url),
@@ -261,8 +258,14 @@ class FirestoreRestClient {
   ) async {
     try {
       final firestoreData = _toFirestoreDocument(data);
-      final updateMask = data.keys.map((k) => 'updateMask.fieldPaths=$k').join('&');
-      final url = '$_baseUrl/$collectionPath/$documentId?$updateMask&key=$_apiKey';
+      final queryParams = <String, String>{};
+      for (final key in data.keys) {
+        queryParams['updateMask.fieldPaths'] = key;
+      }
+      // Build updateMask manually since multiple same-key params needed
+      final maskParams = data.keys.map((k) => 'updateMask.fieldPaths=$k').join('&');
+      final baseUrl = _buildUrl('$collectionPath/$documentId');
+      final url = '$baseUrl&$maskParams';
 
       final response = await http.patch(
         Uri.parse(url),
@@ -335,6 +338,7 @@ class FirestoreRestClient {
   // ============ Batch Operations ============
 
   /// Execute batch write operations
+  /// Throws exception with details on failure for better error reporting.
   Future<bool> batchWrite(List<BatchOperation> operations) async {
     try {
       final writes = operations.map((op) {
@@ -365,14 +369,32 @@ class FirestoreRestClient {
         }
       }).toList();
 
-      final url = 'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents:batchWrite?key=$_apiKey';
+      final headers = await _getHeaders(requireAuth: true);
+
+      // Use :commit instead of :batchWrite — batchWrite requires service account auth,
+      // while commit works with Firebase Auth ID tokens (client-side auth).
+      final url = 'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents:commit?key=$_apiKey';
       final response = await http.post(
         Uri.parse(url),
-        headers: await _getHeaders(requireAuth: true),
+        headers: headers,
         body: json.encode({'writes': writes}),
       );
 
       if (response.statusCode == 200) {
+        // Check for partial failures in the response
+        final responseBody = json.decode(response.body) as Map<String, dynamic>;
+        final writeResults = responseBody['writeResults'] as List<dynamic>?;
+        if (writeResults != null) {
+          for (int i = 0; i < writeResults.length; i++) {
+            final result = writeResults[i] as Map<String, dynamic>;
+            if (result.containsKey('status') && result['status'] != null) {
+              final status = result['status'] as Map<String, dynamic>;
+              if (status['code'] != null && status['code'] != 0) {
+                debugPrint('FirestoreRest: batchWrite partial failure at index $i: ${status['message']}');
+              }
+            }
+          }
+        }
         return true;
       } else {
         debugPrint('FirestoreRest: batchWrite error ${response.statusCode}: ${response.body}');
@@ -396,7 +418,13 @@ class FirestoreRestClient {
     // Extract document ID from name
     if (doc.containsKey('name')) {
       final name = doc['name'] as String;
-      result['id'] = name.split('/').last;
+      var docId = name.split('/').last;
+      // Strip any query params that may have been erroneously embedded in the ID
+      final qIndex = docId.indexOf('?');
+      if (qIndex != -1) {
+        docId = docId.substring(0, qIndex);
+      }
+      result['id'] = docId;
     }
 
     for (final entry in fields.entries) {

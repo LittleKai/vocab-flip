@@ -3,6 +3,7 @@ class AppVersion {
   final String version;
   final int buildNumber;
   final String downloadUrl;
+  final String apkDownloadUrl;
   final Map<String, String> releaseNotes;
   final DateTime publishedAt;
   final bool isMandatory;
@@ -11,6 +12,7 @@ class AppVersion {
     required this.version,
     required this.buildNumber,
     required this.downloadUrl,
+    this.apkDownloadUrl = '',
     required this.releaseNotes,
     required this.publishedAt,
     this.isMandatory = false,
@@ -76,18 +78,26 @@ class AppVersion {
     // Check if mandatory update (body contains [MANDATORY])
     final isMandatory = body.contains('[MANDATORY]');
 
-    // Find Windows ZIP asset
+    // Find platform-specific assets
     String downloadUrl = '';
+    String apkDownloadUrl = '';
     final assets = json['assets'] as List<dynamic>? ?? [];
+
     for (final asset in assets) {
       final name = asset['name'] as String? ?? '';
+      final url = asset['browser_download_url'] as String? ?? '';
+
+      // Windows ZIP
       if (name.toLowerCase().contains('windows') && name.endsWith('.zip')) {
-        downloadUrl = asset['browser_download_url'] as String? ?? '';
-        break;
+        downloadUrl = url;
+      }
+      // Android APK
+      if (name.endsWith('.apk')) {
+        apkDownloadUrl = url;
       }
     }
 
-    // Fallback: try to find any ZIP
+    // Fallback: try to find any ZIP for Windows
     if (downloadUrl.isEmpty) {
       for (final asset in assets) {
         final name = asset['name'] as String? ?? '';
@@ -102,6 +112,7 @@ class AppVersion {
       version: tagName,
       buildNumber: _parseBuildNumber(tagName),
       downloadUrl: downloadUrl,
+      apkDownloadUrl: apkDownloadUrl,
       releaseNotes: releaseNotes,
       publishedAt: DateTime.tryParse(json['published_at'] as String? ?? '') ??
           DateTime.now(),
@@ -171,6 +182,7 @@ class AppVersion {
         'version': version,
         'buildNumber': buildNumber,
         'downloadUrl': downloadUrl,
+        'apkDownloadUrl': apkDownloadUrl,
         'releaseNotes': releaseNotes,
         'publishedAt': publishedAt.toIso8601String(),
         'isMandatory': isMandatory,

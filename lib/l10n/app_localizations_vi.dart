@@ -81,6 +81,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cancel => 'Hủy';
 
   @override
+  String get go => 'Đi';
+
+  @override
   String get delete => 'Xóa';
 
   @override
@@ -314,6 +317,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get publishToLibrary => 'Đăng lên thư viện';
+
+  @override
+  String get displayNameRequired => 'Vui lòng đặt tên hiển thị trước khi đăng';
+
+  @override
+  String get displayNameHint => 'Nhập tên hiển thị';
+
+  @override
+  String get setDisplayName => 'Đặt tên hiển thị';
 
   @override
   String get unlinkFromLibrary => 'Hủy liên kết';
@@ -700,7 +712,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get retry => 'Thử lại';
 
   @override
-  String get searchDecks => 'Tìm kiếm bộ thẻ...';
+  String get searchDecks => 'Tìm theo tên hoặc tag...';
 
   @override
   String get popularSearches => 'Tìm kiếm phổ biến';
@@ -741,6 +753,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get rate => 'Đánh giá';
+
+  @override
+  String get signInToRate => 'Đăng nhập để đánh giá bộ thẻ này';
 
   @override
   String get yourRating => 'Đánh giá của bạn: ';
@@ -823,6 +838,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get deckPublished => 'Đã đăng bộ thẻ thành công!';
+
+  @override
+  String get deckUpdated => 'Đã cập nhật bộ thẻ thành công!';
 
   @override
   String get myPublishedDecks => 'Bộ thẻ đã đăng';
@@ -1317,6 +1335,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get donateBank => 'Vietcombank - Quét mã QR để ủng hộ';
 
   @override
+  String get saveQrImage => 'Lưu ảnh QR';
+
+  @override
+  String get qrSaved => 'Đã lưu ảnh QR';
+
+  @override
+  String get qrSaveFailed => 'Không thể lưu ảnh QR';
+
+  @override
   String get importFromExcel => 'Nhập từ Excel';
 
   @override
@@ -1481,6 +1508,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get profileUpdated => 'Đã cập nhật hồ sơ';
 
   @override
+  String get nicknameTaken => 'Nickname này đã được sử dụng';
+
+  @override
   String get selectAvatar => 'Chọn avatar';
 
   @override
@@ -1578,4 +1608,37 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get clearFilters => 'Xóa bộ lọc';
+
+  @override
+  String get reimportDeck => 'Nhập lại về máy';
+
+  @override
+  String get reimportDescription =>
+      'Deck local đã bị xóa. Nhập lại từ bản đã publish.';
+
+  @override
+  String get reimportSuccess => 'Đã nhập lại deck thành công';
+
+  @override
+  String get viewReviews => 'Xem đánh giá';
+
+  @override
+  String get filterByRating => 'Lọc theo đánh giá';
+
+  @override
+  String get allRatings => 'Tất cả';
+
+  @override
+  String get flashcards => 'Flashcards';
+
+  @override
+  String get enterYourNickname => 'Biệt danh của bạn (tùy chọn)';
+
+  @override
+  String get noReviewsYet => 'Chưa có đánh giá';
+
+  @override
+  String nStarRating(int count) {
+    return '$count★';
+  }
 }

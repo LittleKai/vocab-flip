@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../data/local/preferences/app_preferences.dart';
 import '../../data/models/deck.dart';
 import '../../data/models/flashcard.dart';
 import '../../data/repositories/deck_repository.dart';
@@ -6,9 +7,17 @@ import '../../data/repositories/flashcard_repository.dart';
 
 enum DeckSortBy { recentlyUpdated, nameAZ, nameZA, mostCards, mostDue, oldest }
 
+DeckSortBy _parseDeckSortBy(String value) {
+  return DeckSortBy.values.firstWhere(
+    (e) => e.name == value,
+    orElse: () => DeckSortBy.recentlyUpdated,
+  );
+}
+
 class DeckProvider extends ChangeNotifier {
   final DeckRepository _repository;
   final FlashcardRepository _flashcardRepository;
+  final AppPreferences? _preferences;
 
   List<Deck> _decks = [];
   Deck? _selectedDeck;
@@ -24,8 +33,26 @@ class DeckProvider extends ChangeNotifier {
   DeckProvider({
     DeckRepository? repository,
     FlashcardRepository? flashcardRepository,
+    AppPreferences? preferences,
   })  : _repository = repository ?? DeckRepository(),
-        _flashcardRepository = flashcardRepository ?? FlashcardRepository();
+        _flashcardRepository = flashcardRepository ?? FlashcardRepository(),
+        _preferences = preferences {
+    _loadSavedFilters();
+  }
+
+  void _loadSavedFilters() {
+    if (_preferences == null) return;
+    _filterCategory = _preferences.deckFilterCategory;
+    _filterLanguage = _preferences.deckFilterLanguage;
+    _sortBy = _parseDeckSortBy(_preferences.deckFilterSortBy);
+  }
+
+  void _saveFilters() {
+    if (_preferences == null) return;
+    _preferences.setDeckFilterCategory(_filterCategory);
+    _preferences.setDeckFilterLanguage(_filterLanguage);
+    _preferences.setDeckFilterSortBy(_sortBy.name);
+  }
 
   List<Deck> get decks => _decks;
   Deck? get selectedDeck => _selectedDeck;
@@ -93,6 +120,7 @@ class DeckProvider extends ChangeNotifier {
     _filterCategory = category;
     _filterLanguage = language;
     if (sortBy != null) _sortBy = sortBy;
+    _saveFilters();
     notifyListeners();
   }
 
@@ -101,6 +129,7 @@ class DeckProvider extends ChangeNotifier {
     _filterCategory = null;
     _filterLanguage = null;
     _sortBy = DeckSortBy.recentlyUpdated;
+    _saveFilters();
     notifyListeners();
   }
 
@@ -130,6 +159,12 @@ class DeckProvider extends ChangeNotifier {
 
   void clearSelectedDeck() {
     _selectedDeck = null;
+    notifyListeners();
+  }
+
+  /// Set a temporary deck for online browsing (no DB load)
+  void setTemporaryDeck(Deck deck) {
+    _selectedDeck = deck;
     notifyListeners();
   }
 

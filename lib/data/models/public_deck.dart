@@ -21,9 +21,12 @@ class PublicDeck {
   final DateTime updatedAt;
   final DateTime? publishedAt;
   final bool isActive;
+  final String? shortId;
   final String? imageUrl;
   final String? frontFields;
   final String? backFields;
+  final String? imageDisplayMode;
+  final bool showBackFirst;
 
   PublicDeck({
     required this.id,
@@ -45,9 +48,12 @@ class PublicDeck {
     DateTime? updatedAt,
     this.publishedAt,
     this.isActive = true,
+    this.shortId,
     this.imageUrl,
     this.frontFields,
     this.backFields,
+    this.imageDisplayMode,
+    this.showBackFirst = false,
   })  : tags = tags ?? [],
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
@@ -81,9 +87,12 @@ class PublicDeck {
     DateTime? updatedAt,
     DateTime? publishedAt,
     bool? isActive,
+    String? shortId,
     String? imageUrl,
     String? frontFields,
     String? backFields,
+    String? imageDisplayMode,
+    bool? showBackFirst,
   }) {
     return PublicDeck(
       id: id ?? this.id,
@@ -105,9 +114,12 @@ class PublicDeck {
       updatedAt: updatedAt ?? DateTime.now(),
       publishedAt: publishedAt ?? this.publishedAt,
       isActive: isActive ?? this.isActive,
+      shortId: shortId ?? this.shortId,
       imageUrl: imageUrl ?? this.imageUrl,
       frontFields: frontFields ?? this.frontFields,
       backFields: backFields ?? this.backFields,
+      imageDisplayMode: imageDisplayMode ?? this.imageDisplayMode,
+      showBackFirst: showBackFirst ?? this.showBackFirst,
     );
   }
 
@@ -131,9 +143,12 @@ class PublicDeck {
       'updated_at': Timestamp.fromDate(updatedAt),
       'published_at': publishedAt != null ? Timestamp.fromDate(publishedAt!) : null,
       'is_active': isActive,
+      'short_id': shortId,
       'image_url': imageUrl,
       'front_fields': frontFields,
       'back_fields': backFields,
+      'image_display_mode': imageDisplayMode,
+      'show_back_first': showBackFirst,
     };
   }
 
@@ -159,9 +174,12 @@ class PublicDeck {
       updatedAt: (data['updated_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
       publishedAt: (data['published_at'] as Timestamp?)?.toDate(),
       isActive: data['is_active'] as bool? ?? true,
+      shortId: data['short_id'] as String?,
       imageUrl: data['image_url'] as String?,
       frontFields: data['front_fields'] as String?,
       backFields: data['back_fields'] as String?,
+      imageDisplayMode: data['image_display_mode'] as String?,
+      showBackFirst: data['show_back_first'] as bool? ?? false,
     );
   }
 
@@ -187,9 +205,12 @@ class PublicDeck {
       updatedAt: _parseDateTime(data['updated_at']),
       publishedAt: data['published_at'] != null ? _parseDateTime(data['published_at']) : null,
       isActive: data['is_active'] as bool? ?? true,
+      shortId: data['short_id'] as String?,
       imageUrl: data['image_url'] as String?,
       frontFields: data['front_fields'] as String?,
       backFields: data['back_fields'] as String?,
+      imageDisplayMode: data['image_display_mode'] as String?,
+      showBackFirst: data['show_back_first'] as bool? ?? false,
     );
   }
 

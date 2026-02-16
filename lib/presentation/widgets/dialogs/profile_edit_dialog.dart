@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -28,6 +29,9 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
   late Gender _selectedGender;
   bool _isSaving = false;
   bool _isPickingImage = false;
+  String? _nicknameError;
+  bool _isCheckingNickname = false;
+  Timer? _nicknameDebounce;
 
   @override
   void initState() {
@@ -36,13 +40,46 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
     _nicknameController = TextEditingController(text: profile.nickname ?? '');
     _bioController = TextEditingController(text: profile.bio ?? '');
     _selectedGender = profile.gender;
+    _nicknameController.addListener(_onNicknameChanged);
   }
 
   @override
   void dispose() {
+    _nicknameDebounce?.cancel();
+    _nicknameController.removeListener(_onNicknameChanged);
     _nicknameController.dispose();
     _bioController.dispose();
     super.dispose();
+  }
+
+  void _onNicknameChanged() {
+    _nicknameDebounce?.cancel();
+    final value = _nicknameController.text.trim();
+    final currentNickname = context.read<ProfileProvider>().profile.nickname;
+
+    // Clear error if empty or same as current
+    if (value.isEmpty || value == currentNickname) {
+      setState(() {
+        _nicknameError = null;
+        _isCheckingNickname = false;
+      });
+      return;
+    }
+
+    setState(() => _isCheckingNickname = true);
+
+    _nicknameDebounce = Timer(const Duration(milliseconds: 500), () async {
+      final provider = context.read<ProfileProvider>();
+      final takenBy = await provider.checkNicknameAvailability(value);
+      if (mounted && _nicknameController.text.trim() == value) {
+        setState(() {
+          _isCheckingNickname = false;
+          _nicknameError = takenBy != null
+              ? AppLocalizations.of(context)!.nicknameTaken
+              : null;
+        });
+      }
+    });
   }
 
   Future<void> _pickAvatarImage() async {
@@ -115,6 +152,22 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                   hintText: l10n.enterNickname,
                   prefixIcon: const Icon(Icons.person_outline),
                   border: const OutlineInputBorder(),
+                  errorText: _nicknameError,
+                  suffixIcon: _isCheckingNickname
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : _nicknameError == null &&
+                              _nicknameController.text.trim().isNotEmpty &&
+                              _nicknameController.text.trim() !=
+                                  context.read<ProfileProvider>().profile.nickname
+                          ? const Icon(Icons.check_circle, color: Colors.green)
+                          : null,
                 ),
                 maxLength: 30,
               ),
@@ -153,7 +206,9 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
           child: Text(l10n.cancel),
         ),
         ElevatedButton(
-          onPressed: _isSaving ? null : _saveProfile,
+          onPressed: _isSaving || _nicknameError != null || _isCheckingNickname
+              ? null
+              : _saveProfile,
           child: _isSaving
               ? const SizedBox(
                   width: 20,

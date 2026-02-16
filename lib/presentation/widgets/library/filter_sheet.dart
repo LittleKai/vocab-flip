@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/category.dart';
 import '../../../data/remote/firebase/public_library_service.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Bottom sheet for filtering library results
+/// Matches the style of DeckFilterSheet for consistency
 class FilterSheet extends StatefulWidget {
   final LibraryFilter currentFilter;
   final List<Category> categories;
@@ -43,7 +45,6 @@ class FilterSheet extends StatefulWidget {
 class _FilterSheetState extends State<FilterSheet> {
   late String? _categoryId;
   late String? _sourceLanguage;
-  late String? _targetLanguage;
   late LibrarySortBy _sortBy;
 
   @override
@@ -51,16 +52,18 @@ class _FilterSheetState extends State<FilterSheet> {
     super.initState();
     _categoryId = widget.currentFilter.categoryId;
     _sourceLanguage = widget.currentFilter.sourceLanguage;
-    _targetLanguage = widget.currentFilter.targetLanguage;
     _sortBy = widget.currentFilter.sortBy;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+
     return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.5,
-      maxChildSize: 0.9,
+      initialChildSize: 0.65,
+      minChildSize: 0.4,
+      maxChildSize: 0.85,
       expand: false,
       builder: (context, scrollController) {
         return Column(
@@ -83,14 +86,14 @@ class _FilterSheetState extends State<FilterSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Filters',
+                    l10n.filter,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   TextButton(
                     onPressed: _resetFilters,
-                    child: const Text('Reset'),
+                    child: Text(l10n.reset),
                   ),
                 ],
               ),
@@ -105,14 +108,14 @@ class _FilterSheetState extends State<FilterSheet> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   // Sort by
-                  _buildSectionTitle('Sort by'),
+                  _buildSectionTitle(l10n.sortBy),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: LibrarySortBy.values.map((sort) {
                       return ChoiceChip(
-                        label: Text(_getSortLabel(sort)),
+                        label: Text(_getSortLabel(sort, l10n)),
                         selected: _sortBy == sort,
                         onSelected: (selected) {
                           if (selected) {
@@ -126,14 +129,14 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 24),
 
                   // Category
-                  _buildSectionTitle('Category'),
+                  _buildSectionTitle(l10n.category),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
                       ChoiceChip(
-                        label: const Text('All'),
+                        label: Text(l10n.all),
                         selected: _categoryId == null,
                         onSelected: (selected) {
                           if (selected) {
@@ -141,9 +144,9 @@ class _FilterSheetState extends State<FilterSheet> {
                           }
                         },
                       ),
-                      ...widget.categories.map((category) {
+                      ...Category.forLanguage(_sourceLanguage).map((category) {
                         return ChoiceChip(
-                          label: Text(category.name),
+                          label: Text(category.getLocalizedName(locale)),
                           selected: _categoryId == category.id,
                           onSelected: (selected) {
                             setState(() {
@@ -158,25 +161,42 @@ class _FilterSheetState extends State<FilterSheet> {
                   const SizedBox(height: 24),
 
                   // Source language
-                  _buildSectionTitle('Source Language'),
+                  _buildSectionTitle(l10n.sourceLanguage),
                   const SizedBox(height: 8),
-                  _buildLanguageDropdown(
-                    value: _sourceLanguage,
-                    onChanged: (value) {
-                      setState(() => _sourceLanguage = value);
-                    },
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Target language
-                  _buildSectionTitle('Target Language'),
-                  const SizedBox(height: 8),
-                  _buildLanguageDropdown(
-                    value: _targetLanguage,
-                    onChanged: (value) {
-                      setState(() => _targetLanguage = value);
-                    },
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: Text(l10n.all),
+                        selected: _sourceLanguage == null,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _sourceLanguage = null);
+                          }
+                        },
+                      ),
+                      ...SupportedLanguage.values
+                          .where((lang) => lang != SupportedLanguage.vietnamese)
+                          .map((lang) {
+                        return ChoiceChip(
+                          label: Text('${lang.flag} ${lang.getName(locale)}'),
+                          selected: _sourceLanguage == lang.code,
+                          onSelected: (selected) {
+                            setState(() {
+                              _sourceLanguage = selected ? lang.code : null;
+                              // Clear category if not valid for the new language
+                              if (_categoryId != null) {
+                                final cat = Category.getById(_categoryId!);
+                                if (cat != null && cat.language != null && cat.language != _sourceLanguage) {
+                                  _categoryId = null;
+                                }
+                              }
+                            });
+                          },
+                        );
+                      }),
+                    ],
                   ),
                 ],
               ),
@@ -189,7 +209,7 @@ class _FilterSheetState extends State<FilterSheet> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _applyFilters,
-                  child: const Text('Apply Filters'),
+                  child: Text(l10n.filter),
                 ),
               ),
             ),
@@ -208,48 +228,16 @@ class _FilterSheetState extends State<FilterSheet> {
     );
   }
 
-  Widget _buildLanguageDropdown({
-    required String? value,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
-      items: [
-        const DropdownMenuItem(
-          value: null,
-          child: Text('All languages'),
-        ),
-        ...SupportedLanguage.values.map((lang) {
-          return DropdownMenuItem(
-            value: lang.code,
-            child: Row(
-              children: [
-                Text(lang.flag),
-                const SizedBox(width: 8),
-                Text(lang.nativeName),
-              ],
-            ),
-          );
-        }),
-      ],
-      onChanged: onChanged,
-    );
-  }
-
-  String _getSortLabel(LibrarySortBy sort) {
+  String _getSortLabel(LibrarySortBy sort, AppLocalizations l10n) {
     switch (sort) {
       case LibrarySortBy.popular:
-        return 'Most Popular';
+        return l10n.sortMostCards;
       case LibrarySortBy.rating:
-        return 'Highest Rated';
+        return l10n.topRated;
       case LibrarySortBy.newest:
-        return 'Newest';
+        return l10n.newDecks;
       case LibrarySortBy.updated:
-        return 'Recently Updated';
+        return l10n.sortRecentlyUpdated;
     }
   }
 
@@ -257,7 +245,6 @@ class _FilterSheetState extends State<FilterSheet> {
     setState(() {
       _categoryId = null;
       _sourceLanguage = null;
-      _targetLanguage = null;
       _sortBy = LibrarySortBy.popular;
     });
   }
@@ -266,7 +253,6 @@ class _FilterSheetState extends State<FilterSheet> {
     widget.onApply(LibraryFilter(
       categoryId: _categoryId,
       sourceLanguage: _sourceLanguage,
-      targetLanguage: _targetLanguage,
       sortBy: _sortBy,
     ));
     Navigator.pop(context);

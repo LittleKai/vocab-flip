@@ -197,6 +197,15 @@ Future<void> generateIndexes() async {
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "author_id", "order": "ASCENDING" },
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "updated_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "author_id", "order": "ASCENDING" },
         { "fieldPath": "published_at", "order": "DESCENDING" }
       ]
     },
@@ -244,6 +253,10 @@ service cloud.firestore {
     }
 
     // Public decks - anyone can read, only authenticated users can create
+    // Fields: name, description, author_id, author_name, source_language, target_language,
+    //         category_id, tags, card_count, version, rating_sum, rating_count,
+    //         download_count, is_active, created_at, updated_at, published_at,
+    //         original_local_id, short_id, image_url, front_fields, back_fields
     match /public_decks/{deckId} {
       allow read: if true;
       allow create: if isSignedIn();
@@ -253,9 +266,13 @@ service cloud.firestore {
       // Flashcards subcollection
       // Fields: front, front_phonetic, back, example, notes, tags, order,
       //         front_image_url, back_image_url, share_image (Cloudinary image hosting)
+      // Note: create/update use isSignedIn() only because batchWrite REST API
+      // does not support get() in security rules evaluation.
+      // delete still validates deck ownership via get().
       match /flashcards/{cardId} {
         allow read: if true;
-        allow write: if isSignedIn() &&
+        allow create, update: if isSignedIn();
+        allow delete: if isSignedIn() &&
           get(/databases/\$(database)/documents/public_decks/\$(deckId)).data.author_id == request.auth.uid;
       }
 
@@ -265,6 +282,12 @@ service cloud.firestore {
         allow create: if isSignedIn();
         allow update, delete: if isOwner(ratingId);
       }
+    }
+
+    // Public profiles - anyone can read, only owner can write
+    match /public_profiles/{userId} {
+      allow read: if true;
+      allow write: if isOwner(userId);
     }
 
     // User data - only accessible by the owner

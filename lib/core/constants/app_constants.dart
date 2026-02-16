@@ -6,7 +6,7 @@ class AppConstants {
 
   // Database
   static const String databaseName = 'vocabflip.db';
-  static const int databaseVersion = 9;
+  static const int databaseVersion = 10;
 
   // Tables
   static const String tableDecks = 'decks';
@@ -22,6 +22,7 @@ class AppConstants {
   static const String collectionCategories = 'categories';
   static const String collectionImportedDecks = 'imported_decks';
   static const String collectionSyncNotifications = 'sync_notifications';
+  static const String collectionPublicProfiles = 'public_profiles';
 
   // SM-2 Algorithm defaults
   static const double defaultEasinessFactor = 2.5;

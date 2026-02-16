@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/category.dart';
 import '../../../data/models/deck.dart';
 import '../../providers/publish_provider.dart';
 import '../../providers/deck_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../widgets/library/tag_input.dart';
 
 /// Screen for publishing a deck to the public library
@@ -59,18 +61,21 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
       appBar: AppBar(
         title: Text(l10n.publishDeck),
       ),
-      body: Consumer<PublishProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SafeArea(
+        top: false,
+        child: Consumer<PublishProvider>(
+          builder: (context, provider, _) {
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (_deck == null) {
-            return Center(child: Text(l10n.deckNotFound));
-          }
+            if (_deck == null) {
+              return Center(child: Text(l10n.deckNotFound));
+            }
 
-          return _buildForm(context, provider);
-        },
+            return _buildForm(context, provider);
+          },
+        ),
       ),
     );
   }
@@ -175,10 +180,11 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
               border: const OutlineInputBorder(),
               hintText: l10n.selectCategory,
             ),
-            items: provider.categories.map<DropdownMenuItem<String>>((category) {
+            items: Category.forLanguage(_deck?.sourceLanguage).map<DropdownMenuItem<String>>((category) {
+              final locale = Localizations.localeOf(context).languageCode;
               return DropdownMenuItem<String>(
                 value: category.id,
-                child: Text(category.name),
+                child: Text(category.getLocalizedName(locale)),
               );
             }).toList(),
             onChanged: (value) => provider.setCategory(value),
@@ -376,7 +382,21 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
 
   Future<void> _publishDeck(BuildContext context, PublishProvider provider) async {
     final l10n = AppLocalizations.of(context)!;
-    final success = await provider.publishDeck(widget.deckId);
+    final profileProvider = context.read<ProfileProvider>();
+    final nickname = profileProvider.nickname;
+
+    // Check if user has set nickname in profile
+    String displayName;
+    if (nickname == null || nickname.trim().isEmpty) {
+      final name = await _showSetDisplayNameDialog(context, l10n);
+      if (name == null || name.trim().isEmpty) return;
+      await profileProvider.setNickname(name.trim());
+      displayName = name.trim();
+    } else {
+      displayName = nickname.trim();
+    }
+
+    final success = await provider.publishDeck(widget.deckId, authorName: displayName);
 
     if (success && mounted) {
       // Refresh local deck to update isPublished status
@@ -391,5 +411,42 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
 
       Navigator.pop(context, true);
     }
+  }
+
+  Future<String?> _showSetDisplayNameDialog(BuildContext context, AppLocalizations l10n) {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.setDisplayName),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.displayNameRequired),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: l10n.displayNameHint,
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (value) => Navigator.pop(dialogContext, value),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
   }
 }

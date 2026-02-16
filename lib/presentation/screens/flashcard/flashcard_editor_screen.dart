@@ -100,10 +100,12 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
             ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      body: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
           children: [
             // Build fields based on deck structure
             ..._buildFieldsFromStructure(l10n, deck),
@@ -135,16 +137,13 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _submit,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isEditing ? l10n.update : l10n.addFlashcard),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(_isEditing ? l10n.update : l10n.addFlashcard),
               ),
             ),
 
@@ -154,15 +153,13 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: _isLoading ? null : _submitAndAddAnother,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(l10n.addAndCreateAnother),
-                  ),
+                  child: Text(l10n.addAndCreateAnother),
                 ),
               ),
             ],
           ],
         ),
+      ),
       ),
     );
   }
@@ -356,27 +353,23 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(
-                  value: false,
-                  label: Text(l10n.localFile),
-                  icon: const Icon(Icons.folder, size: 16),
+            ToggleButtons(
+              isSelected: [!_useImageUrl, _useImageUrl],
+              onPressed: (index) {
+                setState(() => _useImageUrl = index == 1);
+              },
+              borderRadius: BorderRadius.circular(8),
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 32),
+              children: [
+                Tooltip(
+                  message: l10n.localFile,
+                  child: const Icon(Icons.folder, size: 18),
                 ),
-                ButtonSegment(
-                  value: true,
-                  label: Text(l10n.imageUrl),
-                  icon: const Icon(Icons.link, size: 16),
+                Tooltip(
+                  message: l10n.imageUrl,
+                  child: const Icon(Icons.link, size: 18),
                 ),
               ],
-              selected: {_useImageUrl},
-              onSelectionChanged: (selected) {
-                setState(() => _useImageUrl = selected.first);
-              },
-              style: ButtonStyle(
-                visualDensity: VisualDensity.compact,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
             ),
           ],
         ),

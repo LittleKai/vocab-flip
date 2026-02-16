@@ -103,14 +103,8 @@ class UpdateRepository {
         return null;
       }
 
-      // Check if download URL is available for Windows
-      if (latestRelease.downloadUrl.isEmpty) {
-        debugPrint('UpdateRepository: No Windows download available');
-        return null;
-      }
-
       debugPrint(
-          'UpdateRepository: Update available: ${latestRelease.version}');
+          'UpdateRepository: Update available: ${latestRelease.version} (zip: ${latestRelease.downloadUrl.isNotEmpty}, apk: ${latestRelease.apkDownloadUrl.isNotEmpty})');
       return latestRelease;
     } catch (e) {
       debugPrint('UpdateRepository: Error checking for updates: $e');

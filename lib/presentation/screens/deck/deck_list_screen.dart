@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
@@ -9,6 +7,7 @@ import '../../../data/models/category.dart';
 import '../../../data/models/deck.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/sync_provider.dart';
+import '../../widgets/common/deck_card_header.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/deck/deck_filter_sheet.dart';
@@ -131,7 +130,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
                 Text(
                   l10n.decksCount(filtered.length),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondaryLight,
+                        color: AppColors.textSecondary(context),
                       ),
                 ),
                 const Spacer(),
@@ -173,7 +172,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
                         Text(
                           l10n.noMatchingDecks,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.textSecondaryLight,
+                                color: AppColors.textSecondary(context),
                               ),
                         ),
                         const SizedBox(height: 12),
@@ -218,9 +217,6 @@ class _DeckCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final langColor = _getLanguageColor(deck.sourceLanguage);
-
-    final hasImage = deck.imagePath != null && File(deck.imagePath!).existsSync();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -233,200 +229,165 @@ class _DeckCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Row 1: Image + (Name, Description)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (hasImage) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        File(deck.imagePath!),
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-              // Deck name, language, linked icon, menu
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      deck.name,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Front/Back mode icon
-                  Icon(
-                    deck.showBackFirst ? Icons.flip_to_back : Icons.flip_to_front,
-                    size: 16,
-                    color: deck.showBackFirst ? AppColors.secondary : AppColors.primary,
-                  ),
-                  const SizedBox(width: 4),
-                  // Language badges
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: langColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      deck.sourceLanguage.toUpperCase(),
-                      style: TextStyle(
-                        color: langColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 2),
-                    child: Icon(Icons.arrow_forward, size: 12, color: Colors.grey),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.vietnameseBadge.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'VI',
-                      style: TextStyle(
-                        color: AppColors.vietnameseBadge,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                  // Linked/Published indicators
-                  if (deck.isLinked)
-                    Consumer<SyncProvider>(
-                      builder: (context, syncProvider, _) {
-                        final hasUpdate = syncProvider.hasUpdateForDeck(deck.id);
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.link, size: 16, color: AppColors.secondary),
-                              if (hasUpdate) ...[
-                                const SizedBox(width: 2),
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.accent,
-                                    shape: BoxShape.circle,
+              // Row 1: Image + (Name, chips, lang) + indicators + Menu
+              DeckCardHeader(
+                name: deck.name,
+                imagePath: deck.imagePath,
+                frontFieldsLabel: _formatFields(deck.frontFields),
+                backFieldsLabel: _formatFields(deck.backFields),
+                sourceLanguage: deck.sourceLanguage,
+                targetLanguage: 'vi',
+                reverseFieldOrder: deck.showBackFirst,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Linked indicator
+                    if (deck.isLinked)
+                      Consumer<SyncProvider>(
+                        builder: (context, syncProvider, _) {
+                          final hasUpdate = syncProvider.hasUpdateForDeck(deck.id);
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.link, size: 16, color: AppColors.secondary),
+                                if (hasUpdate) ...[
+                                  const SizedBox(width: 2),
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accent,
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  if (deck.isPublished)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Icon(Icons.public, size: 16, color: AppColors.success),
-                    ),
-                  // Menu button
-                  PopupMenuButton<String>(
-                    onSelected: (value) => _handleMenuAction(context, value),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(value: 'info', child: Text(l10n.deckDetails)),
-                      PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
-                      PopupMenuItem(value: 'export', child: Text(l10n.export)),
-                      const PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
+                            ),
+                          );
+                        },
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              if (deck.description != null && deck.description!.isNotEmpty) ...[
-                        Text(
-                          deck.description!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondaryLight,
-                              ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                    // Published indicator
+                    if (deck.isPublished)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Icon(Icons.public, size: 16, color: AppColors.success),
+                      ),
+                    // Menu button
+                    PopupMenuButton<String>(
+                      onSelected: (value) => _handleMenuAction(context, value),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(value: 'info', child: Text(l10n.deckDetails)),
+                        PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
                         ),
                       ],
-                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              // Row 2: Category, Tags, Stats, Study button
-              const SizedBox(height: 8),
+              // Description row
+              if (deck.description != null && deck.description!.isNotEmpty) ...[
+                const SizedBox(height: 3),
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Text(
+                    deck.description!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary(context),
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+              // Row 2: Tags
+              if (deck.tags.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: deck.tags.map((tag) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade700
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textSecondary(context),
+                        ),
+                      ),
+                    )).toList(),
+                  ),
+                ),
+              ],
+              // Row 3: Category, Stats, Study button
+              const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Row(
                 children: [
-                  // Category
+                  // Category (unified style matching PublicDeckCard)
                   if (deck.category != null) ...[
-                    _StatChip(
-                      icon: Icons.category,
-                      label: Category.predefined
+                    Builder(builder: (context) {
+                      final cat = Category.predefined
                           .where((c) => c.id == deck.category)
-                          .map((c) => c.getLocalizedName(
-                              Localizations.localeOf(context).languageCode))
-                          .firstOrNull ?? deck.category!,
-                      color: AppColors.primary,
-                    ),
+                          .firstOrNull;
+                      final categoryName = cat?.getLocalizedName(
+                              Localizations.localeOf(context).languageCode) ??
+                          deck.category!;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getCategoryIcon(cat?.icon),
+                              size: 12,
+                              color: AppColors.secondary,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              categoryName,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.secondary,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 11,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                     const SizedBox(width: 8),
                   ],
-                  // Tags
-                  ...deck.tags.take(3).map((tag) => Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        tag,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  )),
-                  if (deck.tags.length > 3)
-                    Text(
-                      '+${deck.tags.length - 3}',
-                      style: TextStyle(fontSize: 10, color: Colors.grey),
-                    ),
-                  if (deck.category != null || deck.tags.isNotEmpty)
-                    const SizedBox(width: 8),
-                  // Card stats
+                  // Card stats (colored icon)
                   _StatChip(
                     icon: Icons.style,
                     label: l10n.nCards(deck.cardCount),
+                    color: AppColors.info,
                   ),
                   const SizedBox(width: 12),
                   if (deck.newCount > 0)
                     _StatChip(
                       icon: Icons.fiber_new,
                       label: l10n.nNew(deck.newCount),
-                      color: AppColors.info,
+                      color: AppColors.error,
                     ),
                   if (deck.reviewCount > 0) ...[
                     const SizedBox(width: 12),
@@ -438,9 +399,16 @@ class _DeckCard extends StatelessWidget {
                   ],
                   const Spacer(),
                   if (deck.dueCount > 0)
-                    ElevatedButton(
-                      onPressed: () => _navigateToStudy(context),
-                      child: Text(l10n.study),
+                    SizedBox(
+                      height: 30,
+                      child: ElevatedButton(
+                        onPressed: () => _navigateToStudy(context),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          textStyle: const TextStyle(fontSize: 13),
+                        ),
+                        child: Text(l10n.study),
+                      ),
                     ),
                 ],
               ),
@@ -452,16 +420,21 @@ class _DeckCard extends StatelessWidget {
     );
   }
 
-  Color _getLanguageColor(String langCode) {
-    switch (langCode) {
-      case 'en':
-        return AppColors.englishBadge;
-      case 'ja':
-        return AppColors.japaneseBadge;
-      case 'zh':
-        return AppColors.chineseBadge;
-      default:
-        return AppColors.primary;
+  String _formatFields(List<CardFieldType> fields) {
+    return fields.map((f) => f.displayName).join(', ');
+  }
+
+  IconData _getCategoryIcon(String? iconName) {
+    switch (iconName) {
+      case 'school': return Icons.school;
+      case 'translate': return Icons.translate;
+      case 'flight': return Icons.flight;
+      case 'business': return Icons.business;
+      case 'home': return Icons.home;
+      case 'menu_book': return Icons.menu_book;
+      case 'chat_bubble': return Icons.chat_bubble;
+      case 'more_horiz': return Icons.more_horiz;
+      default: return Icons.category;
     }
   }
 
@@ -489,9 +462,6 @@ class _DeckCard extends StatelessWidget {
             builder: (_) => CreateDeckScreen(deck: deck),
           ),
         );
-        break;
-      case 'export':
-        // TODO: Implement export
         break;
       case 'delete':
         _confirmDelete(context);
@@ -529,24 +499,25 @@ class _DeckCard extends StatelessWidget {
 class _StatChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
+  final Color? color;
 
   const _StatChip({
     required this.icon,
     required this.label,
-    this.color = AppColors.textSecondaryLight,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = color ?? AppColors.textSecondary(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: color),
+        Icon(icon, size: 16, color: effectiveColor),
         const SizedBox(width: 4),
         Text(
           label,
-          style: TextStyle(color: color, fontSize: 12),
+          style: TextStyle(color: effectiveColor, fontSize: 12),
         ),
       ],
     );

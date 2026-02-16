@@ -8,11 +8,13 @@ import '../../providers/public_library_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/publish_provider.dart';
 import '../../providers/sync_provider.dart';
+import '../../../data/local/database/deck_dao.dart';
+import '../../../data/remote/firebase/firestore_rest_client.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../widgets/library/public_deck_card.dart';
 import '../../widgets/library/filter_sheet.dart';
 import '../../widgets/sync/sync_badge.dart';
 import 'public_deck_detail_screen.dart';
-import 'library_search_screen.dart';
 
 /// Main library browse screen
 class LibraryScreen extends StatefulWidget {
@@ -32,13 +34,11 @@ class _LibraryScreenState extends State<LibraryScreen>
   void initState() {
     super.initState();
     try {
-      _tabController = TabController(length: 5, vsync: this);
+      _tabController = TabController(length: 3, vsync: this);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _initializeLibrary();
       });
-    } catch (e, stack) {
-      debugPrint('Error in initState: $e');
-      debugPrint('Stack: $stack');
+    } catch (e) {
       _hasError = true;
       _errorMessage = e.toString();
     }
@@ -48,24 +48,19 @@ class _LibraryScreenState extends State<LibraryScreen>
     if (!mounted) return;
 
     try {
-      debugPrint('Initializing PublicLibraryProvider...');
       await context.read<PublicLibraryProvider>().initialize();
-      debugPrint('PublicLibraryProvider initialized');
-    } catch (e, stack) {
+    } catch (e) {
       debugPrint('Error initializing library: $e');
-      debugPrint('Stack: $stack');
     }
 
     if (!mounted) return;
 
     try {
-      debugPrint('Checking sync updates...');
       await context.read<SyncProvider>().checkForUpdates();
+      if (!mounted) return;
       await context.read<SyncProvider>().loadNotifications();
-      debugPrint('Sync check complete');
-    } catch (e, stack) {
+    } catch (e) {
       debugPrint('Error checking sync: $e');
-      debugPrint('Stack: $stack');
     }
   }
 
@@ -77,7 +72,6 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Building LibraryScreen...');
     final l10n = AppLocalizations.of(context)!;
 
     if (_hasError) {
@@ -101,17 +95,6 @@ class _LibraryScreenState extends State<LibraryScreen>
         appBar: AppBar(
           title: Text(l10n.library),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const LibrarySearchScreen(),
-                  ),
-                );
-              },
-            ),
             Consumer<SyncProvider>(
               builder: (context, syncProvider, _) {
                 return SyncNotificationBadge(
@@ -123,12 +106,9 @@ class _LibraryScreenState extends State<LibraryScreen>
           ],
           bottom: TabBar(
             controller: _tabController,
-            isScrollable: true,
             tabs: [
-              Tab(text: l10n.featured),
-              Tab(text: l10n.topRated),
-              Tab(text: l10n.newDecks),
               Tab(text: l10n.browse),
+              Tab(text: l10n.newDecks),
               Tab(text: l10n.myPublishedDecks),
             ],
           ),
@@ -136,17 +116,13 @@ class _LibraryScreenState extends State<LibraryScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
-            _FeaturedTab(),
-            _TopRatedTab(),
-            _NewestTab(),
             _BrowseTab(),
+            _NewestTab(),
             _MyDecksTab(),
           ],
         ),
       );
-    } catch (e, stack) {
-      debugPrint('Error building LibraryScreen: $e');
-      debugPrint('Stack: $stack');
+    } catch (e) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.library)),
         body: Center(
@@ -158,86 +134,6 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   void _showSyncNotifications(BuildContext context) {
     Navigator.pushNamed(context, '/sync-notifications');
-  }
-}
-
-class _FeaturedTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Consumer<PublicLibraryProvider>(
-      builder: (context, provider, _) {
-        if (provider.error != null) {
-          return _buildErrorState(context, provider.error!, () {
-            provider.initialize();
-          });
-        }
-
-        if (provider.isLoading && provider.featuredDecks.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (provider.featuredDecks.isEmpty) {
-          return _buildEmptyState(context, l10n.noFeaturedDecks);
-        }
-
-        return RefreshIndicator(
-          onRefresh: () => provider.loadFeaturedDecks(),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.featuredDecks.length,
-            itemBuilder: (context, index) {
-              final deck = provider.featuredDecks[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: PublicDeckCard(
-                  deck: deck,
-                  onTap: () => _openDeckDetail(context, deck.id),
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _TopRatedTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Consumer<PublicLibraryProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading && provider.topRatedDecks.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (provider.topRatedDecks.isEmpty) {
-          return _buildEmptyState(context, l10n.noRatedDecks);
-        }
-
-        return RefreshIndicator(
-          onRefresh: () => provider.loadTopRatedDecks(),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.topRatedDecks.length,
-            itemBuilder: (context, index) {
-              final deck = provider.topRatedDecks[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: PublicDeckCard(
-                  deck: deck,
-                  onTap: () => _openDeckDetail(context, deck.id),
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
   }
 }
 
@@ -268,6 +164,7 @@ class _NewestTab extends StatelessWidget {
                 child: PublicDeckCard(
                   deck: deck,
                   onTap: () => _openDeckDetail(context, deck.id),
+                  showDeckId: false,
                 ),
               );
             },
@@ -285,7 +182,7 @@ class _BrowseTab extends StatefulWidget {
 
 class _BrowseTabState extends State<_BrowseTab> {
   final _scrollController = ScrollController();
-  final _deckIdController = TextEditingController();
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -302,7 +199,7 @@ class _BrowseTabState extends State<_BrowseTab> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _deckIdController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -320,21 +217,29 @@ class _BrowseTabState extends State<_BrowseTab> {
   Widget build(BuildContext context) {
     return Consumer<PublicLibraryProvider>(
       builder: (context, provider, _) {
-        return Column(
+        return Stack(
           children: [
-            // Import by ID
-            _buildImportByIdRow(context),
+            Column(
+              children: [
+                // Search + count + filter in one row
+                _buildSearchFilterBar(context, provider),
 
-            // Filter bar
-            _buildFilterBar(context, provider),
-
-            // Category chips
-            if (provider.categories.isNotEmpty)
-              _buildCategoryChips(context, provider),
-
-            // Deck list
-            Expanded(
-              child: _buildDeckList(context, provider),
+                // Deck list
+                Expanded(
+                  child: _buildDeckList(context, provider),
+                ),
+              ],
+            ),
+            // Import by ID FAB
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: FloatingActionButton.small(
+                heroTag: 'importById',
+                onPressed: () => _showImportByIdDialog(context),
+                tooltip: l10n.importById,
+                child: const Icon(Icons.pin),
+              ),
             ),
           ],
         );
@@ -342,66 +247,54 @@ class _BrowseTabState extends State<_BrowseTab> {
     );
   }
 
-  Widget _buildImportByIdRow(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+  late final l10n = AppLocalizations.of(context)!;
 
+  Widget _buildSearchFilterBar(BuildContext context, PublicLibraryProvider provider) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
       child: Row(
         children: [
+          // Search field
           Expanded(
             child: TextField(
-              controller: _deckIdController,
+              controller: _searchController,
               decoration: InputDecoration(
-                hintText: l10n.enterDeckId,
+                hintText: l10n.searchDecks,
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          provider.search('');
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              onSubmitted: (_) => _importById(context),
+              textInputAction: TextInputAction.search,
+              onChanged: (_) => setState(() {}),
+              onSubmitted: (value) {
+                provider.search(value.trim());
+              },
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
+          // Deck count
+          Text(
+            l10n.decksCount(provider.decks.length),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary(context),
+                ),
+          ),
+          // Filter button
           IconButton(
-            icon: const Icon(Icons.arrow_forward),
-            tooltip: l10n.importById,
-            onPressed: () => _importById(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _importById(BuildContext context) {
-    final id = _deckIdController.text.trim();
-    if (id.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PublicDeckDetailScreen(deckId: id),
-        ),
-      );
-    }
-  }
-
-  Widget _buildFilterBar(BuildContext context, PublicLibraryProvider provider) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              l10n.decksCount(provider.decks.length),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondaryLight,
-                  ),
-            ),
-          ),
-          OutlinedButton.icon(
-            icon: const Icon(Icons.filter_list, size: 18),
-            label: Text(l10n.filter),
+            icon: const Icon(Icons.tune, size: 20),
             onPressed: () {
               FilterSheet.show(
                 context: context,
@@ -410,44 +303,60 @@ class _BrowseTabState extends State<_BrowseTab> {
                 onApply: provider.setFilter,
               );
             },
+            tooltip: l10n.filter,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryChips(
-      BuildContext context, PublicLibraryProvider provider) {
-    final l10n = AppLocalizations.of(context)!;
+  void _showImportByIdDialog(BuildContext context) {
+    final idController = TextEditingController();
+    final navigator = Navigator.of(context);
 
-    return SizedBox(
-      height: 50,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: provider.categories.length + 1,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                label: Text(l10n.all),
-                selected: provider.filter.categoryId == null,
-                onSelected: (_) => provider.setCategory(null),
-              ),
-            );
-          }
-
-          final category = provider.categories[index - 1];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(category.name),
-              selected: provider.filter.categoryId == category.id,
-              onSelected: (_) => provider.setCategory(category.id),
-            ),
-          );
-        },
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.importById),
+        content: TextField(
+          controller: idController,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.enterDeckId,
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (value) {
+            final id = value.trim();
+            if (id.isNotEmpty) {
+              Navigator.pop(dialogContext);
+              navigator.push(
+                MaterialPageRoute(
+                  builder: (_) => PublicDeckDetailScreen(deckId: id),
+                ),
+              );
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              final id = idController.text.trim();
+              if (id.isNotEmpty) {
+                Navigator.pop(dialogContext);
+                navigator.push(
+                  MaterialPageRoute(
+                    builder: (_) => PublicDeckDetailScreen(deckId: id),
+                  ),
+                );
+              }
+            },
+            child: Text(l10n.go),
+          ),
+        ],
       ),
     );
   }
@@ -485,6 +394,7 @@ class _BrowseTabState extends State<_BrowseTab> {
             child: PublicDeckCard(
               deck: deck,
               onTap: () => _openDeckDetail(context, deck.id),
+              showDeckId: false,
             ),
           );
         },
@@ -620,13 +530,21 @@ class _MyDecksTabState extends State<_MyDecksTab> {
 
   void _showDeckOptions(BuildContext context, String publicDeckId) {
     final l10n = AppLocalizations.of(context)!;
+    final publishProvider = context.read<PublishProvider>();
+    final deckProvider = context.read<DeckProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Check if local deck still exists
+    final localDeckExists = deckProvider.decks.any(
+      (d) => d.publishedDeckId == publicDeckId,
+    );
 
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -645,31 +563,40 @@ class _MyDecksTabState extends State<_MyDecksTab> {
                 title: Text(l10n.shareDeckId),
                 subtitle: Text(l10n.copyDeckIdToShare),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   Clipboard.setData(ClipboardData(text: publicDeckId));
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(content: Text(l10n.deckIdCopied)),
                   );
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.sync),
-                title: Text(l10n.pushUpdate),
-                subtitle: Text(l10n.syncChanges),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.updatingDeck)),
-                  );
-                },
-              ),
+              if (localDeckExists)
+                ListTile(
+                  leading: const Icon(Icons.sync),
+                  title: Text(l10n.pushUpdate),
+                  subtitle: Text(l10n.syncChanges),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _pushUpdate(context, publicDeckId);
+                  },
+                )
+              else
+                ListTile(
+                  leading: const Icon(Icons.download),
+                  title: Text(l10n.reimportDeck),
+                  subtitle: Text(l10n.reimportDescription),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _reimportDeck(context, publicDeckId);
+                  },
+                ),
               ListTile(
                 leading: const Icon(Icons.visibility_off),
                 title: Text(l10n.unpublish),
                 subtitle: Text(l10n.removeFromLibrary),
                 onTap: () {
-                  Navigator.pop(context);
-                  _confirmUnpublish(context, publicDeckId);
+                  Navigator.pop(sheetContext);
+                  _confirmUnpublish(context, publicDeckId, publishProvider, messenger, l10n);
                 },
               ),
               ListTile(
@@ -677,8 +604,8 @@ class _MyDecksTabState extends State<_MyDecksTab> {
                 title: Text(l10n.viewAnalytics),
                 subtitle: Text(l10n.analyticsComingSoon),
                 onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  Navigator.pop(sheetContext);
+                  messenger.showSnackBar(
                     SnackBar(content: Text(l10n.analyticsComingSoon)),
                   );
                 },
@@ -691,24 +618,121 @@ class _MyDecksTabState extends State<_MyDecksTab> {
     );
   }
 
-  void _confirmUnpublish(BuildContext context, String publicDeckId) {
+  Future<void> _reimportDeck(BuildContext context, String publicDeckId) async {
     final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final libraryProvider = context.read<PublicLibraryProvider>();
+    final deckProvider = context.read<DeckProvider>();
+    final publishProvider = context.read<PublishProvider>();
 
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.loading)),
+    );
+
+    try {
+      final importedDeck = await libraryProvider.importDeck(publicDeckId);
+      if (importedDeck != null) {
+        // Mark the imported deck as published and link it
+        final deckDao = DeckDao();
+        await deckDao.updateFields(importedDeck.id, {
+          'is_published': 1,
+          'published_deck_id': publicDeckId,
+        });
+
+        // Update Firebase original_local_id to point to the new local deck
+        final restClient = FirestoreRestClient();
+        await restClient.updateDocument(
+          AppConstants.collectionPublicDecks,
+          publicDeckId,
+          {'original_local_id': importedDeck.id},
+        );
+
+        // Refresh local deck list
+        await deckProvider.loadDecks();
+        await publishProvider.loadMyPublishedDecks();
+
+        if (context.mounted) {
+          messenger.hideCurrentSnackBar();
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.reimportSuccess)),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.failedToImport(e.toString()))),
+        );
+      }
+    }
+  }
+
+  Future<void> _pushUpdate(BuildContext context, String publicDeckId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final deckProvider = context.read<DeckProvider>();
+    final publishProvider = context.read<PublishProvider>();
+
+    // Find local deck linked to this public deck
+    final localDeck = deckProvider.decks.firstWhere(
+      (d) => d.publishedDeckId == publicDeckId,
+    );
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.updatingDeck),
+        duration: const Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final success = await publishProvider.updatePublishedDeck(localDeck.id);
+      if (!context.mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? l10n.deckUpdated
+              : publishProvider.error ?? l10n.error),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.error}: $e')),
+      );
+    }
+  }
+
+  void _confirmUnpublish(
+    BuildContext context,
+    String publicDeckId,
+    PublishProvider publishProvider,
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.unpublishConfirm),
         content: Text(l10n.unpublishDescription),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.deckUnpublished)),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final success = await publishProvider.unpublishByPublicId(publicDeckId);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(success
+                      ? l10n.deckUnpublished
+                      : publishProvider.error ?? 'Failed to unpublish'),
+                ),
               );
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
@@ -738,46 +762,6 @@ Widget _buildEmptyState(BuildContext context, String message) {
               ),
         ),
       ],
-    ),
-  );
-}
-
-Widget _buildErrorState(BuildContext context, String error, VoidCallback onRetry) {
-  final l10n = AppLocalizations.of(context)!;
-
-  return Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.cloud_off,
-            size: 64,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.unableToConnect,
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondaryLight,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: Text(l10n.retry),
-          ),
-        ],
-      ),
     ),
   );
 }

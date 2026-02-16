@@ -46,6 +46,13 @@ class AppColors {
   static const Color error = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
 
+  /// Theme-aware secondary text color: grey in light mode, white in dark mode
+  static Color textSecondary(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? textPrimaryDark
+        : textSecondaryLight;
+  }
+
   // Language badge colors
   static const Color englishBadge = Color(0xFF3B82F6);
   static const Color japaneseBadge = Color(0xFFEF4444);

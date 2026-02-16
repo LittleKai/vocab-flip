@@ -286,6 +286,7 @@ class SyncService {
             QueryFilter.isEqualTo('is_read', false),
           ],
           orderBy: [OrderBy('created_at', descending: true)],
+          requireAuth: true,
         );
         return docs.map((doc) => SyncNotification.fromMap(doc)).toList();
       } catch (e) {
@@ -315,6 +316,7 @@ class SyncService {
           where: [QueryFilter.isEqualTo('user_id', userId)],
           orderBy: [OrderBy('created_at', descending: true)],
           limit: limit,
+          requireAuth: true,
         );
         return docs.map((doc) => SyncNotification.fromMap(doc)).toList();
       } catch (e) {
@@ -361,6 +363,7 @@ class SyncService {
             QueryFilter.isEqualTo('user_id', userId),
             QueryFilter.isEqualTo('is_read', false),
           ],
+          requireAuth: true,
         );
         for (final doc in docs) {
           await _restClient.updateDocument(
@@ -401,6 +404,7 @@ class SyncService {
         final docs = await _restClient.getCollection(
           AppConstants.collectionSyncNotifications,
           where: [QueryFilter.isEqualTo('user_id', userId)],
+          requireAuth: true,
         );
         for (final doc in docs) {
           final createdAt = doc['created_at'] as DateTime?;
@@ -439,7 +443,7 @@ class SyncService {
 
     if (_useRest) {
       try {
-        final docs = await _restClient.getCollection(_userImportedDecksPath(userId));
+        final docs = await _restClient.getCollection(_userImportedDecksPath(userId), requireAuth: true);
         cloudLinks = docs.map((doc) => ImportedDeckLink.fromMap(doc)).toList();
       } catch (e) {
         debugPrint('syncImportLinksFromCloud REST error: $e');

@@ -111,7 +111,7 @@ class PublicLibraryService {
     DocumentSnapshot? startAfter,
   }) async {
     try {
-      Query<Map<String, dynamic>> query = _publicDecksRef.where('is_active', isEqualTo: true);
+      Query<Map<String, dynamic>> query = _publicDecksRef;
 
       if (filter?.categoryId != null) {
         query = query.where('category_id', isEqualTo: filter!.categoryId);
@@ -145,9 +145,7 @@ class PublicLibraryService {
     int limit = 20,
   }) async {
     try {
-      final filters = <QueryFilter>[
-        QueryFilter.isEqualTo('is_active', true),
-      ];
+      final filters = <QueryFilter>[];
 
       if (filter?.categoryId != null) {
         filters.add(QueryFilter.isEqualTo('category_id', filter!.categoryId));
@@ -191,6 +189,7 @@ class PublicLibraryService {
 
   /// Search public decks by keyword
   Future<List<PublicDeck>> search(String query, {int limit = 20}) async {
+    debugPrint('[LibraryService] search("$query") _useRest=$_useRest');
     if (_useRest) {
       return _searchRest(query, limit: limit);
     }
@@ -198,19 +197,38 @@ class PublicLibraryService {
   }
 
   Future<List<PublicDeck>> _searchNative(String query, {int limit = 20}) async {
+    debugPrint('[LibraryService] _searchNative("$query") starting...');
     try {
-      // Simple search by name prefix (Firestore doesn't support full-text search)
+      // Firestore prefix search is case-sensitive and name-only
+      // Fetch all and filter client-side for consistent behavior with REST
+      debugPrint('[LibraryService] _searchNative: fetching all decks for client-side filtering...');
       final snapshot = await _publicDecksRef
-          .where('is_active', isEqualTo: true)
-          .orderBy('name')
-          .startAt([query])
-          .endAt(['$query\uf8ff'])
-          .limit(limit)
+          .limit(100)
           .get();
 
-      return snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
-    } catch (e) {
-      debugPrint('search error: $e');
+      debugPrint('[LibraryService] _searchNative: got ${snapshot.docs.length} docs from Firestore');
+
+      final lowerQuery = query.toLowerCase();
+      final allDecks = snapshot.docs.map((doc) => PublicDeck.fromFirestore(doc)).toList();
+      debugPrint('[LibraryService] _searchNative: parsed ${allDecks.length} decks');
+
+      final filtered = allDecks
+          .where((deck) =>
+              deck.name.toLowerCase().contains(lowerQuery) ||
+              (deck.description?.toLowerCase().contains(lowerQuery) ?? false) ||
+              deck.tags.any((tag) => tag.toLowerCase().contains(lowerQuery)))
+          .take(limit)
+          .toList();
+
+      debugPrint('[LibraryService] _searchNative: filtered to ${filtered.length} results for "$query"');
+      if (filtered.isNotEmpty) {
+        debugPrint('[LibraryService] _searchNative: first match="${filtered.first.name}"');
+      }
+
+      return filtered;
+    } catch (e, stackTrace) {
+      debugPrint('[LibraryService] _searchNative ERROR: $e');
+      debugPrint('[LibraryService] _searchNative stack: $stackTrace');
       return [];
     }
   }
@@ -220,7 +238,6 @@ class PublicLibraryService {
       // REST API doesn't support startAt/endAt easily, get all and filter client-side
       final docs = await _restClient.getCollection(
         AppConstants.collectionPublicDecks,
-        where: [QueryFilter.isEqualTo('is_active', true)],
         limit: 100,
       );
 
@@ -300,7 +317,7 @@ class PublicLibraryService {
       // Use simple list (no orderBy) to avoid structuredQuery, sort client-side
       final docs = await _restClient.getCollection(collectionPath);
 
-      debugPrint('getFlashcards REST: fetched ${docs.length} flashcards for deck $publicDeckId');
+
 
       final flashcards = docs.map((doc) => PublicFlashcard.fromMap(doc)).toList();
       // Sort by order field client-side
@@ -325,6 +342,9 @@ class PublicLibraryService {
     String? imageUrl,
     String? frontFields,
     String? backFields,
+    String? authorName,
+    String? imageDisplayMode,
+    bool showBackFirst = false,
   }) async {
     if (_useRest) {
       return _publishDeckRest(
@@ -339,6 +359,9 @@ class PublicLibraryService {
         imageUrl: imageUrl,
         frontFields: frontFields,
         backFields: backFields,
+        authorName: authorName,
+        imageDisplayMode: imageDisplayMode,
+        showBackFirst: showBackFirst,
       );
     }
     return _publishDeckNative(
@@ -353,6 +376,9 @@ class PublicLibraryService {
       imageUrl: imageUrl,
       frontFields: frontFields,
       backFields: backFields,
+      authorName: authorName,
+      imageDisplayMode: imageDisplayMode,
+      showBackFirst: showBackFirst,
     );
   }
 
@@ -368,9 +394,12 @@ class PublicLibraryService {
     String? imageUrl,
     String? frontFields,
     String? backFields,
+    String? authorName,
+    String? imageDisplayMode,
+    bool showBackFirst = false,
   }) async {
     final userId = _authService.userId;
-    final userName = _authService.userName ?? 'Anonymous';
+    final userName = authorName ?? _authService.userName ?? 'Anonymous';
 
     if (userId == null) {
       throw Exception('User must be signed in to publish');
@@ -381,6 +410,7 @@ class PublicLibraryService {
     final docRef = _publicDecksRef.doc(shortId);
     final publicDeck = PublicDeck(
       id: shortId,
+      shortId: shortId,
       originalLocalId: localDeckId,
       authorId: userId,
       authorName: userName,
@@ -396,6 +426,8 @@ class PublicLibraryService {
       imageUrl: imageUrl,
       frontFields: frontFields,
       backFields: backFields,
+      imageDisplayMode: imageDisplayMode,
+      showBackFirst: showBackFirst,
     );
 
     // Use batch write for atomicity
@@ -442,15 +474,22 @@ class PublicLibraryService {
     String? imageUrl,
     String? frontFields,
     String? backFields,
+    String? authorName,
+    String? imageDisplayMode,
+    bool showBackFirst = false,
   }) async {
     final userId = _authService.userId;
-    final userName = _authService.userName ?? 'Anonymous';
+    final userName = authorName ?? _authService.userName ?? 'Anonymous';
 
     if (userId == null) {
       throw Exception('User must be signed in to publish');
     }
 
     final now = DateTime.now();
+
+    // Generate short 4-char ID
+    final deckId = await _generateUniqueShortId();
+
     final deckData = {
       'original_local_id': localDeckId,
       'author_id': userId,
@@ -466,17 +505,16 @@ class PublicLibraryService {
       'rating_sum': 0,
       'rating_count': 0,
       'version': 1,
-      'is_active': true,
       'created_at': now,
       'updated_at': now,
       'published_at': now,
+      'short_id': deckId,
       'image_url': imageUrl,
       'front_fields': frontFields,
       'back_fields': backFields,
+      'image_display_mode': imageDisplayMode,
+      'show_back_first': showBackFirst,
     };
-
-    // Generate short 4-char ID
-    final deckId = await _generateUniqueShortId();
 
     // Create deck document with custom ID
     final deckDoc = await _restClient.createDocument(
@@ -526,10 +564,9 @@ class PublicLibraryService {
       }
     }
 
-    debugPrint('PublishDeck: Successfully wrote ${batchOps.length} flashcards for deck $deckId');
-
     return PublicDeck(
       id: deckId,
+      shortId: deckId,
       originalLocalId: localDeckId,
       authorId: userId,
       authorName: userName,
@@ -545,6 +582,7 @@ class PublicLibraryService {
       imageUrl: imageUrl,
       frontFields: frontFields,
       backFields: backFields,
+      imageDisplayMode: imageDisplayMode,
     );
   }
 
@@ -560,6 +598,8 @@ class PublicLibraryService {
     String? imageUrl,
     String? frontFields,
     String? backFields,
+    String? imageDisplayMode,
+    bool? showBackFirst,
   }) async {
     if (_useRest) {
       return _updatePublishedDeckRest(
@@ -572,6 +612,8 @@ class PublicLibraryService {
         imageUrl: imageUrl,
         frontFields: frontFields,
         backFields: backFields,
+        imageDisplayMode: imageDisplayMode,
+        showBackFirst: showBackFirst,
       );
     }
     return _updatePublishedDeckNative(
@@ -584,6 +626,8 @@ class PublicLibraryService {
       imageUrl: imageUrl,
       frontFields: frontFields,
       backFields: backFields,
+      imageDisplayMode: imageDisplayMode,
+      showBackFirst: showBackFirst,
     );
   }
 
@@ -597,6 +641,8 @@ class PublicLibraryService {
     String? imageUrl,
     String? frontFields,
     String? backFields,
+    String? imageDisplayMode,
+    bool? showBackFirst,
   }) async {
     final userId = _authService.userId;
     if (userId == null) {
@@ -621,6 +667,12 @@ class PublicLibraryService {
       'updated_at': Timestamp.now(),
     };
 
+    // Generate short_id for old decks that don't have one
+    if (deck.shortId == null) {
+      final newShortId = await _generateUniqueShortId();
+      updates['short_id'] = newShortId;
+    }
+
     if (name != null) updates['name'] = name;
     if (description != null) updates['description'] = description;
     if (categoryId != null) updates['category_id'] = categoryId;
@@ -629,6 +681,8 @@ class PublicLibraryService {
     if (imageUrl != null) updates['image_url'] = imageUrl;
     if (frontFields != null) updates['front_fields'] = frontFields;
     if (backFields != null) updates['back_fields'] = backFields;
+    if (imageDisplayMode != null) updates['image_display_mode'] = imageDisplayMode;
+    if (showBackFirst != null) updates['show_back_first'] = showBackFirst;
 
     batch.update(_publicDecksRef.doc(publicDeckId), updates);
 
@@ -683,6 +737,8 @@ class PublicLibraryService {
     String? imageUrl,
     String? frontFields,
     String? backFields,
+    String? imageDisplayMode,
+    bool? showBackFirst,
   }) async {
     final userId = _authService.userId;
     if (userId == null) {
@@ -705,6 +761,12 @@ class PublicLibraryService {
       'updated_at': now,
     };
 
+    // Generate short_id for old decks that don't have one
+    if (deck.shortId == null) {
+      final newShortId = await _generateUniqueShortId();
+      updates['short_id'] = newShortId;
+    }
+
     if (name != null) updates['name'] = name;
     if (description != null) updates['description'] = description;
     if (categoryId != null) updates['category_id'] = categoryId;
@@ -713,6 +775,8 @@ class PublicLibraryService {
     if (imageUrl != null) updates['image_url'] = imageUrl;
     if (frontFields != null) updates['front_fields'] = frontFields;
     if (backFields != null) updates['back_fields'] = backFields;
+    if (imageDisplayMode != null) updates['image_display_mode'] = imageDisplayMode;
+    if (showBackFirst != null) updates['show_back_first'] = showBackFirst;
 
     await _restClient.updateDocument(AppConstants.collectionPublicDecks, publicDeckId, updates);
 
@@ -760,7 +824,6 @@ class PublicLibraryService {
           throw Exception('Failed to write flashcards to Firestore (batch ${i ~/ 500 + 1})');
         }
       }
-      debugPrint('UpdateDeck: Successfully wrote ${batchOps.length} operations for deck $publicDeckId');
     }
   }
 
@@ -772,9 +835,10 @@ class PublicLibraryService {
     }
 
     if (_useRest) {
+      // Verify ownership
       final deckDoc = await _restClient.getDocument(AppConstants.collectionPublicDecks, publicDeckId);
       if (deckDoc == null) {
-        throw Exception('Deck not found');
+        throw Exception('Deck not found: $publicDeckId');
       }
 
       final deck = PublicDeck.fromMap(deckDoc);
@@ -782,10 +846,20 @@ class PublicLibraryService {
         throw Exception('Only the author can unpublish this deck');
       }
 
-      await _restClient.updateDocument(AppConstants.collectionPublicDecks, publicDeckId, {
-        'is_active': false,
-        'updated_at': DateTime.now(),
-      });
+      // Delete flashcards subcollection first
+      final flashcardsPath = '${AppConstants.collectionPublicDecks}/$publicDeckId/${AppConstants.collectionPublicFlashcards}';
+      final flashcards = await _restClient.getCollection(flashcardsPath);
+      for (final card in flashcards) {
+        final cardId = card['id'] as String?;
+        if (cardId != null) {
+          await _restClient.deleteDocument(flashcardsPath, cardId);
+        }
+      }
+      // Delete the deck document
+      final deleteSuccess = await _restClient.deleteDocument(AppConstants.collectionPublicDecks, publicDeckId);
+      if (!deleteSuccess) {
+        throw Exception('Failed to delete deck from Firestore');
+      }
     } else {
       final deckDoc = await _publicDecksRef.doc(publicDeckId).get();
       if (!deckDoc.exists) {
@@ -797,10 +871,15 @@ class PublicLibraryService {
         throw Exception('Only the author can unpublish this deck');
       }
 
-      await _publicDecksRef.doc(publicDeckId).update({
-        'is_active': false,
-        'updated_at': Timestamp.now(),
-      });
+      // Delete flashcards subcollection first
+      final flashcardsRef = _publicDecksRef.doc(publicDeckId).collection(AppConstants.collectionPublicFlashcards);
+      final flashcardsSnapshot = await flashcardsRef.get();
+      for (final doc in flashcardsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete the deck document
+      await _publicDecksRef.doc(publicDeckId).delete();
     }
   }
 
@@ -831,8 +910,11 @@ class PublicLibraryService {
       try {
         final docs = await _restClient.getCollection(
           AppConstants.collectionPublicDecks,
-          where: [QueryFilter.isEqualTo('author_id', userId)],
+          where: [
+            QueryFilter.isEqualTo('author_id', userId),
+          ],
           orderBy: [OrderBy('updated_at', descending: true)],
+          requireAuth: true,
         );
         return docs.map((doc) => PublicDeck.fromMap(doc)).toList();
       } catch (e) {
@@ -860,7 +942,7 @@ class PublicLibraryService {
       try {
         final docs = await _restClient.getCollection(
           AppConstants.collectionPublicDecks,
-          where: [QueryFilter.isEqualTo('is_active', true)],
+
           orderBy: [OrderBy('download_count', descending: true)],
           limit: limit,
         );
@@ -872,7 +954,7 @@ class PublicLibraryService {
     } else {
       try {
         final snapshot = await _publicDecksRef
-            .where('is_active', isEqualTo: true)
+
             .orderBy('download_count', descending: true)
             .limit(limit)
             .get();
@@ -891,7 +973,7 @@ class PublicLibraryService {
       try {
         final docs = await _restClient.getCollection(
           AppConstants.collectionPublicDecks,
-          where: [QueryFilter.isEqualTo('is_active', true)],
+
           orderBy: [OrderBy('rating_sum', descending: true)],
           limit: limit,
         );
@@ -903,7 +985,7 @@ class PublicLibraryService {
     } else {
       try {
         final snapshot = await _publicDecksRef
-            .where('is_active', isEqualTo: true)
+
             .orderBy('rating_sum', descending: true)
             .limit(limit)
             .get();
@@ -922,7 +1004,7 @@ class PublicLibraryService {
       try {
         final docs = await _restClient.getCollection(
           AppConstants.collectionPublicDecks,
-          where: [QueryFilter.isEqualTo('is_active', true)],
+
           orderBy: [OrderBy('published_at', descending: true)],
           limit: limit,
         );
@@ -934,7 +1016,7 @@ class PublicLibraryService {
     } else {
       try {
         final snapshot = await _publicDecksRef
-            .where('is_active', isEqualTo: true)
+
             .orderBy('published_at', descending: true)
             .limit(limit)
             .get();

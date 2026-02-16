@@ -1,11 +1,13 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/public_deck.dart';
 import '../../../data/models/category.dart';
+import '../../providers/public_library_provider.dart';
+import '../common/deck_card_header.dart';
 
 /// Card widget for displaying a public deck in the library
 class PublicDeckCard extends StatelessWidget {
@@ -13,6 +15,7 @@ class PublicDeckCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showCategory;
   final bool compact;
+  final bool showDeckId;
 
   const PublicDeckCard({
     super.key,
@@ -20,6 +23,7 @@ class PublicDeckCard extends StatelessWidget {
     this.onTap,
     this.showCategory = true,
     this.compact = false,
+    this.showDeckId = true,
   });
 
   @override
@@ -32,7 +36,6 @@ class PublicDeckCard extends StatelessWidget {
 
   Widget _buildFullCard(BuildContext context) {
     final category = Category.getById(deck.categoryId);
-    final l10n = AppLocalizations.of(context)!;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -44,187 +47,117 @@ class PublicDeckCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // === Row 1: Image + Info + Deck ID ===
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Col 1: Deck image
-                  _buildDeckImage(context),
-                  const SizedBox(width: 10),
-
-                  // Col 2: Info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Row 1: name, front/back, language
-                        Text(
-                          deck.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 3),
-                        // Front/Back + Language chips
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            // Front/Back fields
-                            if (deck.frontFields != null)
-                              _buildMiniChip(
-                                context,
-                                Icons.flip_to_front,
-                                _formatFields(deck.frontFields!),
-                                AppColors.textSecondaryLight,
-                              ),
-                            if (deck.backFields != null)
-                              _buildMiniChip(
-                                context,
-                                Icons.flip_to_back,
-                                _formatFields(deck.backFields!),
-                                AppColors.textSecondaryLight,
-                              ),
-                            // Language
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '${deck.sourceLanguage.toUpperCase()} → ${deck.targetLanguage.toUpperCase()}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.secondary,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 10,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        // Row 2: Author + date
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'by ${deck.authorName}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.textSecondaryLight,
-                                    ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(Icons.calendar_today, size: 11, color: AppColors.textSecondaryLight),
-                            const SizedBox(width: 3),
-                            Text(
-                              _formatDate(deck.publishedAt ?? deck.createdAt),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textSecondaryLight,
-                                    fontSize: 11,
-                                  ),
-                            ),
-                          ],
-                        ),
-
-                        // Row 3: Description
-                        if (deck.description != null && deck.description!.isNotEmpty) ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            deck.description!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textSecondaryLight,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Deck ID - top right corner
-                  _buildDeckIdBadge(context),
-                ],
+              DeckCardHeader(
+                name: deck.name,
+                imagePath: deck.imageUrl,
+                frontFieldsLabel: _formatFields(deck.frontFields ?? 'word'),
+                backFieldsLabel: _formatFields(deck.backFields ?? 'meaning'),
+                sourceLanguage: deck.sourceLanguage,
+                targetLanguage: deck.targetLanguage,
+                reverseFieldOrder: deck.showBackFirst,
+                trailing: showDeckId ? _buildDeckIdBadge(context) : null,
               ),
+
+              // Author row
+              const SizedBox(height: 6),
+              _buildAuthorDate(context),
+
+              // Description row
+              if (deck.description != null && deck.description!.isNotEmpty) ...[
+                const SizedBox(height: 3),
+                Text(
+                  deck.description!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary(context),
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+
+              // === Tags (before category+stats) ===
+              if (deck.tags.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: deck.tags.map((tag) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade700
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              color: AppColors.textSecondary(context),
+                            ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
 
               const SizedBox(height: 8),
 
-              // === Row 2: category, tags, rate, card count, download count ===
+              // === Category, rate, card count, download count ===
               Row(
                 children: [
-                  // Category chip
+                  // Category chip with icon
                   if (showCategory && category != null) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.secondary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        category.name,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 11,
-                            ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _getCategoryIcon(category.icon),
+                            size: 12,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            category.name,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 11,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 4),
                   ],
 
-                  // Tags (show first 2)
-                  ...deck.tags.take(2).map((tag) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(6),
+                  // Rating (always show)
+                  const Icon(Icons.star, color: Colors.amber, size: 14),
+                  const SizedBox(width: 2),
+                  Text(
+                    '${deck.averageRating.toStringAsFixed(1)}(${deck.ratingCount})',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
                         ),
-                        child: Text(
-                          '#$tag',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontSize: 10,
-                                color: AppColors.textSecondaryLight,
-                              ),
-                        ),
-                      ),
-                    );
-                  }),
-
-                  // Rating
-                  if (deck.hasRatings) ...[
-                    const SizedBox(width: 2),
-                    const Icon(Icons.star, color: Colors.amber, size: 14),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${deck.averageRating.toStringAsFixed(1)}(${deck.ratingCount})',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                    ),
-                  ],
+                  ),
 
                   const Spacer(),
 
                   // Card count
-                  Icon(Icons.style_outlined, size: 13, color: AppColors.textSecondaryLight),
+                  Icon(Icons.style_outlined, size: 13, color: AppColors.info),
                   const SizedBox(width: 2),
                   Text(
                     '${deck.cardCount}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.info,
                           fontSize: 11,
                         ),
                   ),
@@ -232,12 +165,12 @@ class PublicDeckCard extends StatelessWidget {
                   const SizedBox(width: 8),
 
                   // Download count
-                  Icon(Icons.download_outlined, size: 13, color: AppColors.textSecondaryLight),
+                  Icon(Icons.download_outlined, size: 13, color: AppColors.secondary),
                   const SizedBox(width: 2),
                   Text(
                     _formatCount(deck.downloadCount),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondaryLight,
+                          color: AppColors.secondary,
                           fontSize: 11,
                         ),
                   ),
@@ -250,11 +183,56 @@ class PublicDeckCard extends StatelessWidget {
     );
   }
 
+  /// Author + date row used as subtitle in header
+  Widget _buildAuthorDate(BuildContext context) {
+    final authorName = context.read<PublicLibraryProvider>()
+        .getCachedAuthorProfile(deck.authorId)?.nickname ?? deck.authorName;
+
+    return Row(
+      children: [
+        Flexible(
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'by ',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary(context),
+                      ),
+                ),
+                TextSpan(
+                  text: authorName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Icon(Icons.calendar_today, size: 11, color: AppColors.textSecondary(context)),
+        const SizedBox(width: 3),
+        Text(
+          _formatDate(deck.publishedAt ?? deck.createdAt),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary(context),
+                fontSize: 11,
+              ),
+        ),
+      ],
+    );
+  }
+
   /// Deck ID badge at top-right corner, bold, framed, large font, tappable to copy
   Widget _buildDeckIdBadge(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Clipboard.setData(ClipboardData(text: deck.id));
+        final displayId = deck.shortId ?? deck.id;
+        Clipboard.setData(ClipboardData(text: displayId));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.deckIdCopied),
@@ -270,7 +248,7 @@ class PublicDeckCard extends StatelessWidget {
           color: AppColors.primary.withOpacity(0.05),
         ),
         child: Text(
-          deck.id,
+          deck.shortId ?? deck.id,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
@@ -278,62 +256,6 @@ class PublicDeckCard extends StatelessWidget {
               ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMiniChip(BuildContext context, IconData icon, String text, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 11, color: color),
-        const SizedBox(width: 2),
-        Text(
-          text,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: 10,
-                color: color,
-              ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDeckImage(BuildContext context) {
-    final hasImage = deck.imageUrl != null && deck.imageUrl!.isNotEmpty;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        width: 56,
-        height: 56,
-        child: hasImage
-            ? _buildImageWidget(deck.imageUrl!)
-            : Container(
-                color: AppColors.primary.withOpacity(0.1),
-                child: Icon(Icons.style, color: AppColors.primary, size: 28),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildImageWidget(String imageUrl) {
-    if (imageUrl.startsWith('http')) {
-      return Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: AppColors.primary.withOpacity(0.1),
-          child: Icon(Icons.style, color: AppColors.primary, size: 28),
-        ),
-      );
-    }
-    final file = File(imageUrl);
-    if (file.existsSync()) {
-      return Image.file(file, fit: BoxFit.cover);
-    }
-    return Container(
-      color: AppColors.primary.withOpacity(0.1),
-      child: Icon(Icons.style, color: AppColors.primary, size: 28),
     );
   }
 
@@ -345,7 +267,7 @@ class PublicDeckCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              _buildDeckImage(context),
+              DeckCardHeader.buildDeckImage(context, deck.imageUrl),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -359,12 +281,16 @@ class PublicDeckCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      '${deck.cardCount} cards • by ${deck.authorName}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondaryLight,
-                          ),
-                    ),
+                    Builder(builder: (context) {
+                      final compactAuthorName = context.read<PublicLibraryProvider>()
+                          .getCachedAuthorProfile(deck.authorId)?.nickname ?? deck.authorName;
+                      return Text(
+                        '${deck.cardCount} cards • by $compactAuthorName',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary(context),
+                            ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -395,6 +321,20 @@ class PublicDeckCard extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  IconData _getCategoryIcon(String? iconName) {
+    switch (iconName) {
+      case 'school': return Icons.school;
+      case 'translate': return Icons.translate;
+      case 'flight': return Icons.flight;
+      case 'business': return Icons.business;
+      case 'home': return Icons.home;
+      case 'menu_book': return Icons.menu_book;
+      case 'chat_bubble': return Icons.chat_bubble;
+      case 'more_horiz': return Icons.more_horiz;
+      default: return Icons.category;
+    }
   }
 
   String _formatFields(String fields) {

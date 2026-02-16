@@ -1,7 +1,10 @@
 import 'dart:io' show File, Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/settings_provider.dart';
@@ -11,7 +14,6 @@ import '../../providers/profile_provider.dart';
 import '../../widgets/dialogs/helper_dialog.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/dialogs/profile_edit_dialog.dart';
-import '../auth/login_screen.dart';
 import 'backup_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -34,13 +36,8 @@ class SettingsScreen extends StatelessWidget {
       ),
       body: Consumer3<SettingsProvider, AuthProvider, UpdateProvider>(
         builder: (context, settings, auth, updateProvider, child) {
-          // Initialize update provider if needed
-          if (!updateProvider.isAutoUpdateSupported) {
-            // Skip update UI on non-Windows platforms
-          } else {
-            // Ensure provider is initialized
-            updateProvider.init(settings.preferences);
-          }
+          // Always init to load version info (idempotent)
+          updateProvider.init(settings.preferences);
           return ListView(
             children: [
               // Account & Profile section
@@ -52,6 +49,16 @@ class SettingsScreen extends StatelessWidget {
                   if (auth.isAuthenticated) {
                     return Column(
                       children: [
+                        // Sign out
+                        ListTile(
+                          leading: const Icon(Icons.logout, color: AppColors.error),
+                          title: Text(
+                            l10n.signOut,
+                            style: const TextStyle(color: AppColors.error),
+                          ),
+                          subtitle: Text(l10n.signedInAs(auth.email ?? '')),
+                          onTap: () => _confirmSignOut(context, auth, l10n),
+                        ),
                         // Profile card
                         ListTile(
                           leading: Container(
@@ -90,7 +97,6 @@ class SettingsScreen extends StatelessWidget {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(auth.email ?? ''),
                               if (profile.bio != null && profile.bio!.isNotEmpty)
                                 Text(
                                   profile.bio!,
@@ -103,30 +109,18 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                             ],
                           ),
-                          isThreeLine: profile.bio != null && profile.bio!.isNotEmpty,
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => ProfileEditDialog.show(context),
-                        ),
-                        // Account actions
-                        ListTile(
-                          leading: const Icon(Icons.manage_accounts),
-                          title: Text(l10n.manageAccount),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _showAccountDialog(context, auth, l10n),
                         ),
                       ],
                     );
                   } else {
                     return ListTile(
                       leading: const Icon(Icons.login),
-                      title: Text(l10n.signIn),
-                      subtitle: Text(l10n.signInWithEmail),
+                      title: Text(l10n.signInGoogle),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        );
+                      onTap: () async {
+                        await auth.signInWithGoogle();
                       },
                     );
                   }
@@ -287,17 +281,18 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => _showDonateDialog(context, l10n),
               ),
 
-              // Updates section (Windows only)
-              if (!kIsWeb && Platform.isWindows) ...[
+              // Updates section
+              if (!kIsWeb) ...[
                 const Divider(),
                 _SectionHeader(title: l10n.updates),
-                SwitchListTile(
-                  title: Text(l10n.autoCheckUpdates),
-                  subtitle: Text(l10n.autoCheckUpdatesDesc),
-                  value: updateProvider.autoCheckUpdates,
-                  onChanged: (value) => updateProvider.setAutoCheckUpdates(value),
-                  secondary: const Icon(Icons.update),
-                ),
+                if (updateProvider.isAutoUpdateSupported)
+                  SwitchListTile(
+                    title: Text(l10n.autoCheckUpdates),
+                    subtitle: Text(l10n.autoCheckUpdatesDesc),
+                    value: updateProvider.autoCheckUpdates,
+                    onChanged: (value) => updateProvider.setAutoCheckUpdates(value),
+                    secondary: const Icon(Icons.update),
+                  ),
                 ListTile(
                   leading: updateProvider.isChecking
                       ? const SizedBox(
@@ -334,21 +329,29 @@ class SettingsScreen extends StatelessWidget {
                       : const Icon(Icons.chevron_right),
                   onTap: () async {
                     if (updateProvider.hasUpdate) {
-                      UpdateDialog.show(
-                        context,
-                        version: updateProvider.availableUpdate!,
-                        isMandatory: updateProvider.availableUpdate!.isMandatory,
-                      );
+                      if (updateProvider.isAutoUpdateSupported) {
+                        UpdateDialog.show(
+                          context,
+                          version: updateProvider.availableUpdate!,
+                          isMandatory: updateProvider.availableUpdate!.isMandatory,
+                        );
+                      } else {
+                        await updateProvider.openReleasesPage();
+                      }
                     } else {
                       await updateProvider.checkForUpdates();
                       if (context.mounted) {
                         if (updateProvider.hasUpdate) {
-                          UpdateDialog.show(
-                            context,
-                            version: updateProvider.availableUpdate!,
-                            isMandatory:
-                                updateProvider.availableUpdate!.isMandatory,
-                          );
+                          if (updateProvider.isAutoUpdateSupported) {
+                            UpdateDialog.show(
+                              context,
+                              version: updateProvider.availableUpdate!,
+                              isMandatory:
+                                  updateProvider.availableUpdate!.isMandatory,
+                            );
+                          } else {
+                            await updateProvider.openReleasesPage();
+                          }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(l10n.noUpdatesAvailable)),
@@ -548,50 +551,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showAccountDialog(BuildContext context, AuthProvider auth, AppLocalizations l10n) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.account),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: AppColors.primary,
-                radius: 24,
-                child: Text(
-                  (auth.email?.isNotEmpty == true)
-                      ? auth.email![0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
-                ),
-              ),
-              title: Text(auth.displayName ?? 'User'),
-              subtitle: Text(auth.email ?? ''),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              _confirmSignOut(context, auth, l10n);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(l10n.signOut),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _confirmSignOut(BuildContext context, AuthProvider auth, AppLocalizations l10n) {
     showDialog(
       context: context,
@@ -721,6 +680,11 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
         actions: [
+          TextButton.icon(
+            onPressed: () => _saveQrImage(context, l10n),
+            icon: const Icon(Icons.download),
+            label: Text(l10n.saveQrImage),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(l10n.close),
@@ -728,6 +692,38 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _saveQrImage(BuildContext context, AppLocalizations l10n) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://img.vietqr.io/image/VCB-0071000718658-compact.png'),
+      );
+      if (response.statusCode != 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.qrSaveFailed)),
+          );
+        }
+        return;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/vocabflip_donate_qr.png');
+      await file.writeAsBytes(response.bodyBytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: l10n.donate,
+      );
+    } catch (e) {
+      debugPrint('Save QR failed: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.qrSaveFailed)),
+        );
+      }
+    }
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'flashcard.dart';
 
 /// Model for a flashcard in a public deck
 class PublicFlashcard {
@@ -69,6 +70,21 @@ class PublicFlashcard {
       updatedAt: updatedAt ?? DateTime.now(),
     );
   }
+
+  /// Convert to a local Flashcard for online browsing
+  Flashcard toFlashcard() => Flashcard(
+    id: id,
+    deckId: publicDeckId,
+    front: front,
+    frontPhonetic: frontPhonetic,
+    back: back,
+    example: example,
+    notes: notes,
+    frontImageUrl: frontImageUrl,
+    backImageUrl: backImageUrl,
+    shareImage: shareImage,
+    tags: tags,
+  );
 
   Map<String, dynamic> toFirestore() {
     return {

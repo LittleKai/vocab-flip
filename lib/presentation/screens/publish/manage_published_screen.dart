@@ -30,7 +30,9 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
       appBar: AppBar(
         title: Text(l10n.myPublishedDecks),
       ),
-      body: Consumer<PublishProvider>(
+      body: SafeArea(
+        top: false,
+        child: Consumer<PublishProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -163,6 +165,7 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
             ),
           );
         },
+        ),
       ),
     );
   }

@@ -132,6 +132,14 @@ class FlashcardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Set flashcards directly (for online browsing without DB)
+  void setFlashcards(List<Flashcard> cards, {String? deckId}) {
+    _flashcards = cards;
+    _dueFlashcards = [];
+    _currentDeckId = deckId;
+    notifyListeners();
+  }
+
   /// Reorder flashcards in the list (local only, UI ordering)
   void reorderFlashcards(int oldIndex, int newIndex) {
     if (oldIndex < newIndex) {

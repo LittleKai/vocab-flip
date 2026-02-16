@@ -73,6 +73,15 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "author_id", "order": "ASCENDING" },
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "updated_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "public_decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "author_id", "order": "ASCENDING" },
         { "fieldPath": "published_at", "order": "DESCENDING" }
       ]
     },

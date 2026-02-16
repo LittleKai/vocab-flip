@@ -83,6 +83,7 @@ class AppDatabase {
         linked_version INTEGER,
         is_published INTEGER DEFAULT 0,
         published_deck_id TEXT,
+        was_imported INTEGER DEFAULT 0,
         show_back_first INTEGER DEFAULT 0,
         front_fields TEXT DEFAULT 'word,phonetic',
         back_fields TEXT DEFAULT 'meaning,example,notes',
@@ -276,6 +277,13 @@ class AppDatabase {
       debugPrint('AppDatabase: Applying migration v8 -> v9 (adding category and tags to decks)');
       await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN category TEXT');
       await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN tags TEXT');
+    }
+
+    if (oldVersion < 10) {
+      debugPrint('AppDatabase: Applying migration v9 -> v10 (adding was_imported to decks)');
+      await db.execute('ALTER TABLE ${AppConstants.tableDecks} ADD COLUMN was_imported INTEGER DEFAULT 0');
+      // Mark existing linked decks as was_imported
+      await db.execute('UPDATE ${AppConstants.tableDecks} SET was_imported = 1 WHERE linked_public_deck_id IS NOT NULL');
     }
   }
 
