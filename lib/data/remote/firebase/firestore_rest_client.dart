@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_service.dart';
 
 /// REST API client for Firestore - used on Windows where native SDK crashes
@@ -13,7 +14,7 @@ class FirestoreRestClient {
   static const String _projectId = 'vocal-flip';
   static const String _baseUrl =
       'https://firestore.googleapis.com/v1/projects/$_projectId/databases/(default)/documents';
-  static const String _apiKey = 'AIzaSyD_nazGJzlQrUSPmsTWZmGDp0Ey7pD6-Rc';
+  static String get _apiKey => dotenv.env['FIREBASE_WEB_API_KEY'] ?? '';
 
   final FirebaseService _authService = FirebaseService();
 
