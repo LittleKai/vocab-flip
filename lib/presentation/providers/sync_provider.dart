@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import '../../main.dart' show isFirebaseInitialized;
 import '../../data/models/imported_deck_link.dart';
 import '../../data/models/sync_notification.dart';
 import '../../data/models/public_deck.dart';
@@ -53,13 +52,6 @@ class SyncProvider extends ChangeNotifier {
 
   /// Check for updates on all imported decks
   Future<void> checkForUpdates() async {
-    if (!isFirebaseInitialized) {
-      _error = 'Firebase is not available';
-      _state = SyncState.error;
-      notifyListeners();
-      return;
-    }
-
     _state = SyncState.checking;
     _error = null;
     notifyListeners();

@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import '../../auth/alpha_auth_session.dart';
 
 class FirebaseService {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -26,14 +27,20 @@ class FirebaseService {
     _ensureInitialized();
     return _auth?.currentUser;
   }
-  bool get isSignedIn => currentUser != null;
+
+  bool get isSignedIn =>
+      currentUser != null || (kIsWeb && AlphaAuthSession().isAuthenticated);
   bool get isInitialized => _initialized;
   Stream<User?> get authStateChanges =>
       _auth?.authStateChanges() ?? Stream.value(null);
 
-  String? get userId => currentUser?.uid;
-  String? get userName => currentUser?.displayName;
-  String? get userEmail => currentUser?.email;
+  String? get userId =>
+      currentUser?.uid ?? (kIsWeb ? AlphaAuthSession().userId : null);
+  String? get userName =>
+      currentUser?.displayName ??
+      (kIsWeb ? AlphaAuthSession().displayName : null);
+  String? get userEmail =>
+      currentUser?.email ?? (kIsWeb ? AlphaAuthSession().email : null);
 
   /// Ensure service is initialized (call this lazily)
   void _ensureInitialized() {
@@ -45,8 +52,23 @@ class FirebaseService {
         _auth = FirebaseAuth.instance;
         _initialized = true;
 
-        // GoogleSignIn plugin is not available on Windows
-        if (kIsWeb || !Platform.isWindows) {
+        // GoogleSignIn plugin is not available on Windows. On web, only
+        // initialize it when a client id is configured; otherwise the web
+        // plugin crashes while passing null to google.accounts.id.initialize.
+        if (kIsWeb) {
+          final webClientId = dotenv.env['GOOGLE_OAUTH_CLIENT_ID'] ??
+              dotenv.env['GOOGLE_CLIENT_ID'] ??
+              dotenv.env['FIREBASE_WEB_CLIENT_ID'];
+          if (webClientId != null && webClientId.isNotEmpty) {
+            try {
+              _googleSignIn = GoogleSignIn(clientId: webClientId);
+            } catch (e) {
+              debugPrint('GoogleSignIn not available on web: $e');
+            }
+          } else {
+            debugPrint('GoogleSignIn web client id not configured; skipping.');
+          }
+        } else if (!Platform.isWindows) {
           try {
             _googleSignIn = GoogleSignIn();
           } catch (e) {
@@ -74,32 +96,40 @@ class FirebaseService {
 
     // On mobile/web, use GoogleSignIn plugin
     debugPrint('FirebaseService.signInWithGoogle: Starting mobile/web flow');
-    debugPrint('FirebaseService.signInWithGoogle: _googleSignIn=${_googleSignIn != null}, _auth=${_auth != null}');
+    debugPrint(
+        'FirebaseService.signInWithGoogle: _googleSignIn=${_googleSignIn != null}, _auth=${_auth != null}');
 
     if (_googleSignIn == null) {
-      debugPrint('FirebaseService.signInWithGoogle: _googleSignIn is null, cannot proceed');
+      debugPrint(
+          'FirebaseService.signInWithGoogle: _googleSignIn is null, cannot proceed');
       return null;
     }
 
     try {
-      debugPrint('FirebaseService.signInWithGoogle: Calling _googleSignIn.signIn()...');
+      debugPrint(
+          'FirebaseService.signInWithGoogle: Calling _googleSignIn.signIn()...');
       final GoogleSignInAccount? googleUser = await _googleSignIn!.signIn();
-      debugPrint('FirebaseService.signInWithGoogle: googleUser=${googleUser?.email ?? 'null (cancelled)'}');
+      debugPrint(
+          'FirebaseService.signInWithGoogle: googleUser=${googleUser?.email ?? 'null (cancelled)'}');
       if (googleUser == null) return null;
 
-      debugPrint('FirebaseService.signInWithGoogle: Getting authentication tokens...');
+      debugPrint(
+          'FirebaseService.signInWithGoogle: Getting authentication tokens...');
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-      debugPrint('FirebaseService.signInWithGoogle: accessToken=${googleAuth.accessToken != null ? '(present)' : 'null'}, idToken=${googleAuth.idToken != null ? '(present)' : 'null'}');
+      debugPrint(
+          'FirebaseService.signInWithGoogle: accessToken=${googleAuth.accessToken != null ? '(present)' : 'null'}, idToken=${googleAuth.idToken != null ? '(present)' : 'null'}');
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      debugPrint('FirebaseService.signInWithGoogle: Signing in to Firebase with credential...');
+      debugPrint(
+          'FirebaseService.signInWithGoogle: Signing in to Firebase with credential...');
       final result = await _auth!.signInWithCredential(credential);
-      debugPrint('FirebaseService.signInWithGoogle: Success! user=${result.user?.email}');
+      debugPrint(
+          'FirebaseService.signInWithGoogle: Success! user=${result.user?.email}');
       return result;
     } catch (e, stack) {
       debugPrint('FirebaseService.signInWithGoogle ERROR: $e');
@@ -114,7 +144,8 @@ class FirebaseService {
     final clientSecret = dotenv.env['GOOGLE_OAUTH_CLIENT_SECRET'];
 
     if (clientId == null || clientId.isEmpty) {
-      debugPrint('FirebaseService: GOOGLE_OAUTH_CLIENT_ID not configured in .env');
+      debugPrint(
+          'FirebaseService: GOOGLE_OAUTH_CLIENT_ID not configured in .env');
       return null;
     }
 
@@ -192,7 +223,8 @@ class FirebaseService {
       );
 
       if (tokenResponse.statusCode != 200) {
-        debugPrint('FirebaseService: Token exchange failed: ${tokenResponse.body}');
+        debugPrint(
+            'FirebaseService: Token exchange failed: ${tokenResponse.body}');
         return null;
       }
 
@@ -238,7 +270,8 @@ class FirebaseService {
       return null;
     }
     if (currentUser == null) {
-      debugPrint('FirebaseService: getIdToken failed - currentUser is null (initialized=$_initialized, auth=${_auth != null})');
+      debugPrint(
+          'FirebaseService: getIdToken failed - currentUser is null (initialized=$_initialized, auth=${_auth != null})');
       return null;
     }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../models/flashcard.dart';
@@ -11,6 +12,8 @@ class FlashcardDao {
   Future<Database> get _db => _appDatabase.database;
 
   Future<int> insert(Flashcard flashcard) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     return await db.insert(
       AppConstants.tableFlashcards,
@@ -20,6 +23,8 @@ class FlashcardDao {
   }
 
   Future<int> update(Flashcard flashcard) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     return await db.update(
       AppConstants.tableFlashcards,
@@ -30,6 +35,8 @@ class FlashcardDao {
   }
 
   Future<int> delete(String id) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     return await db.delete(
       AppConstants.tableFlashcards,
@@ -39,6 +46,8 @@ class FlashcardDao {
   }
 
   Future<int> deleteByDeckId(String deckId) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     return await db.delete(
       AppConstants.tableFlashcards,
@@ -48,6 +57,8 @@ class FlashcardDao {
   }
 
   Future<Flashcard?> getById(String id) async {
+    if (kIsWeb) return null;
+
     final db = await _db;
     final maps = await db.query(
       AppConstants.tableFlashcards,
@@ -60,6 +71,8 @@ class FlashcardDao {
   }
 
   Future<List<Flashcard>> getByDeckId(String deckId) async {
+    if (kIsWeb) return [];
+
     final db = await _db;
     final maps = await db.query(
       AppConstants.tableFlashcards,
@@ -72,6 +85,8 @@ class FlashcardDao {
   }
 
   Future<List<Flashcard>> getDueCards(String deckId, {int? limit}) async {
+    if (kIsWeb) return [];
+
     final db = await _db;
     final now = DateTime.now().toIso8601String();
 
@@ -87,6 +102,8 @@ class FlashcardDao {
   }
 
   Future<List<Flashcard>> getNewCards(String deckId, {int? limit}) async {
+    if (kIsWeb) return [];
+
     final db = await _db;
     final maps = await db.query(
       AppConstants.tableFlashcards,
@@ -100,6 +117,8 @@ class FlashcardDao {
   }
 
   Future<List<Flashcard>> search(String query, {String? deckId}) async {
+    if (kIsWeb) return [];
+
     final db = await _db;
     final searchPattern = '%$query%';
 
@@ -122,6 +141,8 @@ class FlashcardDao {
   }
 
   Future<int> getCountByDeckId(String deckId) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     final result = await db.rawQuery('''
       SELECT COUNT(*) as count FROM ${AppConstants.tableFlashcards}
@@ -131,6 +152,8 @@ class FlashcardDao {
   }
 
   Future<int> getDueCountByDeckId(String deckId) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     final now = DateTime.now().toIso8601String();
     final result = await db.rawQuery('''
@@ -141,6 +164,8 @@ class FlashcardDao {
   }
 
   Future<void> insertBatch(List<Flashcard> flashcards) async {
+    if (kIsWeb) return;
+
     final db = await _db;
     final batch = db.batch();
     for (final flashcard in flashcards) {
@@ -154,6 +179,8 @@ class FlashcardDao {
   }
 
   Future<List<Flashcard>> getAll() async {
+    if (kIsWeb) return [];
+
     final db = await _db;
     final maps = await db.query(AppConstants.tableFlashcards);
     return maps.map((map) => Flashcard.fromMap(map)).toList();

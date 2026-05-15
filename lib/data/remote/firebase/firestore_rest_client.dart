@@ -19,7 +19,10 @@ class FirestoreRestClient {
   final FirebaseService _authService = FirebaseService();
 
   /// Check if we should use REST API (Windows) or native SDK
-  static bool get shouldUseRest => !kIsWeb && Platform.isWindows;
+  static bool get shouldUseRest {
+    if (kIsWeb) return false;
+    return Platform.isWindows;
+  }
 
   /// Get auth headers with Firebase ID token
   Future<Map<String, String>> _getHeaders({bool requireAuth = false}) async {

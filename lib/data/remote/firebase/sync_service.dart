@@ -62,15 +62,19 @@ class SyncService {
       await _userImportedDecksRef(userId).doc(link.id).set(link.toFirestore());
     }
 
-    // Save to local SQLite
-    final db = await _localDb.database;
-    await db.insert(AppConstants.tableImportedDeckLinks, link.toMap());
+    // Save to local SQLite where supported.
+    if (!kIsWeb) {
+      final db = await _localDb.database;
+      await db.insert(AppConstants.tableImportedDeckLinks, link.toMap());
+    }
 
     return link;
   }
 
   /// Get import link for a local deck
   Future<ImportedDeckLink?> getImportLink(String localDeckId) async {
+    if (kIsWeb) return null;
+
     final db = await _localDb.database;
     final results = await db.query(
       AppConstants.tableImportedDeckLinks,
@@ -84,6 +88,8 @@ class SyncService {
 
   /// Get import link by public deck ID
   Future<ImportedDeckLink?> getImportLinkByPublicDeck(String publicDeckId) async {
+    if (kIsWeb) return null;
+
     final db = await _localDb.database;
     final results = await db.query(
       AppConstants.tableImportedDeckLinks,
@@ -97,6 +103,8 @@ class SyncService {
 
   /// Get all imported deck links
   Future<List<ImportedDeckLink>> getAllImportLinks() async {
+    if (kIsWeb) return [];
+
     final db = await _localDb.database;
     final results = await db.query(AppConstants.tableImportedDeckLinks);
     return results.map((map) => ImportedDeckLink.fromMap(map)).toList();
@@ -187,17 +195,19 @@ class SyncService {
     final userId = _authService.userId;
     final now = DateTime.now();
 
-    // Update local SQLite
-    final db = await _localDb.database;
-    await db.update(
-      AppConstants.tableImportedDeckLinks,
-      {
-        'imported_version': newVersion,
-        'last_synced_at': now.toIso8601String(),
-      },
-      where: 'id = ?',
-      whereArgs: [linkId],
-    );
+    // Update local SQLite where supported.
+    if (!kIsWeb) {
+      final db = await _localDb.database;
+      await db.update(
+        AppConstants.tableImportedDeckLinks,
+        {
+          'imported_version': newVersion,
+          'last_synced_at': now.toIso8601String(),
+        },
+        where: 'id = ?',
+        whereArgs: [linkId],
+      );
+    }
 
     // Update Firestore if signed in
     if (userId != null) {
@@ -223,13 +233,15 @@ class SyncService {
   Future<void> deleteImportLink(String linkId) async {
     final userId = _authService.userId;
 
-    // Delete from local SQLite
-    final db = await _localDb.database;
-    await db.delete(
-      AppConstants.tableImportedDeckLinks,
-      where: 'id = ?',
-      whereArgs: [linkId],
-    );
+    // Delete from local SQLite where supported.
+    if (!kIsWeb) {
+      final db = await _localDb.database;
+      await db.delete(
+        AppConstants.tableImportedDeckLinks,
+        where: 'id = ?',
+        whereArgs: [linkId],
+      );
+    }
 
     // Delete from Firestore if signed in
     if (userId != null) {
@@ -245,14 +257,16 @@ class SyncService {
   Future<void> setAutoSync(String linkId, bool enabled) async {
     final userId = _authService.userId;
 
-    // Update local SQLite
-    final db = await _localDb.database;
-    await db.update(
-      AppConstants.tableImportedDeckLinks,
-      {'auto_sync': enabled ? 1 : 0},
-      where: 'id = ?',
-      whereArgs: [linkId],
-    );
+    // Update local SQLite where supported.
+    if (!kIsWeb) {
+      final db = await _localDb.database;
+      await db.update(
+        AppConstants.tableImportedDeckLinks,
+        {'auto_sync': enabled ? 1 : 0},
+        where: 'id = ?',
+        whereArgs: [linkId],
+      );
+    }
 
     // Update Firestore if signed in
     if (userId != null) {
@@ -436,6 +450,8 @@ class SyncService {
 
   /// Sync imported decks from Firestore to local DB (for device sync)
   Future<void> syncImportLinksFromCloud() async {
+    if (kIsWeb) return;
+
     final userId = _authService.userId;
     if (userId == null) return;
 

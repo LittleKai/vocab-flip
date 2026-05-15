@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -25,34 +26,64 @@ import 'presentation/screens/publish/publish_deck_screen.dart';
 import 'presentation/screens/publish/manage_published_screen.dart';
 import 'presentation/screens/sync/sync_notifications_screen.dart';
 import 'presentation/screens/admin/admin_feedback_screen.dart';
+import 'presentation/screens/auth/login_screen.dart';
 import 'data/local/preferences/app_preferences.dart';
+import 'core/web/web_sso.dart';
 
-class VocabFlipApp extends StatelessWidget {
+class VocabFlipApp extends StatefulWidget {
   final AppPreferences preferences;
 
   const VocabFlipApp({super.key, required this.preferences});
 
   @override
-  Widget build(BuildContext context) {
-    final profileProvider = ProfileProvider(preferences: preferences);
-    final authProvider = AuthProvider()
-      ..onSignIn = () => profileProvider.loadFromFirebase();
+  State<VocabFlipApp> createState() => _VocabFlipAppState();
+}
 
+class _VocabFlipAppState extends State<VocabFlipApp> {
+  late ProfileProvider profileProvider;
+  late AuthProvider authProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    profileProvider = ProfileProvider(preferences: widget.preferences);
+    authProvider = AuthProvider(initialToken: getStoredWebSsoToken())
+      ..onSignIn = () {
+        if (!kIsWeb) {
+          profileProvider.loadFromRemote();
+        }
+      };
+
+    _initWebSso();
+  }
+
+  void _initWebSso() {
+    setupWebSsoListener(onTokenReceived: (token) async {
+      debugPrint('VocabFlipApp: Token received via SSO.');
+      await authProvider.applyToken(token);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
-        ChangeNotifierProvider(create: (_) => DeckProvider(preferences: preferences)),
+        ChangeNotifierProvider(
+            create: (_) => DeckProvider(preferences: widget.preferences)),
         ChangeNotifierProvider(create: (_) => FlashcardProvider()),
         ChangeNotifierProvider(
-          create: (_) => StudyProvider(preferences: preferences),
+          create: (_) => StudyProvider(preferences: widget.preferences),
         ),
         ChangeNotifierProvider(
-          create: (_) => DictionaryProvider(prefs: preferences),
+          create: (_) => DictionaryProvider(prefs: widget.preferences),
         ),
         ChangeNotifierProvider(
-          create: (_) => SettingsProvider(preferences: preferences),
+          create: (_) => SettingsProvider(preferences: widget.preferences),
         ),
-        ChangeNotifierProvider(create: (_) => PublicLibraryProvider(preferences: preferences)),
+        ChangeNotifierProvider(
+            create: (_) =>
+                PublicLibraryProvider(preferences: widget.preferences)),
         ChangeNotifierProvider(create: (_) => PublishProvider()),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
         ChangeNotifierProvider(
@@ -61,7 +92,7 @@ class VocabFlipApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BackupProvider()),
         ChangeNotifierProvider.value(value: profileProvider),
         ChangeNotifierProvider(
-          create: (_) => AdminFeedbackProvider(preferences: preferences),
+          create: (_) => AdminFeedbackProvider(preferences: widget.preferences),
         ),
       ],
       child: Consumer<SettingsProvider>(
@@ -129,6 +160,10 @@ class VocabFlipApp extends StatelessWidget {
       case '/admin-feedback':
         return MaterialPageRoute(
           builder: (_) => const AdminFeedbackScreen(),
+        );
+      case '/login':
+        return MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
         );
       default:
         return null;

@@ -18,9 +18,7 @@ class AdminFeedbackProvider extends ChangeNotifier {
   String? get error => _error;
 
   AdminFeedbackProvider({required AppPreferences preferences})
-      : _preferences = preferences {
-    Future.microtask(() => loadUnreadCount());
-  }
+      : _preferences = preferences;
 
   Future<void> loadUnreadCount() async {
     try {

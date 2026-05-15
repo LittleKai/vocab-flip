@@ -7,9 +7,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/flashcard.dart';
 import '../../../data/models/deck.dart';
-import '../../../data/remote/firebase/firebase_service.dart';
 import '../../../data/services/tts_service.dart';
 import '../../../data/services/excel_service.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -79,7 +79,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   }
 
   void _handleKeyEvent(KeyEvent event) {
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
       Navigator.of(context).pop();
     }
   }
@@ -113,118 +114,128 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                   },
                 ),
                 PopupMenuButton<String>(
-                onSelected: (value) => _handleMenuAction(context, value, deck),
-                itemBuilder: (context) => [
-                  PopupMenuItem(value: 'edit', child: Text(l10n.editDeck)),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: 'export-excel',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.file_download, size: 20),
-                        const SizedBox(width: 8),
-                        Text(l10n.exportToExcel),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'import-excel',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.upload_file, size: 20),
-                        const SizedBox(width: 8),
-                        Text(l10n.importFromExcel),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  if (deck.isPublished)
-                    PopupMenuItem(value: 'manage-published', child: Text(l10n.managePublished))
-                  else if (deck.canPublish && FirebaseService().isSignedIn)
-                    PopupMenuItem(value: 'publish', child: Text(l10n.publishToLibrary)),
-                  if (deck.isLinked)
-                    PopupMenuItem(value: 'unlink', child: Text(l10n.unlinkFromLibrary)),
-                ],
-              ),
-            ],
-          ),
-          body: SafeArea(
-            top: false,
-            child: Column(
-              children: [
-                // Deck stats header
-                _DeckHeader(deck: deck),
-
-                // Action buttons
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: flashcardProvider.flashcards.isEmpty
-                              ? null
-                              : () => _navigateToViewer(context),
-                          icon: const Icon(Icons.visibility),
-                          label: Text(l10n.browse),
-                        ),
+                  onSelected: (value) =>
+                      _handleMenuAction(context, value, deck),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(value: 'edit', child: Text(l10n.editDeck)),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'export-excel',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.file_download, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.exportToExcel),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: deck.dueCount == 0
-                              ? null
-                              : () => _navigateToStudy(context),
-                          icon: const Icon(Icons.school),
-                          label: Text(l10n.studyN(deck.dueCount)),
-                        ),
+                    ),
+                    PopupMenuItem(
+                      value: 'import-excel',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.upload_file, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.importFromExcel),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-
-                // Flashcard list
-                Expanded(
-                  child: flashcardProvider.flashcards.isEmpty
-                      ? EmptyStateWidget(
-                          title: l10n.noFlashcardsYet,
-                          subtitle: l10n.addFlashcardsToStart,
-                          icon: Icons.style,
-                          action: ElevatedButton.icon(
-                            onPressed: () => _navigateToAddCard(context),
-                            icon: const Icon(Icons.add),
-                            label: Text(l10n.addFlashcard),
-                          ),
-                        )
-                      : ReorderableListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: flashcardProvider.flashcards.length,
-                          buildDefaultDragHandles: false,
-                          onReorder: (oldIndex, newIndex) {
-                            flashcardProvider.reorderFlashcards(oldIndex, newIndex);
-                          },
-                          itemBuilder: (context, index) {
-                            final card = flashcardProvider.flashcards[index];
-                            return _FlashcardListItem(
-                              key: ValueKey(card.id),
-                              flashcard: card,
-                              index: index,
-                              onDoubleTap: () => _navigateToBrowseAt(context, index),
-                              onEdit: () => _navigateToEditCard(context, card),
-                              onDelete: () => _confirmDeleteCard(context, card),
-                            );
-                          },
-                        ),
+                    ),
+                    const PopupMenuDivider(),
+                    if (deck.isPublished)
+                      PopupMenuItem(
+                          value: 'manage-published',
+                          child: Text(l10n.managePublished))
+                    else if (deck.canPublish &&
+                        context.watch<AuthProvider>().isAuthenticated)
+                      PopupMenuItem(
+                          value: 'publish', child: Text(l10n.publishToLibrary)),
+                    if (deck.isLinked)
+                      PopupMenuItem(
+                          value: 'unlink', child: Text(l10n.unlinkFromLibrary)),
+                  ],
                 ),
               ],
             ),
+            body: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  // Deck stats header
+                  _DeckHeader(deck: deck),
+
+                  // Action buttons
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: flashcardProvider.flashcards.isEmpty
+                                ? null
+                                : () => _navigateToViewer(context),
+                            icon: const Icon(Icons.visibility),
+                            label: Text(l10n.browse),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: deck.dueCount == 0
+                                ? null
+                                : () => _navigateToStudy(context),
+                            icon: const Icon(Icons.school),
+                            label: Text(l10n.studyN(deck.dueCount)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Flashcard list
+                  Expanded(
+                    child: flashcardProvider.flashcards.isEmpty
+                        ? EmptyStateWidget(
+                            title: l10n.noFlashcardsYet,
+                            subtitle: l10n.addFlashcardsToStart,
+                            icon: Icons.style,
+                            action: ElevatedButton.icon(
+                              onPressed: () => _navigateToAddCard(context),
+                              icon: const Icon(Icons.add),
+                              label: Text(l10n.addFlashcard),
+                            ),
+                          )
+                        : ReorderableListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: flashcardProvider.flashcards.length,
+                            buildDefaultDragHandles: false,
+                            onReorder: (oldIndex, newIndex) {
+                              flashcardProvider.reorderFlashcards(
+                                  oldIndex, newIndex);
+                            },
+                            itemBuilder: (context, index) {
+                              final card = flashcardProvider.flashcards[index];
+                              return _FlashcardListItem(
+                                key: ValueKey(card.id),
+                                flashcard: card,
+                                index: index,
+                                onDoubleTap: () =>
+                                    _navigateToBrowseAt(context, index),
+                                onEdit: () =>
+                                    _navigateToEditCard(context, card),
+                                onDelete: () =>
+                                    _confirmDeleteCard(context, card),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              heroTag: 'deck_detail_fab',
+              onPressed: () => _navigateToAddCard(context),
+              child: const Icon(Icons.add),
+            ),
           ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: 'deck_detail_fab',
-            onPressed: () => _navigateToAddCard(context),
-            child: const Icon(Icons.add),
-          ),
-        ),
         );
       },
     );
@@ -234,7 +245,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => FlashcardViewerScreen(deckId: widget.deckId, startIndex: index),
+        builder: (_) =>
+            FlashcardViewerScreen(deckId: widget.deckId, startIndex: index),
       ),
     );
   }
@@ -273,7 +285,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     final flashcardProvider = context.read<FlashcardProvider>();
 
     // Pick and import file
-    final result = await excelService.pickAndImportExcel(deck, flashcardProvider.flashcards);
+    final result = await excelService.pickAndImportExcel(
+        deck, flashcardProvider.flashcards);
 
     if (!mounted) return;
 
@@ -288,7 +301,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: Text(l10n.warning),
-          content: Text(l10n.excelFromDifferentDeck(result.deckNameFromFile ?? 'Unknown')),
+          content: Text(l10n
+              .excelFromDifferentDeck(result.deckNameFromFile ?? 'Unknown')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -449,7 +463,9 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     );
 
     try {
-      final filePath = await excelService.exportDeckToExcel(deck, flashcardProvider.flashcards, locale: locale);
+      final filePath = await excelService.exportDeckToExcel(
+          deck, flashcardProvider.flashcards,
+          locale: locale);
       if (!mounted) return;
       Navigator.pop(context); // Close loading
 
@@ -645,7 +661,8 @@ class _DeckHeader extends StatelessWidget {
                   ),
                 if (deck.isPublished)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.success.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -837,7 +854,8 @@ class _FlashcardListItem extends StatelessWidget {
                   PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
                   PopupMenuItem(
                     value: 'delete',
-                    child: Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
+                    child: Text(l10n.delete,
+                        style: const TextStyle(color: AppColors.error)),
                   ),
                 ],
               ),

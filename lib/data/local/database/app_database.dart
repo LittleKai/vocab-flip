@@ -21,17 +21,17 @@ class AppDatabase {
   Future<Database> _initDatabase() async {
     debugPrint('AppDatabase: Initializing database...');
 
-    // Initialize FFI for desktop platforms
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      debugPrint('AppDatabase: Using sqflite_ffi for desktop platform');
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
-
     // Use Documents folder for user data on all platforms
     // This ensures data is NOT deleted when app is updated
     final String databasesPath;
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (kIsWeb) {
+      debugPrint('AppDatabase: Using default database path for web platform');
+      databasesPath = await getDatabasesPath();
+    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      debugPrint('AppDatabase: Using sqflite_ffi for desktop platform');
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+
       // Desktop: use Documents/vocabflip folder
       final documentsDir = await getApplicationDocumentsDirectory();
       databasesPath = join(documentsDir.path, 'vocabflip');

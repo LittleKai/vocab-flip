@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -86,6 +87,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final deck = provider.selectedDeck!;
     final category = Category.getById(deck.categoryId);
+    final isAndroid = kIsWeb ? false : Platform.isAndroid;
 
     return RefreshIndicator(
       onRefresh: () => provider.selectDeck(widget.deckId),
@@ -107,7 +109,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Deck image + Deck ID below on Android
-                        if (Platform.isAndroid)
+                        if (isAndroid)
                           Column(
                             children: [
                               _buildDeckImage(deck),
@@ -207,13 +209,13 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                               ),
 
                               // Author + date (inside header on Windows)
-                              if (!Platform.isAndroid) ...[
+                              if (!isAndroid) ...[
                                 const SizedBox(height: 6),
                                 _buildAuthorDateRow(context, deck),
                               ],
 
                               // Description (inside header on Windows)
-                              if (!Platform.isAndroid && deck.description != null && deck.description!.isNotEmpty) ...[
+                              if (!isAndroid && deck.description != null && deck.description!.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
                                   deck.description!,
@@ -227,7 +229,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                         ),
 
                         // Deck ID badge (top right on Windows)
-                        if (!Platform.isAndroid) ...[
+                        if (!isAndroid) ...[
                           const SizedBox(width: 8),
                           _buildDeckIdBadge(context, deck),
                         ],
@@ -235,13 +237,13 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                     ),
 
                     // Author + date (outside header on Android)
-                    if (Platform.isAndroid) ...[
+                    if (isAndroid) ...[
                       const SizedBox(height: 6),
                       _buildAuthorDateRow(context, deck),
                     ],
 
                     // Description (outside header on Android)
-                    if (Platform.isAndroid && deck.description != null && deck.description!.isNotEmpty) ...[
+                    if (isAndroid && deck.description != null && deck.description!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         deck.description!,
@@ -415,8 +417,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
         ),
       );
     }
-    final file = File(imageUrl);
-    if (file.existsSync()) {
+    final file = !kIsWeb ? File(imageUrl) : null;
+    if (file != null && file.existsSync()) {
       return Image.file(file, fit: BoxFit.cover);
     }
     return Container(

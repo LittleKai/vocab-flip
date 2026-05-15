@@ -1,6 +1,3 @@
-import 'dart:io' show Platform;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart' hide Category;
 import 'package:uuid/uuid.dart';
 import '../models/deck.dart';
 import '../models/flashcard.dart';
@@ -11,27 +8,24 @@ import '../models/deck_rating.dart';
 import '../models/category.dart';
 import '../models/imported_deck_link.dart';
 import '../models/sync_notification.dart';
-import '../../core/constants/app_constants.dart';
-import '../remote/firebase/public_library_service.dart';
-import '../remote/firebase/rating_service.dart';
-import '../remote/firebase/sync_service.dart';
-import '../remote/firebase/firestore_rest_client.dart';
+import '../remote/mongo/mongo_public_library_service.dart';
+import '../remote/mongo/mongo_rating_service.dart';
+import '../remote/mongo/mongo_sync_service.dart';
 import '../local/database/deck_dao.dart';
 import '../local/database/flashcard_dao.dart';
 import '../services/cloudinary_service.dart';
+import '../services/image_service.dart';
 
 /// Repository for public library operations
-/// Coordinates between remote Firebase services and local database
+/// Coordinates between remote MongoDB/B2 services and local database.
 class PublicLibraryRepository {
-  final PublicLibraryService _libraryService = PublicLibraryService();
-  final RatingService _ratingService = RatingService();
-  final SyncService _syncService = SyncService();
+  final MongoPublicLibraryService _libraryService = MongoPublicLibraryService();
+  final MongoRatingService _ratingService = MongoRatingService();
+  final MongoSyncService _syncService = MongoSyncService();
   final DeckDao _deckDao = DeckDao();
   final FlashcardDao _flashcardDao = FlashcardDao();
   final CloudinaryService _cloudinaryService = CloudinaryService();
-  final FirestoreRestClient _firestoreClient = FirestoreRestClient();
-
-  bool get _useRest => !kIsWeb && Platform.isWindows;
+  final ImageService _imageService = ImageService();
 
   /// Parse comma-separated field types string to List<CardFieldType>
   static List<CardFieldType>? _parseFieldTypes(String? str) {
@@ -81,29 +75,8 @@ class PublicLibraryRepository {
   // ===== Author Profiles =====
 
   /// Get a public profile for an author
-  Future<PublicProfile?> getAuthorProfile(String authorId) async {
-    try {
-      if (_useRest) {
-        final data = await _firestoreClient.getDocument(
-          AppConstants.collectionPublicProfiles, authorId,
-        );
-        if (data != null) {
-          return PublicProfile.fromFirestore(authorId, data);
-        }
-      } else {
-        final doc = await FirebaseFirestore.instance
-            .collection(AppConstants.collectionPublicProfiles)
-            .doc(authorId)
-            .get();
-        if (doc.exists && doc.data() != null) {
-          return PublicProfile.fromFirestore(authorId, doc.data()!);
-        }
-      }
-    } catch (e) {
-      debugPrint('PublicLibraryRepository: getAuthorProfile error: $e');
-    }
-    return null;
-  }
+  Future<PublicProfile?> getAuthorProfile(String authorId) =>
+      _libraryService.getAuthorProfile(authorId);
 
   // ===== Import =====
 
@@ -360,12 +333,11 @@ class PublicLibraryRepository {
       }
     }
 
-    // Upload images to Cloudinary if any
+    // Upload images to Backblaze B2 if any.
     Map<String, String?> uploadedUrls = {};
     if (localImagePaths.isNotEmpty) {
-      uploadedUrls = await _cloudinaryService.uploadImages(
+      uploadedUrls = await _uploadImagesToB2(
         localImagePaths.toList(),
-        subfolder: localDeckId,
         onProgress: onImageProgress,
       );
     }
@@ -397,9 +369,8 @@ class PublicLibraryRepository {
       if (CloudinaryService.isUrl(deck.imagePath!)) {
         deckImageUrl = deck.imagePath;
       } else if (CloudinaryService.isLocalPath(deck.imagePath!)) {
-        final uploaded = await _cloudinaryService.uploadImages(
+        final uploaded = await _uploadImagesToB2(
           [deck.imagePath!],
-          subfolder: '${localDeckId}_cover',
         );
         deckImageUrl = uploaded[deck.imagePath!];
       }
@@ -468,12 +439,11 @@ class PublicLibraryRepository {
         }
       }
 
-      // Upload images
+      // Upload images to Backblaze B2.
       Map<String, String?> uploadedUrls = {};
       if (localImagePaths.isNotEmpty) {
-        uploadedUrls = await _cloudinaryService.uploadImages(
+        uploadedUrls = await _uploadImagesToB2(
           localImagePaths.toList(),
-          subfolder: localDeckId,
           onProgress: onImageProgress,
         );
       }
@@ -503,9 +473,8 @@ class PublicLibraryRepository {
       if (CloudinaryService.isUrl(deck.imagePath!)) {
         deckImageUrl = deck.imagePath;
       } else if (CloudinaryService.isLocalPath(deck.imagePath!)) {
-        final uploaded = await _cloudinaryService.uploadImages(
+        final uploaded = await _uploadImagesToB2(
           [deck.imagePath!],
-          subfolder: '${localDeckId}_cover',
         );
         deckImageUrl = uploaded[deck.imagePath!];
       }
@@ -608,4 +577,23 @@ class PublicLibraryRepository {
   /// Mark all notifications as read
   Future<void> markAllNotificationsRead() =>
       _syncService.markAllNotificationsRead();
+
+  Future<Map<String, String?>> _uploadImagesToB2(
+    List<String> paths, {
+    ImageProgressCallback? onProgress,
+  }) async {
+    final result = <String, String?>{};
+    var completed = 0;
+    var failed = 0;
+
+    for (final path in paths) {
+      final url = await _imageService.uploadImageToB2(path, maxWidth: 1600);
+      result[path] = url;
+      completed++;
+      if (url == null) failed++;
+      onProgress?.call(completed, paths.length, failed);
+    }
+
+    return result;
+  }
 }

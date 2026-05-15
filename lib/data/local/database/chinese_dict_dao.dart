@@ -22,6 +22,12 @@ class ChineseDictDao {
     if (_isInitialized) return;
 
     try {
+      if (kIsWeb) {
+        debugPrint('[ChineseDictDao] Web platform detected; local Chinese dictionary is disabled.');
+        _isInitialized = true;
+        return;
+      }
+
       debugPrint('[ChineseDictDao] init() starting on ${Platform.operatingSystem}');
       debugPrint('[ChineseDictDao] kIsWeb=$kIsWeb, isWindows=${Platform.isWindows}, isAndroid=${Platform.isAndroid}');
 
@@ -103,6 +109,7 @@ class ChineseDictDao {
       debugPrint('[ChineseDictDao] search: not initialized, calling init()...');
       await init();
     }
+    if (_database == null) return [];
 
     try {
       debugPrint('[ChineseDictDao] search: trying exact match for "$query"...');
@@ -156,6 +163,7 @@ class ChineseDictDao {
     if (!_isInitialized || _database == null) {
       await init();
     }
+    if (_database == null) return null;
 
     try {
       final results = await _database!.query(
@@ -178,6 +186,7 @@ class ChineseDictDao {
     if (!_isInitialized || _database == null) {
       await init();
     }
+    if (_database == null) return [];
 
     try {
       final results = await _database!.query(

@@ -53,7 +53,10 @@ class GoogleDriveService {
   String? get _clientSecret => dotenv.env['GOOGLE_OAUTH_CLIENT_SECRET'];
 
   /// Check if we should use desktop OAuth flow
-  bool get _useDesktopAuth => !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+  bool get _useDesktopAuth {
+    if (kIsWeb) return false;
+    return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  }
 
   /// Connect to Google Drive (sign in if necessary)
   Future<bool> connect() async {

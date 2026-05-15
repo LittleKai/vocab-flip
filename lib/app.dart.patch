@@ -1,0 +1,68 @@
+@@ -28,8 +28,15 @@
+ import 'presentation/screens/admin/admin_feedback_screen.dart';
+ import 'data/local/preferences/app_preferences.dart';
++import 'core/web/web_sso.dart';
++import 'data/api/api_client.dart';
+ 
+-class VocabFlipApp extends StatelessWidget {
++class VocabFlipApp extends StatefulWidget {
+   final AppPreferences preferences;
+ 
+   const VocabFlipApp({super.key, required this.preferences});
++
++  @override
++  State<VocabFlipApp> createState() => _VocabFlipAppState();
++}
++
++class _VocabFlipAppState extends State<VocabFlipApp> {
++  late ProfileProvider profileProvider;
++  late AuthProvider authProvider;
++
++  @override
++  void initState() {
++    super.initState();
++    profileProvider = ProfileProvider(preferences: widget.preferences);
++    authProvider = AuthProvider()
++      ..onSignIn = () => profileProvider.loadFromFirebase();
++
++    _initWebSso();
++  }
++
++  void _initWebSso() {
++    setupWebSsoListener(onTokenReceived: (token) async {
++      debugPrint('VocabFlipApp: Token received via SSO, writing to storage...');
++      await ApiClient().setToken(token);
++      // Refresh profile to update UI immediately
++      authProvider.refreshProfile();
++    });
++  }
+ 
+   @override
+   Widget build(BuildContext context) {
+-    final profileProvider = ProfileProvider(preferences: preferences);
+-    final authProvider = AuthProvider()
+-      ..onSignIn = () => profileProvider.loadFromFirebase();
+-
+     return MultiProvider(
+       providers: [
+         ChangeNotifierProvider.value(value: authProvider),
+-        ChangeNotifierProvider(create: (_) => DeckProvider(preferences: preferences)),
++        ChangeNotifierProvider(create: (_) => DeckProvider(preferences: widget.preferences)),
+         ChangeNotifierProvider(create: (_) => FlashcardProvider()),
+         ChangeNotifierProvider(
+-          create: (_) => StudyProvider(preferences: preferences),
++          create: (_) => StudyProvider(preferences: widget.preferences),
+         ),
+         ChangeNotifierProvider(
+-          create: (_) => DictionaryProvider(prefs: preferences),
++          create: (_) => DictionaryProvider(prefs: widget.preferences),
+         ),
+         ChangeNotifierProvider(
+-          create: (_) => SettingsProvider(preferences: preferences),
++          create: (_) => SettingsProvider(preferences: widget.preferences),
+         ),
+-        ChangeNotifierProvider(create: (_) => PublicLibraryProvider(preferences: preferences)),
++        ChangeNotifierProvider(create: (_) => PublicLibraryProvider(preferences: widget.preferences)),
+         ChangeNotifierProvider(create: (_) => PublishProvider()),
+         ChangeNotifierProvider(create: (_) => SyncProvider()),
+         ChangeNotifierProvider(

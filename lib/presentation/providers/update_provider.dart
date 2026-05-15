@@ -48,8 +48,10 @@ class UpdateProvider extends ChangeNotifier {
   /// Whether the platform supports auto-check for updates
   /// Windows: full auto-update (download + install)
   /// Android: check + notify (open download link)
-  bool get isAutoUpdateSupported =>
-      !kIsWeb && (Platform.isWindows || Platform.isAndroid);
+  bool get isAutoUpdateSupported {
+    if (kIsWeb) return false;
+    return Platform.isWindows || Platform.isAndroid;
+  }
 
   String get releasesUrl => 'https://github.com/LittleKai/vocab-flip/releases';
 

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart' hide Category;
 import '../../data/local/preferences/app_preferences.dart';
-import '../../main.dart' show isFirebaseInitialized;
 import '../../data/models/public_deck.dart';
 import '../../data/models/public_flashcard.dart';
 import '../../data/models/public_profile.dart';
@@ -8,7 +7,7 @@ import '../../data/models/deck_rating.dart';
 import '../../data/models/category.dart';
 import '../../data/models/deck.dart';
 import '../../data/repositories/public_library_repository.dart';
-import '../../data/remote/firebase/public_library_service.dart';
+import '../../data/remote/mongo/mongo_public_library_service.dart';
 
 LibrarySortBy _parseLibrarySortBy(String value) {
   return LibrarySortBy.values.firstWhere(
@@ -43,8 +42,8 @@ class PublicLibraryProvider extends ChangeNotifier {
     _preferences.setLibFilterSortBy(_filter.sortBy.name);
   }
 
-  /// Check if Firebase is available
-  bool get isFirebaseAvailable => isFirebaseInitialized;
+  /// The public library is backed by the Alpha Studio REST API.
+  bool get isRemoteLibraryAvailable => true;
 
   // State
   List<PublicDeck> _decks = [];
@@ -93,12 +92,6 @@ class PublicLibraryProvider extends ChangeNotifier {
 
   /// Initialize the library (load categories and featured decks)
   Future<void> initialize() async {
-    if (!isFirebaseAvailable) {
-      _error = 'Firebase is not available. Please check your internet connection.';
-      notifyListeners();
-      return;
-    }
-
     _isLoading = true;
     _error = null;
     notifyListeners();

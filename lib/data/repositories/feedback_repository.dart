@@ -1,20 +1,16 @@
 import 'dart:io' show Platform;
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+
+import '../api/api_client.dart';
+import '../auth/alpha_auth_session.dart';
 import '../models/feedback_item.dart';
-import '../remote/firebase/firebase_service.dart';
-import '../remote/firebase/firestore_rest_client.dart';
-import '../../core/constants/app_constants.dart';
+import '../remote/mongo/vocab_api_helpers.dart';
 
 class FeedbackRepository {
-  final FirebaseService _firebaseService = FirebaseService();
-  final FirestoreRestClient _restClient = FirestoreRestClient();
-
-  bool get _useRest => FirestoreRestClient.shouldUseRest;
-
-  CollectionReference<Map<String, dynamic>> get _feedbackRef =>
-      FirebaseFirestore.instance.collection(AppConstants.collectionFeedback);
+  final ApiClient _apiClient = ApiClient();
+  final AlphaAuthSession _authSession = AlphaAuthSession();
 
   Future<void> submitFeedback({
     required String category,
@@ -22,76 +18,32 @@ class FeedbackRepository {
     String? email,
   }) async {
     final packageInfo = await PackageInfo.fromPlatform();
-    final payload = <String, dynamic>{
+    await _apiClient.dio.post('/vocab/feedback', data: {
       'category': category,
       'message': message,
       if (email != null && email.isNotEmpty) 'email': email,
       'app_version': packageInfo.version,
       'platform': _getPlatform(),
       'created_at': DateTime.now().toUtc().toIso8601String(),
-      if (_firebaseService.userId != null)
-        'user_id': _firebaseService.userId!,
-    };
-
-    if (_useRest) {
-      final result = await _restClient.createDocument(
-        AppConstants.collectionFeedback,
-        payload,
-      );
-      if (result == null) {
-        throw Exception('Failed to submit feedback');
-      }
-    } else {
-      await _feedbackRef.add(payload);
-    }
+      if (_authSession.userId != null) 'user_id': _authSession.userId,
+    });
   }
 
   Future<List<FeedbackItem>> getFeedbackList({int limit = 50}) async {
-    if (_useRest) {
-      final docs = await _restClient.getCollection(
-        AppConstants.collectionFeedback,
-        orderBy: [OrderBy('created_at', descending: true)],
-        limit: limit,
-        requireAuth: true,
-      );
-      return docs.map((doc) => FeedbackItem.fromMap(doc)).toList();
-    } else {
-      final snapshot = await _feedbackRef
-          .orderBy('created_at', descending: true)
-          .limit(limit)
-          .get();
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return FeedbackItem.fromMap(data);
-      }).toList();
-    }
+    final response = await _apiClient.dio.get(
+      '/vocab/feedback',
+      queryParameters: {'limit': limit},
+    );
+    return unwrapApiList(response.data).map(FeedbackItem.fromMap).toList();
   }
 
   Future<int> getFeedbackCountSince(DateTime since) async {
-    final sinceStr = since.toUtc().toIso8601String();
-
-    if (_useRest) {
-      final docs = await _restClient.getCollection(
-        AppConstants.collectionFeedback,
-        where: [
-          QueryFilter(
-            'created_at',
-            FilterOperator.greaterThan,
-            sinceStr,
-          ),
-        ],
-        orderBy: [OrderBy('created_at', descending: true)],
-        requireAuth: true,
-      );
-      return docs.length;
-    } else {
-      final snapshot = await _feedbackRef
-          .where('created_at', isGreaterThan: sinceStr)
-          .orderBy('created_at', descending: true)
-          .get();
-      return snapshot.docs.length;
-    }
+    final response = await _apiClient.dio.get(
+      '/vocab/feedback/count',
+      queryParameters: {'since': since.toUtc().toIso8601String()},
+    );
+    final data = unwrapApiMap(response.data);
+    return data?['count'] as int? ?? 0;
   }
 
   String _getPlatform() {

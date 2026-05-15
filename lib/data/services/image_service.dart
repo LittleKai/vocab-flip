@@ -5,6 +5,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:image/image.dart' as img;
+import '../api/api_client.dart';
+import 'package:http/http.dart' as http;
 
 /// Service for handling flashcard images
 class ImageService {
@@ -156,12 +158,73 @@ class ImageService {
     }
   }
 
-  /// Pick and save an image, returning the saved local path
-  /// If maxWidth is provided, the image will be resized to save storage
-  Future<String?> pickAndSaveImage({int? maxWidth}) async {
+  /// Upload an image to Backblaze B2 via Alpha Studio backend
+  Future<String?> uploadImageToB2(String sourcePath, {int? maxWidth}) async {
+    try {
+      final sourceFile = File(sourcePath);
+      if (!await sourceFile.exists()) {
+        debugPrint('ImageService: Source file does not exist: $sourcePath');
+        return null;
+      }
+
+      Uint8List? bytes;
+      if (maxWidth != null) {
+        bytes = await resizeImage(sourcePath, maxWidth);
+      }
+      bytes ??= await sourceFile.readAsBytes();
+
+      final extension = p.extension(sourcePath).toLowerCase();
+      final fileName = '${const Uuid().v4()}$extension';
+      String contentType = 'image/jpeg';
+      if (extension == '.png') contentType = 'image/png';
+      if (extension == '.gif') contentType = 'image/gif';
+      if (extension == '.webp') contentType = 'image/webp';
+
+      final apiClient = ApiClient();
+
+      // Request presigned URL
+      final response = await apiClient.dio.post('/upload/presign', data: {
+        'filename': fileName,
+        'folder': 'vocabflip',
+        'contentType': contentType,
+      });
+
+      if (response.data != null && response.data['success'] == true) {
+        final uploadUrl = response.data['data']['presignedUrl'];
+        final downloadUrl = response.data['data']['publicUrl'];
+
+        // PUT request to presigned URL
+        final putResponse = await http.put(
+          Uri.parse(uploadUrl),
+          headers: {'Content-Type': contentType},
+          body: bytes,
+        );
+
+        if (putResponse.statusCode == 200) {
+          debugPrint('ImageService: Successfully uploaded to B2: $downloadUrl');
+          return downloadUrl;
+        } else {
+          debugPrint('ImageService: B2 PUT failed with status: ${putResponse.statusCode}');
+        }
+      } else {
+        debugPrint('ImageService: Failed to get presigned URL');
+      }
+      return null;
+    } catch (e) {
+      debugPrint('ImageService: Error uploading image to B2: $e');
+      return null;
+    }
+  }
+
+  /// Choose how to pick and save based on alpha-studio integration
+  Future<String?> pickAndSaveImage({int? maxWidth, bool useB2 = true}) async {
     final pickedPath = await pickImage();
     if (pickedPath != null) {
-      return await saveImageLocally(pickedPath, maxWidth: maxWidth);
+      if (useB2) {
+        return await uploadImageToB2(pickedPath, maxWidth: maxWidth);
+      } else {
+        return await saveImageLocally(pickedPath, maxWidth: maxWidth);
+      }
     }
     return null;
   }

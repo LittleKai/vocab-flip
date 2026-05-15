@@ -114,15 +114,35 @@ class SettingsScreen extends StatelessWidget {
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => ProfileEditDialog.show(context),
                         ),
+                        // Wallet / Credit
+                        ListTile(
+                          leading: const Icon(Icons.monetization_on, color: Colors.orange),
+                          title: Text(
+                            'Balance: ${auth.balance} credits',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          trailing: ElevatedButton.icon(
+                            icon: const Icon(Icons.add),
+                            label: const Text('Nạp Credit'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            onPressed: () => auth.openTopupWallet(),
+                          ),
+                        ),
                       ],
                     );
                   } else {
                     return ListTile(
                       leading: const Icon(Icons.login),
-                      title: Text(l10n.signInGoogle),
+                      title: Text(l10n.signIn),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () async {
-                        await auth.signInWithGoogle();
+                      onTap: () {
+                        Navigator.pushNamed(context, '/login');
                       },
                     );
                   }

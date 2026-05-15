@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/category.dart';
-import '../../../data/remote/firebase/public_library_service.dart';
+import '../../../data/remote/mongo/mongo_public_library_service.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Bottom sheet for filtering library results

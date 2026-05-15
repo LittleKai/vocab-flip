@@ -9,8 +9,6 @@ import '../../providers/deck_provider.dart';
 import '../../providers/publish_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../../data/local/database/deck_dao.dart';
-import '../../../data/remote/firebase/firestore_rest_client.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../widgets/library/public_deck_card.dart';
 import '../../widgets/library/filter_sheet.dart';
 import '../../widgets/sync/sync_badge.dart';
@@ -634,14 +632,6 @@ class _MyDecksTabState extends State<_MyDecksTab> {
           'is_published': 1,
           'published_deck_id': publicDeckId,
         });
-
-        // Update Firebase original_local_id to point to the new local deck
-        final restClient = FirestoreRestClient();
-        await restClient.updateDocument(
-          AppConstants.collectionPublicDecks,
-          publicDeckId,
-          {'original_local_id': importedDeck.id},
-        );
 
         // Refresh local deck list
         await deckProvider.loadDecks();

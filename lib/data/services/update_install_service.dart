@@ -6,12 +6,14 @@ import 'package:path/path.dart' as path;
 /// Service to install updates (Windows only)
 class UpdateInstallService {
   /// Check if the current platform supports in-app updates
-  static bool get isSupported =>
-      !kIsWeb && Platform.isWindows;
+  static bool get isSupported {
+    if (kIsWeb) return false;
+    return Platform.isWindows;
+  }
 
   /// Get the current application directory
   static String get appDirectory {
-    if (Platform.isWindows) {
+    if (!kIsWeb && Platform.isWindows) {
       return path.dirname(Platform.resolvedExecutable);
     }
     return '';
@@ -20,6 +22,8 @@ class UpdateInstallService {
   /// Extract update ZIP to a temporary location
   /// Returns the extraction path, or null if failed
   Future<String?> extractUpdate(String zipPath) async {
+    if (!isSupported) return null;
+
     try {
       final zipFile = File(zipPath);
       if (!await zipFile.exists()) {
@@ -70,7 +74,7 @@ class UpdateInstallService {
   /// 3. Restarts the app
   /// 4. Deletes itself
   Future<bool> installAndRestart(String extractedPath) async {
-    if (!Platform.isWindows) {
+    if (!isSupported) {
       debugPrint('UpdateInstallService: Not Windows, skipping install');
       return false;
     }
@@ -174,6 +178,8 @@ REM Delete this batch file
 
   /// Verify the extracted update has the required files
   Future<bool> verifyUpdate(String extractedPath) async {
+    if (!isSupported) return false;
+
     try {
       final dir = Directory(extractedPath);
       if (!await dir.exists()) {
@@ -202,6 +208,8 @@ REM Delete this batch file
 
   /// Clean up extracted files
   Future<void> cleanup(String extractedPath) async {
+    if (!isSupported) return;
+
     try {
       final dir = Directory(extractedPath);
       if (await dir.exists()) {

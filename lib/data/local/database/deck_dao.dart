@@ -12,6 +12,8 @@ class DeckDao {
   Future<Database> get _db => _appDatabase.database;
 
   Future<int> insert(Deck deck) async {
+    if (kIsWeb) return 0;
+
     debugPrint('DeckDao: Inserting deck: ${deck.name}, id: ${deck.id}');
     debugPrint('DeckDao: Deck data: ${deck.toMap()}');
     try {
@@ -32,6 +34,8 @@ class DeckDao {
   }
 
   Future<int> update(Deck deck) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     return await db.update(
       AppConstants.tableDecks,
@@ -43,6 +47,8 @@ class DeckDao {
 
   /// Update only specific fields of a deck (safe partial update)
   Future<int> updateFields(String deckId, Map<String, dynamic> fields) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     return await db.update(
       AppConstants.tableDecks,
@@ -53,6 +59,8 @@ class DeckDao {
   }
 
   Future<int> delete(String id) async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     // Also remove import link if exists
     await db.delete(
@@ -68,6 +76,8 @@ class DeckDao {
   }
 
   Future<Deck?> getById(String id) async {
+    if (kIsWeb) return null;
+
     final db = await _db;
     final maps = await db.query(
       AppConstants.tableDecks,
@@ -88,6 +98,8 @@ class DeckDao {
   }
 
   Future<List<Deck>> getAll() async {
+    if (kIsWeb) return [];
+
     final db = await _db;
     final maps = await db.query(
       AppConstants.tableDecks,
@@ -150,6 +162,8 @@ class DeckDao {
   }
 
   Future<int> getCount() async {
+    if (kIsWeb) return 0;
+
     final db = await _db;
     final result = await db.rawQuery(
       'SELECT COUNT(*) as count FROM ${AppConstants.tableDecks}',
@@ -158,6 +172,8 @@ class DeckDao {
   }
 
   Future<bool> exists(String id) async {
+    if (kIsWeb) return false;
+
     final db = await _db;
     final result = await db.query(
       AppConstants.tableDecks,

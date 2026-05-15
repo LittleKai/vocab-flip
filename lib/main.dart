@@ -1,17 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'firebase_options.dart';
 import 'app.dart';
 import 'data/local/preferences/app_preferences.dart';
 import 'data/local/database/chinese_dict_dao.dart';
-import 'data/remote/firebase/category_seeder.dart';
-import 'data/remote/firebase/public_deck_seeder.dart';
-
-/// Global flag to track if Firebase is available
-bool isFirebaseInitialized = false;
 
 void main() async {
   // Catch all errors to prevent silent crashes
@@ -30,35 +23,6 @@ void main() async {
       debugPrint('Environment variables loaded');
     } catch (e) {
       debugPrint('Failed to load .env file: $e');
-    }
-
-    // Initialize Firebase with error handling
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      isFirebaseInitialized = true;
-      debugPrint('Firebase initialized successfully');
-
-      // Seed categories and sample public deck
-      // On Windows, this uses REST API instead of native SDK
-      try {
-        await CategorySeeder().seedIfNeeded();
-        debugPrint('Categories seeded');
-      } catch (e) {
-        debugPrint('Failed to seed categories: $e');
-      }
-
-      try {
-        await PublicDeckSeeder().seedIfNeeded();
-        debugPrint('Public decks seeded');
-      } catch (e) {
-        debugPrint('Failed to seed public decks: $e');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('Failed to initialize Firebase: $e');
-      debugPrint('Stack trace: $stackTrace');
-      debugPrint('App will run in offline mode without library features');
     }
 
     // Set preferred orientations

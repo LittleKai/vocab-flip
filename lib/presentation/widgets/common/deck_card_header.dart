@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -132,7 +133,8 @@ class DeckCardHeader extends StatelessWidget {
   // --- Static helpers shared across widgets ---
 
   static Widget buildMiniChip(BuildContext context, IconData icon, String text, Color color) {
-    if (Platform.isAndroid) {
+    final isAndroid = kIsWeb ? false : Platform.isAndroid;
+    if (isAndroid) {
       return Tooltip(
         message: text,
         child: Icon(icon, size: 16, color: color),
@@ -169,11 +171,13 @@ class DeckCardHeader extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => fallback,
       );
-    } else {
+    } else if (!kIsWeb) {
       final file = File(imagePath);
       imageWidget = file.existsSync()
           ? Image.file(file, fit: BoxFit.cover)
           : fallback;
+    } else {
+      imageWidget = fallback;
     }
 
     return ClipRRect(
