@@ -58,4 +58,25 @@ void main() {
     expect(find.text('Study'), findsOneWidget);
     expect(find.text('4 due'), findsOneWidget);
   });
+
+  testWidgets('shows trailing widget alongside study button', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: DeckSummaryCard(
+            deck: _deck(dueCount: 4),
+            cardCountLabel: '42 cards',
+            dueLabel: '4 due',
+            studyLabel: 'Study',
+            onTap: () {},
+            onStudy: () {},
+            trailing: const Icon(Icons.chevron_right),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Study'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+  });
 }

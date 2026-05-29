@@ -28,7 +28,8 @@ class DeckSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showStudyButton = onStudy != null && studyLabel != null;
+    final showStudyButton =
+        onStudy != null && studyLabel != null && studyLabel!.isNotEmpty;
     final titleStyle = compact
         ? Theme.of(context).textTheme.titleSmall
         : Theme.of(context).textTheme.titleMedium;
@@ -108,7 +109,8 @@ class DeckSummaryCard extends StatelessWidget {
                     child: Text(studyLabel!),
                   ),
                 ),
-              ] else if (trailing != null) ...[
+              ],
+              if (trailing != null) ...[
                 const SizedBox(width: 8),
                 trailing!,
               ],
