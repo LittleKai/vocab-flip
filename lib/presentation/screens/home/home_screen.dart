@@ -4,13 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/deck_navigation.dart';
-import '../../../data/models/deck.dart';
-import '../../widgets/common/deck_card_header.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/update_provider.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/common/responsive_grid.dart';
+import '../../widgets/deck/deck_summary_card.dart';
 import '../deck/deck_list_screen.dart';
 import '../statistics/statistics_screen.dart';
 import '../settings/settings_screen.dart';
@@ -171,19 +170,14 @@ class _HomeTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Welcome card
-                  _buildWelcomeCard(context, settingsProvider),
-                  const SizedBox(height: 24),
-
-                  // Quick stats
+                  _buildDashboardHeader(context, settingsProvider),
+                  const SizedBox(height: 16),
+                  _buildDueFocusPanel(context, deckProvider),
+                  const SizedBox(height: 16),
                   _buildQuickStats(context, deckProvider, settingsProvider),
                   const SizedBox(height: 24),
-
-                  // Due today section
                   _buildDueTodaySection(context, deckProvider),
                   const SizedBox(height: 24),
-
-                  // Recent decks
                   _buildRecentDecks(context, deckProvider),
                 ],
               ),
@@ -194,64 +188,130 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildWelcomeCard(BuildContext context, SettingsProvider settings) {
+  Widget _buildDashboardHeader(BuildContext context, SettingsProvider settings) {
     final l10n = AppLocalizations.of(context)!;
     final hour = DateTime.now().hour;
-    String greeting;
-    if (hour < 12) {
-      greeting = l10n.goodMorning;
-    } else if (hour < 17) {
-      greeting = l10n.goodAfternoon;
-    } else {
-      greeting = l10n.goodEvening;
-    }
+    final greeting = hour < 12
+        ? l10n.goodMorning
+        : hour < 17
+            ? l10n.goodAfternoon
+            : l10n.goodEvening;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                greeting,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.readyToLearn,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary(context),
+                    ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.accent.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: AppColors.accent.withValues(alpha: 0.22),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.local_fire_department,
+                size: 18,
+                color: AppColors.accent,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                l10n.dayStreak(settings.streak),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDueFocusPanel(BuildContext context, DeckProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+    final dueDecks = provider.decks.where((deck) => deck.dueCount > 0).toList();
+    final primaryDeck = dueDecks.isNotEmpty ? dueDecks.first : null;
+    final hasDue = provider.totalDueCards > 0 && primaryDeck != null;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryDark],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: Theme.of(context).colorScheme.primaryContainer.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark
+                  ? 0.20
+                  : 0.55,
+            ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.16),
         ),
-        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            greeting,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            l10n.today,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w700,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.readyToLearn,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withOpacity(0.8),
+            hasDue ? l10n.cardsDue(provider.totalDueCards) : l10n.allCaughtUp,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Icon(
-                Icons.local_fire_department,
-                color: Colors.orange.shade300,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.dayStreak(settings.streak),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
+          const SizedBox(height: 6),
+          Text(
+            hasDue ? primaryDeck.name : l10n.noCardsToReviewToday,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary(context),
+                ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
+          if (hasDue) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => DeckNavigation.navigateToStudy(
+                  context,
+                  primaryDeck.id,
+                ),
+                icon: const Icon(Icons.play_arrow),
+                label: Text(l10n.startStudy),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -315,7 +375,7 @@ class _HomeTab extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -344,7 +404,15 @@ class _HomeTab extends StatelessWidget {
         else
           _ResponsiveCardList(
             items: dueDecks.take(3).toList(),
-            itemBuilder: (deck) => _DueDeckCard(deck: deck),
+            itemBuilder: (deck) => DeckSummaryCard(
+              deck: deck,
+              cardCountLabel: l10n.nCards(deck.cardCount),
+              dueLabel: l10n.cardsDue(deck.dueCount),
+              studyLabel: l10n.study,
+              onTap: () => DeckNavigation.navigateToStudy(context, deck.id),
+              onStudy: () => DeckNavigation.navigateToStudy(context, deck.id),
+              compact: true,
+            ),
           ),
       ],
     );
@@ -367,7 +435,17 @@ class _HomeTab extends StatelessWidget {
         const SizedBox(height: 12),
         _ResponsiveCardList(
           items: provider.decks.take(3).toList(),
-          itemBuilder: (deck) => _RecentDeckCard(deck: deck),
+          itemBuilder: (deck) => DeckSummaryCard(
+            deck: deck,
+            cardCountLabel: l10n.nCards(deck.cardCount),
+            dueLabel: deck.dueCount > 0 ? l10n.cardsDue(deck.dueCount) : null,
+            onTap: () => DeckNavigation.navigateToBrowse(context, deck.id),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: AppColors.textSecondary(context),
+            ),
+            compact: true,
+          ),
         ),
       ],
     );
@@ -392,7 +470,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -413,173 +491,6 @@ class _StatCard extends StatelessWidget {
                 ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _DueDeckCard extends StatelessWidget {
-  final Deck deck;
-
-  const _DueDeckCard({required this.deck});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => DeckNavigation.navigateToStudy(context, deck.id),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Row(
-            children: [
-              DeckCardHeader.buildDeckImage(context, deck.imagePath),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Deck name + language badge
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            deck.name,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        DeckCardHeader.buildLanguageBadge(context, deck.sourceLanguage),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    // Due count + card count
-                    Row(
-                      children: [
-                        Icon(Icons.schedule, size: 15, color: AppColors.accent),
-                        const SizedBox(width: 4),
-                        Text(
-                          l10n.cardsDue(deck.dueCount),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.accent,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(Icons.style, size: 15, color: AppColors.info),
-                        const SizedBox(width: 4),
-                        Text(
-                          l10n.nCards(deck.cardCount),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary(context),
-                              ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 34,
-                child: ElevatedButton(
-                  onPressed: () => DeckNavigation.navigateToStudy(context, deck.id),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                  child: Text(l10n.study),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentDeckCard extends StatelessWidget {
-  final Deck deck;
-
-  const _RecentDeckCard({required this.deck});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => DeckNavigation.navigateToBrowse(context, deck.id),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Row(
-            children: [
-              DeckCardHeader.buildDeckImage(context, deck.imagePath),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Deck name + language badge
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            deck.name,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        DeckCardHeader.buildLanguageBadge(context, deck.sourceLanguage),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    // Card count + due info
-                    Row(
-                      children: [
-                        Icon(Icons.style, size: 15, color: AppColors.info),
-                        const SizedBox(width: 4),
-                        Text(
-                          l10n.nCards(deck.cardCount),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary(context),
-                              ),
-                        ),
-                        if (deck.dueCount > 0) ...[
-                          const SizedBox(width: 12),
-                          Icon(Icons.schedule, size: 15, color: AppColors.accent),
-                          const SizedBox(width: 4),
-                          Text(
-                            l10n.cardsDue(deck.dueCount),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.accent,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: AppColors.textSecondary(context)),
-            ],
-          ),
-        ),
       ),
     );
   }
