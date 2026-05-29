@@ -12,6 +12,7 @@ import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/responsive_grid.dart';
 import '../../widgets/deck/deck_filter_sheet.dart';
+import '../../widgets/deck/deck_summary_card.dart';
 import 'create_deck_screen.dart';
 
 class DeckListScreen extends StatefulWidget {
@@ -149,7 +150,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
                         child: Container(
                           width: 8,
                           height: 8,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.accent,
                             shape: BoxShape.circle,
                           ),
@@ -192,7 +193,7 @@ class _DeckListScreenState extends State<DeckListScreen> {
                 : ResponsiveGrid(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: filtered.length,
-                    mainAxisExtent: 175,
+                    mainAxisExtent: 188,
                     itemBuilder: (context, index) {
                       return _DeckCard(deck: filtered[index]);
                     },
@@ -253,13 +254,17 @@ class _DeckCard extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.link, size: 16, color: AppColors.secondary),
+                                const Icon(
+                                  Icons.link,
+                                  size: 16,
+                                  color: AppColors.secondary,
+                                ),
                                 if (hasUpdate) ...[
                                   const SizedBox(width: 2),
                                   Container(
                                     width: 6,
                                     height: 6,
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                       color: AppColors.accent,
                                       shape: BoxShape.circle,
                                     ),
@@ -272,8 +277,8 @@ class _DeckCard extends StatelessWidget {
                       ),
                     // Published indicator
                     if (deck.isPublished)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4),
+                      const Padding(
+                        padding: EdgeInsets.only(right: 4),
                         child: Icon(Icons.public, size: 16, color: AppColors.success),
                       ),
                     // Menu button
@@ -338,82 +343,80 @@ class _DeckCard extends StatelessWidget {
               const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.only(right: 12),
-                child: Row(
-                children: [
-                  // Category (unified style matching PublicDeckCard)
-                  if (deck.category != null) ...[
-                    Builder(builder: (context) {
-                      final cat = Category.predefined
-                          .where((c) => c.id == deck.category)
-                          .firstOrNull;
-                      final categoryName = cat?.getLocalizedName(
-                              Localizations.localeOf(context).languageCode) ??
-                          deck.category!;
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final stats = Wrap(
+                      spacing: 12,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (deck.category != null)
+                          _CategoryChip(categoryId: deck.category!),
+                        DeckStatusChip(
+                          icon: Icons.style,
+                          label: l10n.nCards(deck.cardCount),
+                          color: AppColors.info,
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _getCategoryIcon(cat?.icon),
-                              size: 12,
-                              color: AppColors.secondary,
+                        if (deck.newCount > 0)
+                          DeckStatusChip(
+                            icon: Icons.fiber_new,
+                            label: l10n.nNew(deck.newCount),
+                            color: AppColors.error,
+                            emphasized: true,
+                          ),
+                        if (deck.reviewCount > 0)
+                          DeckStatusChip(
+                            icon: Icons.replay,
+                            label: l10n.nReview(deck.reviewCount),
+                            color: AppColors.warning,
+                            emphasized: true,
+                          ),
+                      ],
+                    );
+
+                    final studyButton = deck.dueCount > 0
+                        ? Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              height: 32,
+                              child: ElevatedButton.icon(
+                                onPressed: () => _navigateToStudy(context),
+                                icon: const Icon(Icons.play_arrow, size: 16),
+                                label: Text(l10n.study),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  textStyle: const TextStyle(fontSize: 13),
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 3),
-                            Text(
-                              categoryName,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.secondary,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                            ),
-                          ],
-                        ),
+                          )
+                        : null;
+
+                    if (studyButton == null) {
+                      return stats;
+                    }
+
+                    if (constraints.maxWidth >= 360) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(child: stats),
+                          const SizedBox(width: 8),
+                          studyButton,
+                        ],
                       );
-                    }),
-                    const SizedBox(width: 8),
-                  ],
-                  // Card stats (colored icon)
-                  _StatChip(
-                    icon: Icons.style,
-                    label: l10n.nCards(deck.cardCount),
-                    color: AppColors.info,
-                  ),
-                  const SizedBox(width: 12),
-                  if (deck.newCount > 0)
-                    _StatChip(
-                      icon: Icons.fiber_new,
-                      label: l10n.nNew(deck.newCount),
-                      color: AppColors.error,
-                    ),
-                  if (deck.reviewCount > 0) ...[
-                    const SizedBox(width: 12),
-                    _StatChip(
-                      icon: Icons.replay,
-                      label: l10n.nReview(deck.reviewCount),
-                      color: AppColors.warning,
-                    ),
-                  ],
-                  const Spacer(),
-                  if (deck.dueCount > 0)
-                    SizedBox(
-                      height: 30,
-                      child: ElevatedButton(
-                        onPressed: () => _navigateToStudy(context),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          textStyle: const TextStyle(fontSize: 13),
-                        ),
-                        child: Text(l10n.study),
-                      ),
-                    ),
-                ],
-              ),
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        stats,
+                        const SizedBox(height: 8),
+                        studyButton,
+                      ],
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -424,20 +427,6 @@ class _DeckCard extends StatelessWidget {
 
   String _formatFields(List<CardFieldType> fields) {
     return fields.map((f) => f.displayName).join(', ');
-  }
-
-  IconData _getCategoryIcon(String? iconName) {
-    switch (iconName) {
-      case 'school': return Icons.school;
-      case 'translate': return Icons.translate;
-      case 'flight': return Icons.flight;
-      case 'business': return Icons.business;
-      case 'home': return Icons.home;
-      case 'menu_book': return Icons.menu_book;
-      case 'chat_bubble': return Icons.chat_bubble;
-      case 'more_horiz': return Icons.more_horiz;
-      default: return Icons.category;
-    }
   }
 
   void _navigateToBrowse(BuildContext context) {
@@ -498,30 +487,66 @@ class _DeckCard extends StatelessWidget {
   }
 }
 
-class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color? color;
+class _CategoryChip extends StatelessWidget {
+  final String categoryId;
 
-  const _StatChip({
-    required this.icon,
-    required this.label,
-    this.color,
-  });
+  const _CategoryChip({required this.categoryId});
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = color ?? AppColors.textSecondary(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 17, color: effectiveColor),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(color: effectiveColor, fontSize: 13),
-        ),
-      ],
+    final category = Category.predefined.where((c) => c.id == categoryId).firstOrNull;
+    final categoryName = category?.getLocalizedName(
+          Localizations.localeOf(context).languageCode,
+        ) ??
+        categoryId;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.secondary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _categoryIcon(category?.icon),
+            size: 13,
+            color: AppColors.secondary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            categoryName,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
     );
+  }
+
+  static IconData _categoryIcon(String? iconName) {
+    switch (iconName) {
+      case 'school':
+        return Icons.school;
+      case 'translate':
+        return Icons.translate;
+      case 'flight':
+        return Icons.flight;
+      case 'business':
+        return Icons.business;
+      case 'home':
+        return Icons.home;
+      case 'menu_book':
+        return Icons.menu_book;
+      case 'chat_bubble':
+        return Icons.chat_bubble;
+      case 'more_horiz':
+        return Icons.more_horiz;
+      default:
+        return Icons.category;
+    }
   }
 }
