@@ -197,12 +197,17 @@ class _HomeTab extends StatelessWidget {
             ? l10n.goodAfternoon
             : l10n.goodEvening;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      alignment: WrapAlignment.spaceBetween,
       children: [
-        Expanded(
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 220),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 greeting,
@@ -216,6 +221,8 @@ class _HomeTab extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary(context),
                     ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -244,6 +251,8 @@ class _HomeTab extends StatelessWidget {
                       color: AppColors.accent,
                       fontWeight: FontWeight.w700,
                     ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -523,7 +532,7 @@ class _ResponsiveCardList<T> extends StatelessWidget {
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
             crossAxisSpacing: 8,
-            mainAxisExtent: 100,
+            mainAxisExtent: 124,
           ),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
