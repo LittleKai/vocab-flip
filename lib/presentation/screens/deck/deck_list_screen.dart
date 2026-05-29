@@ -220,6 +220,8 @@ class _DeckCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final visibleTags = deck.tags.take(3).toList();
+    final hiddenTagCount = deck.tags.length - visibleTags.length;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -320,22 +322,13 @@ class _DeckCard extends StatelessWidget {
                   child: Wrap(
                     spacing: 4,
                     runSpacing: 4,
-                    children: deck.tags.map((tag) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(6),
+                    children: [
+                      ...visibleTags.map(
+                        (tag) => _TagChip(label: '#$tag'),
                       ),
-                      child: Text(
-                        '#$tag',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary(context),
-                        ),
-                      ),
-                    )).toList(),
+                      if (hiddenTagCount > 0)
+                        _TagChip(label: '+$hiddenTagCount'),
+                    ],
                   ),
                 ),
               ],
@@ -515,12 +508,16 @@ class _CategoryChip extends StatelessWidget {
             color: AppColors.secondary,
           ),
           const SizedBox(width: 4),
-          Text(
-            categoryName,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w600,
-                ),
+          Flexible(
+            child: Text(
+              categoryName,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -548,5 +545,34 @@ class _CategoryChip extends StatelessWidget {
       default:
         return Icons.category;
     }
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  final String label;
+
+  const _TagChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 96),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade700
+            : Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          color: AppColors.textSecondary(context),
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
   }
 }
