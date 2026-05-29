@@ -146,7 +146,7 @@ class DeckStatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: emphasized ? color.withOpacity(0.1) : Colors.transparent,
+        color: emphasized ? color.withValues(alpha: 0.1) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
