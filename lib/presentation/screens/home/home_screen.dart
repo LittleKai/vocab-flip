@@ -227,34 +227,39 @@ class _HomeTab extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: AppColors.accent.withValues(alpha: 0.22),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 220),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: AppColors.accent.withValues(alpha: 0.22),
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.local_fire_department,
-                size: 18,
-                color: AppColors.accent,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                l10n.dayStreak(settings.streak),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.local_fire_department,
+                  size: 18,
+                  color: AppColors.accent,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    l10n.dayStreak(settings.streak),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
