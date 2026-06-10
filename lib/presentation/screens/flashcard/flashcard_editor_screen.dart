@@ -11,6 +11,7 @@ import '../../../data/services/image_service.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/dictionary_provider.dart';
 import '../../providers/deck_provider.dart';
+import '../../providers/ai_provider.dart';
 
 class FlashcardEditorScreen extends StatefulWidget {
   final String deckId;
@@ -275,19 +276,37 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         );
 
       case CardFieldType.meaning:
-        return TextFormField(
-          controller: _backController,
-          decoration: InputDecoration(
-            labelText: l10n.meaningBack,
-            hintText: l10n.enterMeaning,
-            prefixIcon: const Icon(Icons.translate),
-          ),
-          maxLines: 3,
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return l10n.pleaseEnterMeaning;
-            }
-            return null;
+        return Consumer<AiProvider>(
+          builder: (context, aiProvider, child) {
+            return TextFormField(
+              controller: _backController,
+              decoration: InputDecoration(
+                labelText: l10n.meaningBack,
+                hintText: l10n.enterMeaning,
+                prefixIcon: const Icon(Icons.translate),
+                suffixIcon: aiProvider.state == AiState.generating
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.bolt, color: AppColors.primary),
+                        onPressed: () => _generateMnemonic(aiProvider, context),
+                        tooltip: l10n.generateMnemonic ?? 'Generate Mnemonic',
+                      ),
+              ),
+              maxLines: 3,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return l10n.pleaseEnterMeaning;
+                }
+                return null;
+              },
+            );
           },
         );
 
@@ -611,6 +630,37 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     }
     if (result.firstExample != null && _exampleController.text.isEmpty) {
       _exampleController.text = result.firstExample!;
+    }
+  }
+
+  Future<void> _generateMnemonic(AiProvider provider, BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final word = _frontController.text.trim();
+    if (word.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.pleaseEnterWordFirst)),
+      );
+      return;
+    }
+    final deck = context.read<DeckProvider>().selectedDeck;
+    final lang = deck?.sourceLanguage ?? 'en';
+    
+    final result = await provider.generateMnemonic(word, lang);
+    if (result != null && mounted) {
+      // Append mnemonic to notes
+      final currentNotes = _notesController.text.trim();
+      if (currentNotes.isNotEmpty) {
+        _notesController.text = '$currentNotes\n\nMnemonic: $result';
+      } else {
+        _notesController.text = 'Mnemonic: $result';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.success), backgroundColor: AppColors.success),
+      );
+    } else if (provider.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.errorMessage!), backgroundColor: AppColors.error),
+      );
     }
   }
 

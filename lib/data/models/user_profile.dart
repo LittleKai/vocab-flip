@@ -128,39 +128,6 @@ class UserProfile {
     );
   }
 
-  /// Convert to Firestore document data.
-  /// Uses [cloudAvatarUrl] (Cloudinary URL) instead of local path.
-  Map<String, dynamic> toFirestore({String? cloudAvatarUrl}) {
-    return {
-      'nickname': nickname,
-      'gender': gender.name,
-      'avatar_index': avatarIndex,
-      'avatar_url': cloudAvatarUrl,
-      'bio': bio,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    };
-  }
-
-  /// Create UserProfile from Firestore document data.
-  factory UserProfile.fromFirestore(Map<String, dynamic> data) {
-    return UserProfile(
-      nickname: data['nickname'] as String?,
-      gender: Gender.values.firstWhere(
-        (g) => g.name == data['gender'],
-        orElse: () => Gender.preferNotToSay,
-      ),
-      avatarIndex: data['avatar_index'] as int? ?? 0,
-      // avatar_url from Firestore is a Cloudinary URL, not local path
-      // Local path will be set separately after downloading
-      bio: data['bio'] as String?,
-      updatedAt: data['updated_at'] != null
-          ? (data['updated_at'] is DateTime
-              ? data['updated_at'] as DateTime
-              : DateTime.tryParse(data['updated_at'].toString()))
-          : null,
-    );
-  }
-
   @override
   String toString() => 'UserProfile(nickname: $nickname, gender: ${gender.name}, avatar: $avatarIndex)';
 }

@@ -204,9 +204,6 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  /// Legacy method name retained for existing auth wiring.
-  Future<void> loadFromFirebase() => loadFromRemote();
-
   Future<void> loadFromRemote() async {
     if (!_authSession.isAuthenticated) return;
 

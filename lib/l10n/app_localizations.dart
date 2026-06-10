@@ -1358,6 +1358,30 @@ abstract class AppLocalizations {
   /// **'Weekly Activity'**
   String get weeklyActivity;
 
+  /// No description provided for @studyHeatmap.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Heatmap'**
+  String get studyHeatmap;
+
+  /// No description provided for @cardMastery.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Mastery'**
+  String get cardMastery;
+
+  /// No description provided for @learningCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get learningCards;
+
+  /// No description provided for @matureCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature'**
+  String get matureCards;
+
   /// No description provided for @deckProgress.
   ///
   /// In en, this message translates to:
@@ -3283,6 +3307,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} new'**
   String nNewFeedback(int count);
+
+  /// No description provided for @multipleChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple Choice'**
+  String get multipleChoice;
+
+  /// No description provided for @typeAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Type Answer'**
+  String get typeAnswer;
+
+  /// No description provided for @weakWords.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak Words Practice'**
+  String get weakWords;
+
+  /// No description provided for @weakWordsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice words you have struggled with'**
+  String get weakWordsDesc;
+
+  /// No description provided for @classicFlip.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic Flip'**
+  String get classicFlip;
+
+  /// No description provided for @studyMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Mode'**
+  String get studyMode;
+
+  /// No description provided for @typeYourAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your answer...'**
+  String get typeYourAnswer;
+
+  /// No description provided for @check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get check;
+
+  /// No description provided for @correct.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct!'**
+  String get correct;
+
+  /// No description provided for @incorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect!'**
+  String get incorrect;
+
+  /// No description provided for @startWeakWords.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Weak Words Practice'**
+  String get startWeakWords;
+
+  /// No description provided for @aiMnemonic.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Mnemonic'**
+  String get aiMnemonic;
+
+  /// No description provided for @generateMnemonic.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Mnemonic'**
+  String get generateMnemonic;
+
+  /// No description provided for @generatingMnemonic.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating...'**
+  String get generatingMnemonic;
+
+  /// No description provided for @addMnemonicToNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Notes'**
+  String get addMnemonicToNotes;
+
+  /// No description provided for @aiCardGenerator.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Card Generator'**
+  String get aiCardGenerator;
+
+  /// No description provided for @generateCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Cards'**
+  String get generateCards;
+
+  /// No description provided for @textToGenerateCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste text or article link here...'**
+  String get textToGenerateCards;
+
+  /// No description provided for @generatingCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating cards...'**
+  String get generatingCards;
+
+  /// No description provided for @reviewDraftCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Draft Cards'**
+  String get reviewDraftCards;
+
+  /// No description provided for @approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approve;
+
+  /// No description provided for @reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get reject;
+
+  /// No description provided for @saveApprovedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Approved Cards'**
+  String get saveApprovedCards;
+
+  /// No description provided for @selectDeckForCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Deck for Cards'**
+  String get selectDeckForCards;
+
+  /// No description provided for @allCardsReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'All cards reviewed!'**
+  String get allCardsReviewed;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See All'**
+  String get seeAll;
+
+  /// No description provided for @balanceCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance: {count} credits'**
+  String balanceCredits(int count);
+
+  /// No description provided for @topupCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up'**
+  String get topupCredit;
+
+  /// No description provided for @advancedLearningScience.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Learning Science'**
+  String get advancedLearningScience;
+
+  /// No description provided for @advancedLearningScienceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Semantic shuffle & fatigue detection (Experimental)'**
+  String get advancedLearningScienceDesc;
+
+  /// No description provided for @brainFatigueDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Brain Fatigue Detected'**
+  String get brainFatigueDetected;
+
+  /// No description provided for @brainFatigueDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You are answering very quickly and getting several incorrect. Taking a 5-minute break will help consolidate your memory.'**
+  String get brainFatigueDesc;
+
+  /// No description provided for @keepGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going'**
+  String get keepGoing;
+
+  /// No description provided for @takeABreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a break'**
+  String get takeABreak;
+
+  /// No description provided for @rateThisDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate this deck'**
+  String get rateThisDeck;
+
+  /// No description provided for @reviewOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Review (optional)'**
+  String get reviewOptional;
+
+  /// No description provided for @shareThoughts.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your thoughts about this deck...'**
+  String get shareThoughts;
+
+  /// No description provided for @couldNotLoadQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load QR code'**
+  String get couldNotLoadQr;
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
 }
 
 class _AppLocalizationsDelegate

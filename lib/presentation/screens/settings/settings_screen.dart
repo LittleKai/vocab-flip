@@ -1,4 +1,6 @@
-import 'dart:io' show File, Platform;
+// ignore_for_file: deprecated_member_use
+
+import 'dart:io' show File;
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -15,6 +17,7 @@ import '../../widgets/dialogs/helper_dialog.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/dialogs/profile_edit_dialog.dart';
 import '../../widgets/dialogs/feedback_dialog.dart';
+import '../../widgets/dialogs/login_dialog.dart';
 import '../../providers/admin_feedback_provider.dart';
 import 'backup_screen.dart';
 
@@ -41,382 +44,372 @@ class SettingsScreen extends StatelessWidget {
           // Always init to load version info (idempotent)
           updateProvider.init(settings.preferences);
           return ListView(
+            padding: const EdgeInsets.only(bottom: 40),
             children: [
+              _SettingsHero(settings: settings, auth: auth),
+              
               // Account & Profile section
-              _SectionHeader(title: l10n.account),
               Consumer<ProfileProvider>(
                 builder: (context, profileProvider, _) {
                   final profile = profileProvider.profile;
 
                   if (auth.isAuthenticated) {
-                    return Column(
+                    return _SettingsSection(
+                      title: l10n.account,
                       children: [
-                        // Sign out
-                        ListTile(
-                          leading: const Icon(Icons.logout, color: AppColors.error),
-                          title: Text(
-                            l10n.signOut,
-                            style: const TextStyle(color: AppColors.error),
-                          ),
-                          subtitle: Text(l10n.signedInAs(auth.email ?? '')),
-                          onTap: () => _confirmSignOut(context, auth, l10n),
-                        ),
-                        // Profile card
-                        ListTile(
-                          leading: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: ClipOval(
-                              child: profile.hasCustomAvatar
-                                  ? Image.file(
-                                      File(profile.customAvatarUrl!),
-                                      fit: BoxFit.cover,
-                                      width: 48,
-                                      height: 48,
-                                      errorBuilder: (_, __, ___) => Center(
-                                        child: Text(
-                                          profile.avatarEmoji,
-                                          style: const TextStyle(fontSize: 24),
-                                        ),
-                                      ),
-                                    )
-                                  : Center(
+                        _SettingsTile(
+                          leading: ClipOval(
+                            child: profile.hasCustomAvatar
+                                ? Image.file(
+                                    File(profile.customAvatarUrl!),
+                                    fit: BoxFit.cover,
+                                    width: 40,
+                                    height: 40,
+                                    errorBuilder: (_, __, ___) => Center(
                                       child: Text(
                                         profile.avatarEmoji,
-                                        style: const TextStyle(fontSize: 24),
+                                        style: const TextStyle(fontSize: 20),
                                       ),
                                     ),
-                            ),
-                          ),
-                          title: Text(
-                            profile.getDisplayName(auth.displayName ?? auth.email),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (profile.bio != null && profile.bio!.isNotEmpty)
-                                Text(
-                                  profile.bio!,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondaryLight,
+                                  )
+                                : Center(
+                                    child: Text(
+                                      profile.avatarEmoji,
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                            ],
                           ),
-                          trailing: const Icon(Icons.chevron_right),
+                          title: profile.getDisplayName(auth.displayName ?? auth.email),
+                          subtitle: (profile.bio?.isNotEmpty == true) ? profile.bio : l10n.signedInAs(auth.email ?? ''),
+                          trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
                           onTap: () => ProfileEditDialog.show(context),
                         ),
-                        // Wallet / Credit
-                        ListTile(
-                          leading: const Icon(Icons.monetization_on, color: Colors.orange),
-                          title: Text(
-                            'Balance: ${auth.balance} credits',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          trailing: ElevatedButton.icon(
-                            icon: const Icon(Icons.add),
-                            label: const Text('Nạp Credit'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                        const Divider(height: 1, indent: 70),
+                        _SettingsTile(
+                          leading: const Icon(Icons.monetization_on, color: Colors.orange, size: 22),
+                          title: l10n.balanceCredits(auth.balance),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              l10n.topupCredit,
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
                             ),
-                            onPressed: () => auth.openTopupWallet(),
                           ),
+                          onTap: () => auth.openTopupWallet(),
+                        ),
+                        const Divider(height: 1, indent: 70),
+                        _SettingsTile(
+                          leading: const Icon(Icons.logout, color: AppColors.error, size: 22),
+                          title: l10n.signOut,
+                          isDestructive: true,
+                          onTap: () => _confirmSignOut(context, auth, l10n),
                         ),
                       ],
                     );
                   } else {
-                    return ListTile(
-                      leading: const Icon(Icons.login),
-                      title: Text(l10n.signIn),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.pushNamed(context, '/login');
-                      },
+                    return _SettingsSection(
+                      title: l10n.account,
+                      children: [
+                        _SettingsTile(
+                          leading: const Icon(Icons.login, color: AppColors.primary, size: 22),
+                          title: l10n.signIn,
+                          trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => const LoginDialog(),
+                            );
+                          },
+                        ),
+                      ],
                     );
                   }
                 },
               ),
 
               // Admin section (only for admin user)
-              if (auth.isAdmin) ...[
-                const Divider(),
-                _SectionHeader(title: l10n.adminSection),
+              if (auth.isAdmin)
                 Consumer<AdminFeedbackProvider>(
                   builder: (context, adminProvider, _) {
-                    return ListTile(
-                      leading: const Icon(Icons.feedback),
-                      title: Text(l10n.adminFeedback),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (adminProvider.unreadCount > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
+                    return _SettingsSection(
+                      title: l10n.adminSection,
+                      children: [
+                        _SettingsTile(
+                          leading: const Icon(Icons.feedback, color: AppColors.primary, size: 22),
+                          title: l10n.adminFeedback,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (adminProvider.unreadCount > 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    l10n.nNewFeedback(adminProvider.unreadCount),
+                                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                                  ),
+                                ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                            ],
+                          ),
+                          onTap: () => Navigator.pushNamed(context, '/admin-feedback'),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+              // Appearance section
+              _SettingsSection(
+                title: l10n.appearance,
+                children: [
+                  _SettingsSwitchTile(
+                    leading: const Icon(Icons.dark_mode, color: AppColors.primary, size: 22),
+                    title: l10n.darkMode,
+                    subtitle: l10n.useDarkTheme,
+                    value: settings.isDarkMode,
+                    onChanged: (value) => settings.setDarkMode(value),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.language, color: AppColors.primary, size: 22),
+                    title: l10n.language,
+                    subtitle: settings.locale == 'vi' ? 'Tiếng Việt' : 'English',
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => _showLanguageDialog(context, settings),
+                  ),
+                ],
+              ),
+
+              // Study settings
+              _SettingsSection(
+                title: l10n.studySettings,
+                children: [
+                  _SettingsTile(
+                    leading: const Icon(Icons.fiber_new, color: AppColors.primary, size: 22),
+                    title: l10n.newCardsPerDay,
+                    subtitle: l10n.nCards(settings.newCardsPerDay),
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => _showNumberPicker(
+                      context,
+                      l10n.newCardsPerDay,
+                      settings.newCardsPerDay,
+                      (value) => settings.setNewCardsPerDay(value),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.replay, color: AppColors.primary, size: 22),
+                    title: l10n.reviewCardsPerDay,
+                    subtitle: l10n.nCards(settings.reviewCardsPerDay),
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => _showNumberPicker(
+                      context,
+                      l10n.reviewCardsPerDay,
+                      settings.reviewCardsPerDay,
+                      (value) => settings.setReviewCardsPerDay(value),
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsSwitchTile(
+                    leading: const Icon(Icons.record_voice_over, color: AppColors.primary, size: 22),
+                    title: l10n.showPhonetic,
+                    subtitle: l10n.displayPronunciation,
+                    value: settings.showPhonetic,
+                    onChanged: (value) => settings.setShowPhonetic(value),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsSwitchTile(
+                    leading: const Icon(Icons.volume_up, color: AppColors.primary, size: 22),
+                    title: l10n.autoPlayAudio,
+                    subtitle: l10n.automaticallyPlayPronunciation,
+                    value: settings.autoPlayAudio,
+                    onChanged: settings.setAutoPlayAudio,
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsSwitchTile(
+                    leading: const Icon(Icons.science, color: AppColors.primary, size: 22),
+                    title: l10n.advancedLearningScience,
+                    subtitle: l10n.advancedLearningScienceDesc,
+                    value: settings.advancedLearningScience,
+                    onChanged: settings.setAdvancedLearningScience,
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.photo_size_select_large, color: AppColors.primary, size: 22),
+                    title: l10n.flashcardImageSize,
+                    subtitle: '${settings.flashcardImageMaxWidth}px',
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => _showImageSizePicker(context, settings),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.text_fields, color: AppColors.primary, size: 22),
+                    title: l10n.flashcardFontSize,
+                    subtitle: l10n.fontSizePixels(settings.flashcardMainFontSize),
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => _showFontSizePicker(context, settings, l10n),
+                  ),
+                ],
+              ),
+
+              // Backup section
+              _SettingsSection(
+                title: l10n.backupSync,
+                children: [
+                  _SettingsTile(
+                    leading: const Icon(Icons.cloud, color: AppColors.primary, size: 22),
+                    title: l10n.googleDriveBackup,
+                    subtitle: l10n.saveDataToCloud,
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const BackupScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              // Support / Donate section
+              _SettingsSection(
+                title: l10n.support,
+                children: [
+                  _SettingsTile(
+                    leading: const Icon(Icons.favorite, color: Colors.pink, size: 22),
+                    title: l10n.donate,
+                    subtitle: l10n.donateDesc,
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => _showDonateDialog(context, l10n),
+                  ),
+                ],
+              ),
+
+              // About & Updates section
+              _SettingsSection(
+                title: l10n.about,
+                children: [
+                  _SettingsTile(
+                    leading: const Icon(Icons.info, color: AppColors.primary, size: 22),
+                    title: l10n.version,
+                    subtitle: updateProvider.currentVersion,
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.feedback, color: AppColors.primary, size: 22),
+                    title: l10n.sendFeedback,
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => FeedbackDialog.show(context),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.star, color: AppColors.primary, size: 22),
+                    title: l10n.rateApp,
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () {},
+                  ),
+                  if (!kIsWeb) ...[
+                    if (updateProvider.isAutoUpdateSupported) ...[
+                      const Divider(height: 1, indent: 70),
+                      _SettingsSwitchTile(
+                        leading: const Icon(Icons.update, color: AppColors.primary, size: 22),
+                        title: l10n.autoCheckUpdates,
+                        subtitle: l10n.autoCheckUpdatesDesc,
+                        value: updateProvider.autoCheckUpdates,
+                        onChanged: (value) => updateProvider.setAutoCheckUpdates(value),
+                      ),
+                    ],
+                    const Divider(height: 1, indent: 70),
+                    _SettingsTile(
+                      leading: updateProvider.isChecking
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                            )
+                          : const Icon(Icons.refresh, color: AppColors.primary, size: 22),
+                      title: l10n.checkForUpdates,
+                      subtitle: updateProvider.hasUpdate
+                          ? l10n.updateAvailableVersion(updateProvider.availableUpdate!.version)
+                          : l10n.checkingForUpdates,
+                      trailing: updateProvider.hasUpdate
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                l10n.nNewFeedback(adminProvider.unreadCount),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
+                                l10n.newLabel,
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
                               ),
-                            ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right),
-                        ],
-                      ),
-                      onTap: () => Navigator.pushNamed(context, '/admin-feedback'),
-                    );
-                  },
-                ),
-              ],
-
-              const Divider(),
-
-              // Appearance section
-              _SectionHeader(title: l10n.appearance),
-              SwitchListTile(
-                title: Text(l10n.darkMode),
-                subtitle: Text(l10n.useDarkTheme),
-                value: settings.isDarkMode,
-                onChanged: (value) => settings.setDarkMode(value),
-                secondary: const Icon(Icons.dark_mode),
-              ),
-              ListTile(
-                leading: const Icon(Icons.language),
-                title: Text(l10n.language),
-                subtitle: Text(settings.locale == 'vi' ? 'Tiếng Việt' : 'English'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showLanguageDialog(context, settings),
-              ),
-
-              const Divider(),
-
-              // Study settings
-              _SectionHeader(title: l10n.studySettings),
-              ListTile(
-                leading: const Icon(Icons.fiber_new),
-                title: Text(l10n.newCardsPerDay),
-                subtitle: Text(l10n.nCards(settings.newCardsPerDay)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showNumberPicker(
-                  context,
-                  l10n.newCardsPerDay,
-                  settings.newCardsPerDay,
-                  (value) => settings.setNewCardsPerDay(value),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.replay),
-                title: Text(l10n.reviewCardsPerDay),
-                subtitle: Text(l10n.nCards(settings.reviewCardsPerDay)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showNumberPicker(
-                  context,
-                  l10n.reviewCardsPerDay,
-                  settings.reviewCardsPerDay,
-                  (value) => settings.setReviewCardsPerDay(value),
-                ),
-              ),
-              SwitchListTile(
-                title: Text(l10n.showPhonetic),
-                subtitle: Text(l10n.displayPronunciation),
-                value: settings.showPhonetic,
-                onChanged: (value) => settings.setShowPhonetic(value),
-                secondary: const Icon(Icons.record_voice_over),
-              ),
-              SwitchListTile(
-                title: Text(l10n.autoPlayAudio),
-                subtitle: Text(l10n.automaticallyPlayPronunciation),
-                value: settings.autoPlayAudio,
-                onChanged: (value) => settings.setAutoPlayAudio(value),
-                secondary: const Icon(Icons.volume_up),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_size_select_large),
-                title: Text(l10n.flashcardImageSize),
-                subtitle: Text('${settings.flashcardImageMaxWidth}px'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showImageSizePicker(context, settings),
-              ),
-              ListTile(
-                leading: const Icon(Icons.text_fields),
-                title: Text(l10n.flashcardFontSize),
-                subtitle: Text(l10n.fontSizePixels(settings.flashcardMainFontSize)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showFontSizePicker(context, settings, l10n),
-              ),
-
-              const Divider(),
-
-              // Backup section
-              _SectionHeader(title: l10n.backupSync),
-              ListTile(
-                leading: const Icon(Icons.cloud),
-                title: Text(l10n.googleDriveBackup),
-                subtitle: Text(l10n.saveDataToCloud),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const BackupScreen()),
-                  );
-                },
-              ),
-
-              const Divider(),
-
-              // About section
-              _SectionHeader(title: l10n.about),
-              ListTile(
-                leading: const Icon(Icons.info),
-                title: Text(l10n.version),
-                subtitle: Text(updateProvider.currentVersion),
-              ),
-              ListTile(
-                leading: const Icon(Icons.feedback),
-                title: Text(l10n.sendFeedback),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  FeedbackDialog.show(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.star),
-                title: Text(l10n.rateApp),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  // TODO: Implement rate app
-                },
-              ),
-
-              const Divider(),
-
-              // Support / Donate section
-              _SectionHeader(title: l10n.support),
-              ListTile(
-                leading: const Icon(Icons.favorite, color: Colors.pink),
-                title: Text(l10n.donate),
-                subtitle: Text(l10n.donateDesc),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showDonateDialog(context, l10n),
-              ),
-
-              // Updates section
-              if (!kIsWeb) ...[
-                const Divider(),
-                _SectionHeader(title: l10n.updates),
-                if (updateProvider.isAutoUpdateSupported)
-                  SwitchListTile(
-                    title: Text(l10n.autoCheckUpdates),
-                    subtitle: Text(l10n.autoCheckUpdatesDesc),
-                    value: updateProvider.autoCheckUpdates,
-                    onChanged: (value) => updateProvider.setAutoCheckUpdates(value),
-                    secondary: const Icon(Icons.update),
-                  ),
-                ListTile(
-                  leading: updateProvider.isChecking
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.refresh),
-                  title: Text(l10n.checkForUpdates),
-                  subtitle: Text(
-                    updateProvider.hasUpdate
-                        ? l10n.updateAvailableVersion(
-                            updateProvider.availableUpdate!.version)
-                        : l10n.checkingForUpdates,
-                  ),
-                  trailing: updateProvider.hasUpdate
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            l10n.newLabel,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        )
-                      : const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    if (updateProvider.hasUpdate) {
-                      if (updateProvider.isAutoUpdateSupported) {
-                        UpdateDialog.show(
-                          context,
-                          version: updateProvider.availableUpdate!,
-                          isMandatory: updateProvider.availableUpdate!.isMandatory,
-                        );
-                      } else {
-                        await updateProvider.openReleasesPage();
-                      }
-                    } else {
-                      await updateProvider.checkForUpdates();
-                      if (context.mounted) {
+                            )
+                          : const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                      onTap: () async {
+                        // Same logic
                         if (updateProvider.hasUpdate) {
                           if (updateProvider.isAutoUpdateSupported) {
                             UpdateDialog.show(
                               context,
                               version: updateProvider.availableUpdate!,
-                              isMandatory:
-                                  updateProvider.availableUpdate!.isMandatory,
+                              isMandatory: updateProvider.availableUpdate!.isMandatory,
                             );
                           } else {
                             await updateProvider.openReleasesPage();
                           }
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.noUpdatesAvailable)),
-                          );
+                          await updateProvider.checkForUpdates();
+                          if (context.mounted) {
+                            if (updateProvider.hasUpdate) {
+                              if (updateProvider.isAutoUpdateSupported) {
+                                UpdateDialog.show(
+                                  context,
+                                  version: updateProvider.availableUpdate!,
+                                  isMandatory: updateProvider.availableUpdate!.isMandatory,
+                                );
+                              } else {
+                                await updateProvider.openReleasesPage();
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(l10n.noUpdatesAvailable)),
+                              );
+                            }
+                          }
                         }
-                      }
-                    }
-                  },
-                ),
-              ],
-
-              const Divider(),
-
-              // Danger zone
-              _SectionHeader(title: l10n.dangerZone, color: AppColors.error),
-              ListTile(
-                leading: const Icon(Icons.delete_forever, color: AppColors.error),
-                title: Text(
-                  l10n.resetAllData,
-                  style: const TextStyle(color: AppColors.error),
-                ),
-                subtitle: Text(l10n.deleteAllData),
-                onTap: () => _confirmReset(context),
+                      },
+                    ),
+                  ],
+                ],
               ),
 
-              const SizedBox(height: 32),
+              // Danger zone
+              _SettingsSection(
+                title: l10n.dangerZone,
+                color: AppColors.error,
+                children: [
+                  _SettingsTile(
+                    leading: const Icon(Icons.delete_forever, color: AppColors.error, size: 22),
+                    title: l10n.resetAllData,
+                    subtitle: l10n.deleteAllData,
+                    isDestructive: true,
+                    onTap: () => _confirmReset(context),
+                  ),
+                ],
+              ),
             ],
           );
         },
@@ -430,27 +423,45 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.selectLanguage),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(l10n.selectLanguage, style: const TextStyle(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RadioListTile<String>(
-              title: const Text('Tiếng Việt'),
-              value: 'vi',
-              groupValue: settings.locale,
-              onChanged: (value) {
-                settings.setLocale(value!);
-                Navigator.pop(context);
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: settings.locale == 'vi' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: RadioListTile<String>(
+                title: const Text('Tiếng Việt', style: TextStyle(fontWeight: FontWeight.w600)),
+                value: 'vi',
+                groupValue: settings.locale,
+                activeColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                onChanged: (value) {
+                  settings.setLocale(value!);
+                  Navigator.pop(context);
+                },
+              ),
             ),
-            RadioListTile<String>(
-              title: const Text('English'),
-              value: 'en',
-              groupValue: settings.locale,
-              onChanged: (value) {
-                settings.setLocale(value!);
-                Navigator.pop(context);
-              },
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: settings.locale == 'en' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: RadioListTile<String>(
+                title: const Text('English', style: TextStyle(fontWeight: FontWeight.w600)),
+                value: 'en',
+                groupValue: settings.locale,
+                activeColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                onChanged: (value) {
+                  settings.setLocale(value!);
+                  Navigator.pop(context);
+                },
+              ),
             ),
           ],
         ),
@@ -465,16 +476,22 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.flashcardImageSize),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(l10n.flashcardImageSize, style: const TextStyle(fontWeight: FontWeight.bold)),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: sizes.map((size) {
             return RadioListTile<int>(
-              title: Text('${size}px'),
-              subtitle: Text(size <= 600 ? l10n.recommendedForMobile :
-                           size >= 1000 ? l10n.recommendedForDesktop : l10n.balanced),
+              title: Text('${size}px', style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(size <= 600
+                  ? l10n.recommendedForMobile
+                  : size >= 1000
+                      ? l10n.recommendedForDesktop
+                      : l10n.balanced),
               value: size,
               groupValue: settings.flashcardImageMaxWidth,
+              activeColor: AppColors.primary,
               onChanged: (value) {
                 if (value != null) {
                   settings.setFlashcardImageMaxWidth(value);
@@ -488,19 +505,21 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showFontSizePicker(BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
+  void _showFontSizePicker(
+      BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(l10n.flashcardFontSize),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text(l10n.flashcardFontSize, style: const TextStyle(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Main text size
-                Text(l10n.mainTextSize, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.mainTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
                 _FontSizeSlider(
                   value: settings.flashcardMainFontSize,
                   min: 20,
@@ -510,10 +529,10 @@ class SettingsScreen extends StatelessWidget {
                     setState(() {});
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Phonetic text size
-                Text(l10n.phoneticTextSize, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.phoneticTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
                 _FontSizeSlider(
                   value: settings.flashcardPhoneticFontSize,
                   min: 14,
@@ -523,10 +542,10 @@ class SettingsScreen extends StatelessWidget {
                     setState(() {});
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Detail text size (example/note)
-                Text(l10n.detailTextSize, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.detailTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
                 _FontSizeSlider(
                   value: settings.flashcardDetailFontSize,
                   min: 12,
@@ -539,10 +558,18 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(l10n.done),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(l10n.done, style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -562,18 +589,32 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: l10n.numberOfCards,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
           ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -583,31 +624,47 @@ class SettingsScreen extends StatelessWidget {
                 Navigator.pop(context);
               }
             },
-            child: Text(l10n.save),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: Text(l10n.save, style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  void _confirmSignOut(BuildContext context, AuthProvider auth, AppLocalizations l10n) {
+  void _confirmSignOut(
+      BuildContext context, AuthProvider auth, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.signOut),
-        content: Text(l10n.signOutConfirm),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(l10n.signOut, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(l10n.signOutConfirm, style: const TextStyle(fontSize: 16)),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               await auth.signOut();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(l10n.signOut),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: Text(l10n.signOut, style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -620,12 +677,14 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.resetConfirmTitle),
-        content: Text(l10n.resetConfirmMessage),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(l10n.resetConfirmTitle, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.error)),
+        content: Text(l10n.resetConfirmMessage, style: const TextStyle(fontSize: 16)),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -635,8 +694,14 @@ class SettingsScreen extends StatelessWidget {
                 SnackBar(content: Text(l10n.dataReset)),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(l10n.reset),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: Text(l10n.reset, style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -647,11 +712,19 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            const Icon(Icons.favorite, color: Colors.pink),
-            const SizedBox(width: 8),
-            Text(l10n.donate),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.pink.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.favorite, color: Colors.pink, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Text(l10n.donate, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
@@ -660,28 +733,38 @@ class SettingsScreen extends StatelessWidget {
             Text(
               l10n.donateMessage,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 15),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Container(
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
                   'https://img.vietqr.io/image/VCB-0071000718658-compact.png',
-                  width: 250,
-                  height: 250,
+                  width: 220,
+                  height: 220,
                   fit: BoxFit.contain,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return SizedBox(
-                      width: 250,
-                      height: 250,
+                      width: 220,
+                      height: 220,
                       child: Center(
                         child: CircularProgressIndicator(
+                          color: AppColors.primary,
                           value: loadingProgress.expectedTotalBytes != null
                               ? loadingProgress.cumulativeBytesLoaded /
                                   loadingProgress.expectedTotalBytes!
@@ -692,15 +775,15 @@ class SettingsScreen extends StatelessWidget {
                   },
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
-                      width: 250,
-                      height: 250,
-                      color: Colors.grey[200],
-                      child: const Column(
+                      width: 220,
+                      height: 220,
+                      color: Colors.grey[100],
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                          SizedBox(height: 8),
-                          Text('Could not load QR code'),
+                          const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                          const SizedBox(height: 12),
+                          Text(l10n.couldNotLoadQr, style: const TextStyle(color: Colors.grey)),
                         ],
                       ),
                     );
@@ -708,25 +791,34 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               l10n.donateBank,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondaryLight,
+                    color: AppColors.textSecondary(context),
+                    fontWeight: FontWeight.w500,
                   ),
               textAlign: TextAlign.center,
             ),
           ],
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         actions: [
-          TextButton.icon(
-            onPressed: () => _saveQrImage(context, l10n),
-            icon: const Icon(Icons.download),
-            label: Text(l10n.saveQrImage),
-          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close),
+            child: Text(l10n.close, style: const TextStyle(fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => _saveQrImage(context, l10n),
+            icon: const Icon(Icons.download, size: 18),
+            label: Text(l10n.saveQrImage, style: const TextStyle(fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
           ),
         ],
       ),
@@ -766,23 +858,265 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
+class _SettingsSection extends StatelessWidget {
   final String title;
+  final List<Widget> children;
   final Color? color;
 
-  const _SectionHeader({required this.title, this.color});
+  const _SettingsSection({
+    required this.title,
+    required this.children,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: color ?? AppColors.textSecondaryLight,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              title.toUpperCase(),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: color ?? AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
             ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.primary.withOpacity(0.06)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Column(
+                children: children,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool isDestructive;
+
+  const _SettingsTile({
+    required this.leading,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.isDestructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = isDestructive ? AppColors.error : AppColors.textPrimary(context);
+    final subtitleColor = isDestructive ? AppColors.error.withOpacity(0.7) : AppColors.textSecondary(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: (isDestructive ? AppColors.error : AppColors.primary).withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(child: leading),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: subtitleColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 12),
+                trailing!,
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsSwitchTile extends StatelessWidget {
+  final Widget leading;
+  final String title;
+  final String? subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SettingsSwitchTile({
+    required this.leading,
+    required this.title,
+    this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsTile(
+      leading: leading,
+      title: title,
+      subtitle: subtitle,
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppColors.primary,
+      ),
+      onTap: () => onChanged(!value),
+    );
+  }
+}
+
+
+class _SettingsHero extends StatelessWidget {
+  final SettingsProvider settings;
+  final AuthProvider auth;
+
+  const _SettingsHero({
+    required this.settings,
+    required this.auth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primaryDark,
+              AppColors.primary,
+              AppColors.secondaryDark,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.22),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+              ),
+              child: const Icon(
+                Icons.tune_rounded,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.settings,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    auth.isAuthenticated
+                        ? l10n.signedInAs(auth.email ?? '')
+                        : l10n.signIn,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.82),
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.13),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+              ),
+              child: Icon(
+                settings.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -809,7 +1143,7 @@ class _FontSizeSlider extends StatelessWidget {
           width: 45,
           child: Text(
             '${value}px',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.primary,
               fontWeight: FontWeight.w500,

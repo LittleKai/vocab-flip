@@ -41,8 +41,14 @@
         console.log("Đã nhận Token từ Alpha Studio");
         // Lưu token cho Flutter đọc ra
         window.localStorage.setItem('alpha_studio_token', token);
+        window.localStorage.setItem('vocabflip_auth_token', token);
       }
     });
+    // Tự động đồng bộ token khi mở tab mới trực tiếp
+    const sToken = window.localStorage.getItem('alpha_studio_token');
+    if (sToken) {
+      window.localStorage.setItem('vocabflip_auth_token', sToken);
+    }
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

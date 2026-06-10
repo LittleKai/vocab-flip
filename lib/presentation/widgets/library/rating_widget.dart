@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Widget for displaying and selecting star ratings
@@ -69,6 +70,7 @@ class RatingSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -87,7 +89,7 @@ class RatingSummary extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '$ratingCount reviews',
+              l10n.reviewsCount(ratingCount),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.textSecondaryLight,
                   ),
@@ -185,8 +187,9 @@ class _RatingDialogState extends State<RatingDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Rate this deck'),
+      title: Text(l10n.rateThisDeck),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -201,10 +204,10 @@ class _RatingDialogState extends State<RatingDialog> {
           const SizedBox(height: 16),
           TextField(
             controller: _reviewController,
-            decoration: const InputDecoration(
-              labelText: 'Review (optional)',
-              hintText: 'Share your thoughts about this deck...',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.reviewOptional,
+              hintText: l10n.shareThoughts,
+              border: const OutlineInputBorder(),
             ),
             maxLines: 3,
             maxLength: 500,
@@ -214,7 +217,7 @@ class _RatingDialogState extends State<RatingDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _rating > 0
@@ -228,7 +231,7 @@ class _RatingDialogState extends State<RatingDialog> {
                   Navigator.pop(context);
                 }
               : null,
-          child: const Text('Submit'),
+          child: Text(l10n.submit),
         ),
       ],
     );

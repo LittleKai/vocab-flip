@@ -17,10 +17,16 @@ class UpdateRepository {
     required String owner,
     required String repo,
     required AppPreferences preferences,
+    String? metadataUrl,
     GitHubReleaseApi? api,
     UpdateDownloadService? downloadService,
     UpdateInstallService? installService,
-  })  : _api = api ?? GitHubReleaseApi(owner: owner, repo: repo),
+  })  : _api = api ??
+            GitHubReleaseApi(
+              owner: owner,
+              repo: repo,
+              metadataUrl: metadataUrl,
+            ),
         _downloadService = downloadService ?? UpdateDownloadService(),
         _installService = installService ?? UpdateInstallService(),
         _preferences = preferences;
@@ -62,7 +68,8 @@ class UpdateRepository {
     final hoursSinceCheck = DateTime.now().difference(lastCheck).inHours;
     debugPrint('UpdateRepository: Last check was $hoursSinceCheck hours ago');
     if (hoursSinceCheck < 24) {
-      debugPrint('UpdateRepository: Skipping check (less than 24h since last check)');
+      debugPrint(
+          'UpdateRepository: Skipping check (less than 24h since last check)');
       return false;
     }
     return true;

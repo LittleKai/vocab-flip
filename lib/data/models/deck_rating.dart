@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Model for a deck rating (1-5 stars with optional review)
 class DeckRating {
@@ -43,32 +42,6 @@ class DeckRating {
       review: review ?? this.review,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      'public_deck_id': publicDeckId,
-      'user_id': userId,
-      'user_name': userName,
-      'rating': rating,
-      'review': review,
-      'created_at': Timestamp.fromDate(createdAt),
-      'updated_at': Timestamp.fromDate(updatedAt),
-    };
-  }
-
-  factory DeckRating.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return DeckRating(
-      id: doc.id,
-      publicDeckId: data['public_deck_id'] as String,
-      userId: data['user_id'] as String,
-      userName: data['user_name'] as String?,
-      rating: data['rating'] as int,
-      review: data['review'] as String?,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updated_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 

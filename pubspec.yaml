@@ -2,7 +2,7 @@ name: vocabflip
 description: "VocabFlip - Multi-language vocabulary learning flashcard app"
 publish_to: 'none'
 
-version: 1.1.5+1
+version: 1.1.6+2
 
 environment:
   sdk: ^3.5.1
@@ -23,11 +23,6 @@ dependencies:
   sqflite_common_ffi: ^2.4.0
   sqlite3_flutter_libs: ^0.5.0
   path: ^1.9.0
-
-  # Firebase
-  firebase_core: ^3.8.0
-  firebase_auth: ^5.3.0
-  cloud_firestore: ^5.5.0
 
   # Network
   http: ^1.2.0
@@ -65,6 +60,8 @@ dependencies:
   extension_google_sign_in_as_googleapis_auth: ^2.0.0
   url_launcher: ^6.2.5
   flutter_secure_storage: ^10.0.0
+  fsrs: ^2.0.1
+  curved_labeled_navigation_bar: ^2.0.6
 
 dev_dependencies:
   flutter_test:

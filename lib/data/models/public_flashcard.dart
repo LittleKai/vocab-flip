@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'flashcard.dart';
 
 /// Model for a flashcard in a public deck
@@ -86,44 +85,6 @@ class PublicFlashcard {
     tags: tags,
   );
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'public_deck_id': publicDeckId,
-      'front': front,
-      'front_phonetic': frontPhonetic,
-      'back': back,
-      'example': example,
-      'notes': notes,
-      'tags': tags,
-      'order': order,
-      'front_image_url': frontImageUrl,
-      'back_image_url': backImageUrl,
-      'share_image': shareImage,
-      'created_at': Timestamp.fromDate(createdAt),
-      'updated_at': Timestamp.fromDate(updatedAt),
-    };
-  }
-
-  factory PublicFlashcard.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return PublicFlashcard(
-      id: doc.id,
-      publicDeckId: data['public_deck_id'] as String,
-      front: data['front'] as String,
-      frontPhonetic: data['front_phonetic'] as String?,
-      back: data['back'] as String,
-      example: data['example'] as String?,
-      notes: data['notes'] as String?,
-      tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
-      order: data['order'] as int? ?? 0,
-      frontImageUrl: data['front_image_url'] as String?,
-      backImageUrl: data['back_image_url'] as String?,
-      shareImage: data['share_image'] as bool? ?? true,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updated_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-    );
-  }
-
   /// Create from REST API response (Map with parsed values)
   factory PublicFlashcard.fromMap(Map<String, dynamic> data) {
     return PublicFlashcard(
@@ -147,7 +108,6 @@ class PublicFlashcard {
   static DateTime _parseDateTime(dynamic value) {
     if (value == null) return DateTime.now();
     if (value is DateTime) return value;
-    if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
     return DateTime.now();
   }

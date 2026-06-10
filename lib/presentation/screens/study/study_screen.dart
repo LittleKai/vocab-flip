@@ -8,6 +8,14 @@ import '../../../core/constants/supported_languages.dart';
 import '../../providers/study_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/flashcard/flip_card.dart';
+import '../../widgets/flashcard/multiple_choice_card.dart';
+import '../../widgets/flashcard/type_answer_card.dart';
+
+enum StudyMode {
+  classic,
+  multipleChoice,
+  typeAnswer,
+}
 
 class StudyScreen extends StatefulWidget {
   final String deckId;
@@ -21,6 +29,7 @@ class StudyScreen extends StatefulWidget {
 class _StudyScreenState extends State<StudyScreen> {
   final FlipCardController _flipController = FlipCardController();
   final TtsService _ttsService = TtsService();
+  StudyMode _currentMode = StudyMode.classic;
 
   @override
   void initState() {
@@ -46,8 +55,15 @@ class _StudyScreenState extends State<StudyScreen> {
       builder: (context, studyProvider, deckProvider, child) {
         final deck = deckProvider.selectedDeck;
 
-        return Scaffold(
-          appBar: AppBar(
+        return PopScope(
+          canPop: studyProvider.state == StudyState.idle ||
+              studyProvider.state == StudyState.completed,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            _confirmExit(context, studyProvider);
+          },
+          child: Scaffold(
+            appBar: AppBar(
             title: Text(deck?.name ?? l10n.study),
             leading: IconButton(
               icon: const Icon(Icons.close),
@@ -56,6 +72,29 @@ class _StudyScreenState extends State<StudyScreen> {
             actions: [
               if (studyProvider.state == StudyState.studying ||
                   studyProvider.state == StudyState.showingAnswer) ...[
+                PopupMenuButton<StudyMode>(
+                  icon: const Icon(Icons.tune),
+                  tooltip: l10n.studyMode,
+                  onSelected: (StudyMode mode) {
+                    setState(() {
+                      _currentMode = mode;
+                    });
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<StudyMode>>[
+                    PopupMenuItem<StudyMode>(
+                      value: StudyMode.classic,
+                      child: Text(l10n.classicFlip),
+                    ),
+                    PopupMenuItem<StudyMode>(
+                      value: StudyMode.multipleChoice,
+                      child: Text(l10n.multipleChoice),
+                    ),
+                    PopupMenuItem<StudyMode>(
+                      value: StudyMode.typeAnswer,
+                      child: Text(l10n.typeAnswer),
+                    ),
+                  ],
+                ),
                 IconButton(
                   icon: const Icon(Icons.shuffle),
                   onPressed: () => studyProvider.shuffleCards(),
@@ -70,6 +109,7 @@ class _StudyScreenState extends State<StudyScreen> {
             ],
           ),
           body: _buildBody(context, studyProvider, deck),
+          ),
         );
       },
     );
@@ -172,41 +212,7 @@ class _StudyScreenState extends State<StudyScreen> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: FlipCard(
-              controller: _flipController,
-              isFlipped: provider.state == StudyState.showingAnswer,
-              onFlip: () {
-                // Only trigger on first flip (front to back)
-                if (provider.state == StudyState.studying) {
-                  provider.showAnswer();
-                  // Auto-play TTS only on first flip
-                  if (deck?.autoPlayTtsOnFlip == true) {
-                    _speakWord(card.front, deck?.sourceLanguage ?? 'en');
-                  }
-                }
-              },
-              front: FlashcardFace(
-                text: card.front,
-                phonetic: card.frontPhonetic,
-                imageUrl: card.effectiveFrontImageUrl,
-                isFront: true,
-                onAudioPlay: () => _speakWord(
-                  card.front,
-                  deck?.sourceLanguage ?? 'en',
-                ),
-              ),
-              back: FlashcardFace(
-                text: card.back,
-                subtitle: card.example,
-                imageUrl: card.effectiveBackImageUrl,
-                isFront: false,
-                // Only speak word, not meaning
-                onAudioPlay: () => _speakWord(
-                  card.front,
-                  deck?.sourceLanguage ?? 'en',
-                ),
-              ),
-            ),
+            child: _buildCardWidget(context, provider, deck),
           ),
         ),
 
@@ -215,22 +221,88 @@ class _StudyScreenState extends State<StudyScreen> {
           top: false,
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: provider.state == StudyState.studying
-                ? SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => provider.showAnswer(),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(l10n.showAnswer),
-                      ),
-                    ),
-                  )
-                : _buildRatingButtons(context, provider),
+            child: _currentMode == StudyMode.classic
+                ? (provider.state == StudyState.studying
+                    ? SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => provider.showAnswer(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(l10n.showAnswer),
+                          ),
+                        ),
+                      )
+                    : _buildRatingButtons(context, provider))
+                : const SizedBox.shrink(), // Multiple choice and Type Answer have their own logic
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildCardWidget(
+    BuildContext context,
+    StudyProvider provider,
+    dynamic deck,
+  ) {
+    final card = provider.currentCard;
+    if (card == null) return const SizedBox.shrink();
+
+    switch (_currentMode) {
+      case StudyMode.multipleChoice:
+        return MultipleChoiceCard(
+          card: card,
+          allCards: provider.studyQueue,
+          onAnswerSelected: (isCorrect) {
+            _rateCard(provider, isCorrect ? ReviewRating.good : ReviewRating.again);
+          },
+        );
+      case StudyMode.typeAnswer:
+        return TypeAnswerCard(
+          card: card,
+          onAnswerSelected: (isCorrect) {
+            _rateCard(provider, isCorrect ? ReviewRating.good : ReviewRating.again);
+          },
+        );
+      case StudyMode.classic:
+      default:
+        return FlipCard(
+          controller: _flipController,
+          isFlipped: provider.state == StudyState.showingAnswer,
+          onFlip: () {
+            // Only trigger on first flip (front to back)
+            if (provider.state == StudyState.studying) {
+              provider.showAnswer();
+              // Auto-play TTS only on first flip
+              if (deck?.autoPlayTtsOnFlip == true) {
+                _speakWord(card.front, deck?.sourceLanguage ?? 'en');
+              }
+            }
+          },
+          front: FlashcardFace(
+            text: card.front,
+            phonetic: card.frontPhonetic,
+            imageUrl: card.effectiveFrontImageUrl,
+            isFront: true,
+            onAudioPlay: () => _speakWord(
+              card.front,
+              deck?.sourceLanguage ?? 'en',
+            ),
+          ),
+          back: FlashcardFace(
+            text: card.back,
+            subtitle: card.example,
+            imageUrl: card.effectiveBackImageUrl,
+            isFront: false,
+            // Only speak word, not meaning
+            onAudioPlay: () => _speakWord(
+              card.front,
+              deck?.sourceLanguage ?? 'en',
+            ),
+          ),
+        );
+    }
   }
 
   Widget _buildRatingButtons(BuildContext context, StudyProvider provider) {
@@ -247,7 +319,7 @@ class _StudyScreenState extends State<StudyScreen> {
             onPressed: () => _rateCard(provider, ReviewRating.again),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         Expanded(
           child: _RatingButton(
             label: l10n.hard,
@@ -256,7 +328,7 @@ class _StudyScreenState extends State<StudyScreen> {
             onPressed: () => _rateCard(provider, ReviewRating.hard),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         Expanded(
           child: _RatingButton(
             label: l10n.good,
@@ -265,7 +337,7 @@ class _StudyScreenState extends State<StudyScreen> {
             onPressed: () => _rateCard(provider, ReviewRating.good),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         Expanded(
           child: _RatingButton(
             label: l10n.easy,
@@ -278,9 +350,36 @@ class _StudyScreenState extends State<StudyScreen> {
     );
   }
 
-  void _rateCard(StudyProvider provider, ReviewRating rating) {
-    provider.rateCard(rating);
+  void _rateCard(StudyProvider provider, ReviewRating rating) async {
+    await provider.rateCard(rating);
     _flipController.reset();
+
+    if (!mounted) return;
+
+    if (provider.isFatigued) {
+      provider.resetFatigue();
+      final l10n = AppLocalizations.of(context)!;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.brainFatigueDetected),
+          content: Text(l10n.brainFatigueDesc),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.keepGoing),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Go back to deck list or previous screen
+              },
+              child: Text(l10n.takeABreak),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildCompletedView(BuildContext context, StudyProvider provider) {
@@ -377,7 +476,9 @@ class _StudyScreenState extends State<StudyScreen> {
 
     if (provider.cardsStudied == 0) {
       provider.reset();
-      Navigator.pop(context);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) Navigator.pop(context);
+      });
       return;
     }
 
@@ -392,10 +493,12 @@ class _StudyScreenState extends State<StudyScreen> {
             child: Text(l10n.continueSession),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              provider.reset();
-              Navigator.pop(context);
+              await provider.saveAndCompleteSession();
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
             child: Text(l10n.endSession),
           ),
@@ -453,24 +556,32 @@ class _RatingButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        backgroundColor: color.withOpacity(0.15),
+        foregroundColor: color,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: color,
+              fontSize: 16,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             _formatInterval(interval),
             style: TextStyle(
-              fontSize: 10,
-              color: Colors.white.withOpacity(0.8),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color.withOpacity(0.7),
             ),
           ),
         ],

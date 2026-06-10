@@ -3,6 +3,8 @@ import '../../data/models/imported_deck_link.dart';
 import '../../data/models/sync_notification.dart';
 import '../../data/models/public_deck.dart';
 import '../../data/repositories/public_library_repository.dart';
+import '../../data/services/sync_queue_service.dart';
+import '../../data/local/preferences/app_preferences.dart';
 
 /// State for sync operations
 enum SyncState {
@@ -30,6 +32,8 @@ class DeckUpdate {
 /// Provider for sync management
 class SyncProvider extends ChangeNotifier {
   final PublicLibraryRepository _repository = PublicLibraryRepository();
+  final SyncQueueService _syncQueueService = SyncQueueService();
+  final AppPreferences _prefs = AppPreferences();
 
   // State
   SyncState _state = SyncState.idle;
@@ -57,6 +61,13 @@ class SyncProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Opportunistically push offline changes when checking for updates
+      try {
+        await _syncQueueService.syncPendingItems();
+      } catch (e) {
+        debugPrint('SyncQueue push failed during check: $e');
+      }
+
       final updates = await _repository.checkForUpdates();
       _availableUpdates = updates
           .map((u) => DeckUpdate(link: u.link, publicDeck: u.deck))
@@ -126,11 +137,20 @@ class SyncProvider extends ChangeNotifier {
     }
   }
 
-  /// Sync all decks with available updates
+  /// Sync all decks with available updates and push pending queue
   Future<void> syncAll() async {
     _state = SyncState.syncing;
     _error = null;
     notifyListeners();
+
+    // Push local offline changes first
+    try {
+      await _syncQueueService.syncPendingItems();
+      await _prefs.setLastSyncCursor(DateTime.now());
+    } catch (e) {
+      debugPrint('SyncQueue push failed: $e');
+      // We might still want to continue to pull down updates
+    }
 
     final toSync = List<DeckUpdate>.from(_availableUpdates);
     final errors = <String>[];

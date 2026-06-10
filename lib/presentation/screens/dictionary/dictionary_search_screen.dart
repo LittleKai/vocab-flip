@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
@@ -45,142 +47,180 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
               // Search bar and options
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Language selector + conversion buttons + settings
-                    Row(
-                      children: [
-                        // Language dropdown
-                        DropdownButton<SupportedLanguage>(
-                          value: provider.selectedLanguage,
-                          underline: const SizedBox(),
-                          isDense: true,
-                          items: [
-                            SupportedLanguage.english,
-                            SupportedLanguage.japanese,
-                            SupportedLanguage.chinese,
-                          ].map((lang) {
-                            return DropdownMenuItem(
-                              value: lang,
-                              child: Text(lang.nameEn, style: const TextStyle(fontSize: 14)),
-                            );
-                          }).toList(),
-                          onChanged: (lang) {
-                            if (lang != null) {
-                              provider.setLanguage(lang);
-                            }
-                          },
-                        ),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.14),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Language selector + conversion buttons + settings
+                      Row(
+                        children: [
+                          // Language dropdown
+                          DropdownButton<SupportedLanguage>(
+                            value: provider.selectedLanguage,
+                            underline: const SizedBox(),
+                            isDense: true,
+                            items: [
+                              SupportedLanguage.english,
+                              SupportedLanguage.japanese,
+                              SupportedLanguage.chinese,
+                            ].map((lang) {
+                              return DropdownMenuItem(
+                                value: lang,
+                                child: Text(lang.nameEn,
+                                    style: const TextStyle(fontSize: 14)),
+                              );
+                            }).toList(),
+                            onChanged: (lang) {
+                              if (lang != null) {
+                                provider.setLanguage(lang);
+                              }
+                            },
+                          ),
 
-                        // Conversion buttons for Japanese
-                        if (provider.selectedLanguage == SupportedLanguage.japanese) ...[
-                          const SizedBox(width: 8),
-                          _ConversionButton(
-                            label: 'あ',
-                            tooltip: 'Hiragana',
-                            onPressed: _searchController.text.isNotEmpty
-                                ? () => _convertToKana(toKatakana: false)
-                                : null,
-                          ),
-                          const SizedBox(width: 4),
-                          _ConversionButton(
-                            label: 'ア',
-                            tooltip: 'Katakana',
-                            onPressed: _searchController.text.isNotEmpty
-                                ? () => _convertToKana(toKatakana: true)
-                                : null,
-                          ),
-                          const SizedBox(width: 4),
-                          _ConversionButton(
-                            label: '漢',
-                            tooltip: 'Kanji',
-                            isLoading: _loadingKanji,
-                            onPressed: _searchController.text.isNotEmpty
-                                ? () => _showKanjiSuggestions(context, provider, _resultLimit)
-                                : null,
+                          // Conversion buttons for Japanese
+                          if (provider.selectedLanguage ==
+                              SupportedLanguage.japanese) ...[
+                            const SizedBox(width: 8),
+                            _ConversionButton(
+                              label: 'あ',
+                              tooltip: 'Hiragana',
+                              onPressed: _searchController.text.isNotEmpty
+                                  ? () => _convertToKana(toKatakana: false)
+                                  : null,
+                            ),
+                            const SizedBox(width: 4),
+                            _ConversionButton(
+                              label: 'ア',
+                              tooltip: 'Katakana',
+                              onPressed: _searchController.text.isNotEmpty
+                                  ? () => _convertToKana(toKatakana: true)
+                                  : null,
+                            ),
+                            const SizedBox(width: 4),
+                            _ConversionButton(
+                              label: '漢',
+                              tooltip: 'Kanji',
+                              isLoading: _loadingKanji,
+                              onPressed: _searchController.text.isNotEmpty
+                                  ? () => _showKanjiSuggestions(
+                                      context, provider, _resultLimit)
+                                  : null,
+                            ),
+                          ],
+
+                          const Spacer(),
+
+                          // Settings button with result count
+                          InkWell(
+                            onTap: () => _showSettingsDialog(context),
+                            borderRadius: BorderRadius.circular(999),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.08),
+                                border: Border.all(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.18),
+                                ),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.tune, size: 16),
+                                  const SizedBox(width: 4),
+                                  Text('$_resultLimit',
+                                      style: const TextStyle(fontSize: 12)),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
 
-                        const Spacer(),
-
-                        // Settings button with result count
-                        InkWell(
-                          onTap: () => _showSettingsDialog(context),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.textSecondaryLight),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.tune, size: 16),
-                                const SizedBox(width: 4),
-                                Text('$_resultLimit', style: const TextStyle(fontSize: 12)),
-                              ],
-                            ),
+                      // Search field
+                      TextField(
+                        controller: _searchController,
+                        focusNode: _focusNode,
+                        decoration: InputDecoration(
+                          hintText: l10n.searchForWord,
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: AppColors.primary.withValues(alpha: 0.06),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
                           ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    provider.clearResults();
+                                    setState(() {
+                                      _kanjiSuggestions = [];
+                                    });
+                                  },
+                                )
+                              : null,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
+                        onSubmitted: (_) => _search(provider),
+                        onChanged: (value) {
+                          setState(() {});
+                        },
+                      ),
 
-                    // Search field
-                    TextField(
-                      controller: _searchController,
-                      focusNode: _focusNode,
-                      decoration: InputDecoration(
-                        hintText: l10n.searchForWord,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
+                      // Kanji suggestions
+                      if (_kanjiSuggestions.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 40,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _kanjiSuggestions.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 8),
+                            itemBuilder: (context, index) {
+                              final kanji = _kanjiSuggestions[index];
+                              return ActionChip(
+                                label: Text(kanji,
+                                    style: const TextStyle(fontSize: 16)),
                                 onPressed: () {
-                                  _searchController.clear();
-                                  provider.clearResults();
+                                  _searchController.text = kanji;
+                                  _searchController.selection =
+                                      TextSelection.collapsed(
+                                    offset: kanji.length,
+                                  );
                                   setState(() {
                                     _kanjiSuggestions = [];
                                   });
                                 },
-                              )
-                            : null,
-                      ),
-                      onSubmitted: (_) => _search(provider),
-                      onChanged: (value) {
-                        setState(() {});
-                      },
-                    ),
-
-                    // Kanji suggestions
-                    if (_kanjiSuggestions.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 40,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _kanjiSuggestions.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final kanji = _kanjiSuggestions[index];
-                            return ActionChip(
-                              label: Text(kanji, style: const TextStyle(fontSize: 16)),
-                              onPressed: () {
-                                _searchController.text = kanji;
-                                _searchController.selection = TextSelection.collapsed(
-                                  offset: kanji.length,
-                                );
-                                setState(() {
-                                  _kanjiSuggestions = [];
-                                });
-                              },
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
 
@@ -190,7 +230,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: provider.isLoading ? null : () => _search(provider),
+                    onPressed:
+                        provider.isLoading ? null : () => _search(provider),
                     icon: provider.isLoading
                         ? const SizedBox(
                             width: 20,
@@ -199,6 +240,10 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                           )
                         : const Icon(Icons.search),
                     label: Text(l10n.lookUp),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ),
@@ -229,7 +274,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     final value = _searchController.text;
     if (value.isEmpty) return;
 
-    final converted = RomajiConverter.convertToKana(value, toKatakana: toKatakana);
+    final converted =
+        RomajiConverter.convertToKana(value, toKatakana: toKatakana);
     if (converted != value) {
       _searchController.value = TextEditingValue(
         text: converted,
@@ -240,7 +286,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
   }
 
   /// Show Kanji suggestions from dictionary search
-  Future<void> _showKanjiSuggestions(BuildContext context, DictionaryProvider provider, int limit) async {
+  Future<void> _showKanjiSuggestions(
+      BuildContext context, DictionaryProvider provider, int limit) async {
     final query = _searchController.text.trim();
     if (query.isEmpty) return;
 
@@ -251,7 +298,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
 
     try {
       // Search for kanji using Mazii API
-      final results = await provider.searchKanjiSuggestions(query, limit: limit);
+      final results =
+          await provider.searchKanjiSuggestions(query, limit: limit);
       setState(() {
         _kanjiSuggestions = results;
         _loadingKanji = false;
@@ -285,7 +333,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Result limit
-                    Text(l10n.resultLimit, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(l10n.resultLimit,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -305,7 +354,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                         ),
                         SizedBox(
                           width: 40,
-                          child: Text('$tempLimit', textAlign: TextAlign.center),
+                          child:
+                              Text('$tempLimit', textAlign: TextAlign.center),
                         ),
                       ],
                     ),
@@ -313,28 +363,32 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                     const Divider(height: 24),
 
                     // Filter mode
-                    Text(l10n.filterMode, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(l10n.filterMode,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     _FilterOption(
                       title: l10n.filterExactFirst,
                       subtitle: l10n.filterExactFirstDesc,
                       value: 'exact_first',
                       groupValue: tempFilterMode,
-                      onChanged: (v) => setDialogState(() => tempFilterMode = v!),
+                      onChanged: (v) =>
+                          setDialogState(() => tempFilterMode = v!),
                     ),
                     _FilterOption(
                       title: l10n.filterWithMeanings,
                       subtitle: l10n.filterWithMeaningsDesc,
                       value: 'with_meanings',
                       groupValue: tempFilterMode,
-                      onChanged: (v) => setDialogState(() => tempFilterMode = v!),
+                      onChanged: (v) =>
+                          setDialogState(() => tempFilterMode = v!),
                     ),
                     _FilterOption(
                       title: l10n.filterAll,
                       subtitle: l10n.filterAllDesc,
                       value: 'all',
                       groupValue: tempFilterMode,
-                      onChanged: (v) => setDialogState(() => tempFilterMode = v!),
+                      onChanged: (v) =>
+                          setDialogState(() => tempFilterMode = v!),
                     ),
 
                     const Divider(height: 24),
@@ -426,7 +480,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     }
 
     // Display all results as a scrollable list
-    final hasFallbackBanner = provider.usedFallback && provider.fallbackSource != null;
+    final hasFallbackBanner =
+        provider.usedFallback && provider.fallbackSource != null;
     final itemCount = provider.results.length + (hasFallbackBanner ? 1 : 0);
 
     return ListView.builder(
@@ -497,7 +552,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     }
 
     // Controllers for editable fields
-    final phoneticController = TextEditingController(text: result.phonetic ?? '');
+    final phoneticController =
+        TextEditingController(text: result.phonetic ?? '');
     final backController = TextEditingController(text: backContent);
     final exampleController = TextEditingController();
     final notesController = TextEditingController();
@@ -513,7 +569,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
       if (exampleController.text.isNotEmpty) break;
     }
 
-    String? selectedDeckId = filteredDecks.isNotEmpty ? filteredDecks.first.id : null;
+    String? selectedDeckId =
+        filteredDecks.isNotEmpty ? filteredDecks.first.id : null;
 
     showDialog(
       context: context,
@@ -584,7 +641,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                         decoration: InputDecoration(
                           labelText: l10n.phonetic,
                           hintText: l10n.phoneticHint,
-                          prefixIcon: const Icon(Icons.record_voice_over, size: 20),
+                          prefixIcon:
+                              const Icon(Icons.record_voice_over, size: 20),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -647,7 +705,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                       // Deck selection header
                       Row(
                         children: [
-                          const Icon(Icons.folder, size: 18, color: AppColors.primary),
+                          const Icon(Icons.folder,
+                              size: 18, color: AppColors.primary),
                           const SizedBox(width: 8),
                           Text(
                             l10n.selectDeck,
@@ -730,7 +789,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                                 final isSelected = deck.id == selectedDeckId;
                                 return Material(
                                   color: isSelected
-                                      ? AppColors.primary.withValues(alpha: 0.15)
+                                      ? AppColors.primary
+                                          .withValues(alpha: 0.15)
                                       : Colors.transparent,
                                   child: InkWell(
                                     onTap: () {
@@ -751,8 +811,10 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                                             decoration: BoxDecoration(
                                               color: isSelected
                                                   ? AppColors.primary
-                                                  : AppColors.primary.withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(10),
+                                                  : AppColors.primary
+                                                      .withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                             child: Icon(
                                               Icons.style,
@@ -765,7 +827,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   deck.name,
@@ -776,13 +839,15 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                                                     fontSize: 14,
                                                   ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                                 Text(
                                                   '${deck.cardCount} ${l10n.cards.toLowerCase()}',
                                                   style: const TextStyle(
                                                     fontSize: 12,
-                                                    color: AppColors.textSecondaryLight,
+                                                    color: AppColors
+                                                        .textSecondaryLight,
                                                   ),
                                                 ),
                                               ],
@@ -935,20 +1000,27 @@ class _DictionaryResultCard extends StatelessWidget {
                       // Result number badge
                       if (totalResults > 1)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           margin: const EdgeInsets.only(bottom: 8),
                           decoration: BoxDecoration(
-                            color: AppColors.textSecondaryLight.withValues(alpha: 0.2),
+                            color: AppColors.textSecondaryLight
+                                .withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             '$resultIndex / $totalResults',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondaryLight),
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondaryLight),
                           ),
                         ),
                       Text(
                         result.word,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -956,10 +1028,11 @@ class _DictionaryResultCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           result.phonetic!,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.textSecondaryLight,
-                                fontStyle: FontStyle.italic,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: AppColors.textSecondaryLight,
+                                    fontStyle: FontStyle.italic,
+                                  ),
                         ),
                       ],
                     ],
@@ -1030,13 +1103,16 @@ class _DictionaryResultCard extends StatelessWidget {
             runSpacing: 6,
             children: allSynonyms.take(10).map((syn) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                  border:
+                      Border.all(color: Colors.green.withValues(alpha: 0.3)),
                 ),
-                child: Text(syn, style: const TextStyle(fontSize: 12, color: Colors.green)),
+                child: Text(syn,
+                    style: const TextStyle(fontSize: 12, color: Colors.green)),
               );
             }).toList(),
           ),
@@ -1076,13 +1152,16 @@ class _DictionaryResultCard extends StatelessWidget {
             runSpacing: 6,
             children: allAntonyms.take(10).map((ant) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  border:
+                      Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                 ),
-                child: Text(ant, style: const TextStyle(fontSize: 12, color: Colors.orange)),
+                child: Text(ant,
+                    style: const TextStyle(fontSize: 12, color: Colors.orange)),
               );
             }).toList(),
           ),

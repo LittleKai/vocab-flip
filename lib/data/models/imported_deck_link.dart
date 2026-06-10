@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Model for tracking the link between an imported deck and its public source
 class ImportedDeckLink {
@@ -46,32 +45,6 @@ class ImportedDeckLink {
       importedAt: importedAt ?? this.importedAt,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       autoSync: autoSync ?? this.autoSync,
-    );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      'public_deck_id': publicDeckId,
-      'local_deck_id': localDeckId,
-      'user_id': userId,
-      'imported_version': importedVersion,
-      'imported_at': Timestamp.fromDate(importedAt),
-      'last_synced_at': lastSyncedAt != null ? Timestamp.fromDate(lastSyncedAt!) : null,
-      'auto_sync': autoSync,
-    };
-  }
-
-  factory ImportedDeckLink.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return ImportedDeckLink(
-      id: doc.id,
-      publicDeckId: data['public_deck_id'] as String,
-      localDeckId: data['local_deck_id'] as String,
-      userId: data['user_id'] as String,
-      importedVersion: data['imported_version'] as int,
-      importedAt: (data['imported_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      lastSyncedAt: (data['last_synced_at'] as Timestamp?)?.toDate(),
-      autoSync: data['auto_sync'] as bool? ?? true,
     );
   }
 

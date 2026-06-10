@@ -2,8 +2,11 @@ import 'package:flutter/foundation.dart';
 import '../../data/models/flashcard.dart';
 import '../../data/models/study_session.dart';
 import '../../data/repositories/flashcard_repository.dart';
+import '../../data/repositories/study_analytics_repository.dart';
 import '../../data/local/preferences/app_preferences.dart';
 import '../../core/utils/spaced_repetition.dart';
+import '../../core/utils/fsrs_scheduler.dart';
+import '../../data/services/advanced_learning_science.dart';
 
 enum StudyState {
   idle,
@@ -16,6 +19,7 @@ enum StudyState {
 
 class StudyProvider extends ChangeNotifier {
   final FlashcardRepository _flashcardRepository;
+  final StudyAnalyticsRepository _studyAnalyticsRepository;
   final AppPreferences _preferences;
 
   StudyState _state = StudyState.idle;
@@ -27,11 +31,24 @@ class StudyProvider extends ChangeNotifier {
   int _cardsStudied = 0;
   int _cardsCorrect = 0;
   int _cardsIncorrect = 0;
+  
+  final AdvancedLearningScience _advancedLearning = AdvancedLearningScience();
+  bool _isFatigued = false;
+  bool get isFatigued => _isFatigued;
+
+  void resetFatigue() {
+    _isFatigued = false;
+    _advancedLearning.resetFatigue();
+    notifyListeners();
+  }
 
   StudyProvider({
     FlashcardRepository? flashcardRepository,
+    StudyAnalyticsRepository? studyAnalyticsRepository,
     AppPreferences? preferences,
   })  : _flashcardRepository = flashcardRepository ?? FlashcardRepository(),
+        _studyAnalyticsRepository =
+            studyAnalyticsRepository ?? StudyAnalyticsRepository(),
         _preferences = preferences ?? AppPreferences();
 
   StudyState get state => _state;
@@ -57,7 +74,8 @@ class StudyProvider extends ChangeNotifier {
     return (_cardsCorrect / _cardsStudied) * 100;
   }
 
-  Future<void> startStudySession(String deckId, {bool forceReload = false}) async {
+  Future<void> startStudySession(String deckId,
+      {bool forceReload = false}) async {
     _state = StudyState.loading;
     notifyListeners();
 
@@ -72,6 +90,10 @@ class StudyProvider extends ChangeNotifier {
         );
       }
 
+      if (_preferences.advancedLearningScience) {
+        _studyQueue = _advancedLearning.applySemanticShuffle(_studyQueue);
+      }
+
       if (_studyQueue.isEmpty) {
         _state = StudyState.completed;
         notifyListeners();
@@ -82,8 +104,11 @@ class StudyProvider extends ChangeNotifier {
       _cardsStudied = 0;
       _cardsCorrect = 0;
       _cardsIncorrect = 0;
+      _isFatigued = false;
+      _advancedLearning.resetFatigue();
 
       _currentSession = StudySession(deckId: deckId);
+      await _studyAnalyticsRepository.startSession(_currentSession!);
       _cardStartTime = DateTime.now();
 
       _state = StudyState.studying;
@@ -105,15 +130,28 @@ class StudyProvider extends ChangeNotifier {
     if (currentCard == null) return;
 
     try {
-      // TODO: Use responseTime for analytics
-      // final responseTime = _cardStartTime != null
-      //     ? DateTime.now().difference(_cardStartTime!).inMilliseconds
-      //     : 0;
+      final responseTime = _cardStartTime != null
+          ? DateTime.now().difference(_cardStartTime!).inMilliseconds
+          : 0;
 
       final updatedCard = await _flashcardRepository.reviewFlashcard(
         currentCard!,
         rating,
       );
+      if (_currentSession != null) {
+        await _studyAnalyticsRepository.logReview(
+          before: currentCard!,
+          after: updatedCard,
+          rating: rating,
+          sessionId: _currentSession!.id,
+          responseTimeMs: responseTime,
+        );
+      }
+
+      if (_preferences.advancedLearningScience) {
+        final isCorrect = rating != ReviewRating.again && rating != ReviewRating.hard;
+        _isFatigued = _advancedLearning.checkFatigue(isCorrect, responseTime);
+      }
 
       _cardsStudied++;
       if (rating == ReviewRating.again) {
@@ -148,11 +186,11 @@ class StudyProvider extends ChangeNotifier {
         cardsStudied: _cardsStudied,
         cardsCorrect: _cardsCorrect,
         cardsIncorrect: _cardsIncorrect,
-        totalTimeSeconds: DateTime.now()
-            .difference(_currentSession!.startedAt)
-            .inSeconds,
+        totalTimeSeconds:
+            DateTime.now().difference(_currentSession!.startedAt).inSeconds,
       );
       _currentSession = endedSession;
+      await _studyAnalyticsRepository.completeSession(endedSession);
 
       // Update streak
       await _preferences.updateStreak();
@@ -166,10 +204,9 @@ class StudyProvider extends ChangeNotifier {
 
   Map<ReviewRating, int> getIntervalPreviews() {
     if (currentCard == null) return {};
-    return SM2Algorithm.getIntervalPreviews(
-      repetitions: currentCard!.repetitions,
-      easinessFactor: currentCard!.easinessFactor,
-      interval: currentCard!.interval,
+    return FSRSScheduler().getIntervalPreviews(
+      currentCard!.srsState,
+      DateTime.now(),
     );
   }
 
@@ -200,6 +237,13 @@ class StudyProvider extends ChangeNotifier {
 
     _state = StudyState.studying;
     notifyListeners();
+  }
+
+  Future<void> saveAndCompleteSession() async {
+    if (_currentSession != null && _cardsStudied > 0) {
+      await _completeSession();
+    }
+    reset();
   }
 
   void reset() {

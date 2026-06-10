@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 /// Model for sync update notifications
 class SyncNotification {
   final String id;
@@ -45,34 +43,6 @@ class SyncNotification {
       changeDescription: changeDescription ?? this.changeDescription,
       isRead: isRead ?? this.isRead,
       createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      'user_id': userId,
-      'public_deck_id': publicDeckId,
-      'deck_name': deckName,
-      'old_version': oldVersion,
-      'new_version': newVersion,
-      'change_description': changeDescription,
-      'is_read': isRead,
-      'created_at': Timestamp.fromDate(createdAt),
-    };
-  }
-
-  factory SyncNotification.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return SyncNotification(
-      id: doc.id,
-      userId: data['user_id'] as String,
-      publicDeckId: data['public_deck_id'] as String,
-      deckName: data['deck_name'] as String,
-      oldVersion: data['old_version'] as int,
-      newVersion: data['new_version'] as int,
-      changeDescription: data['change_description'] as String?,
-      isRead: data['is_read'] as bool? ?? false,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 

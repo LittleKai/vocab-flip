@@ -9,3 +9,5 @@ String? getStoredWebSsoToken() => null;
 void persistWebSsoToken(String token) {}
 
 void clearStoredWebSsoToken() {}
+
+String? getWebBaseUrl() => null;

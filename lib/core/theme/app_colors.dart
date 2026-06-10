@@ -4,29 +4,29 @@ class AppColors {
   AppColors._();
 
   // Primary colors
-  static const Color primary = Color(0xFF6366F1);
+  static const Color primary = Color(0xFF6366F1); // Calm Indigo
   static const Color primaryLight = Color(0xFF818CF8);
   static const Color primaryDark = Color(0xFF4F46E5);
 
   // Secondary colors
-  static const Color secondary = Color(0xFF10B981);
-  static const Color secondaryLight = Color(0xFF34D399);
-  static const Color secondaryDark = Color(0xFF059669);
+  static const Color secondary = Color(0xFF14B8A6); // Calm Teal
+  static const Color secondaryLight = Color(0xFF2DD4BF);
+  static const Color secondaryDark = Color(0xFF0D9488);
 
   // Accent colors
   static const Color accent = Color(0xFFF59E0B);
-  static const Color accentLight = Color(0xFFFBBF24);
+  static const Color accentLight = Color(0xFFFCD34D);
   static const Color accentDark = Color(0xFFD97706);
 
   // Background colors
-  static const Color backgroundLight = Color(0xFFF8FAFC);
-  static const Color backgroundDark = Color(0xFF0F172A);
+  static const Color backgroundLight = Color(0xFFF8FAFC); // Softer Slate 50
+  static const Color backgroundDark = Color(0xFF0F172A); // Slate 900
   static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color surfaceDark = Color(0xFF1E293B);
+  static const Color surfaceDark = Color(0xFF1E293B); // Slate 800
 
   // Card colors
   static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color cardDark = Color(0xFF334155);
+  static const Color cardDark = Color(0xFF1E293B);
 
   // Text colors
   static const Color textPrimaryLight = Color(0xFF1E293B);
@@ -49,8 +49,15 @@ class AppColors {
   /// Theme-aware secondary text color: grey in light mode, white in dark mode
   static Color textSecondary(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
-        ? textPrimaryDark
+        ? textSecondaryDark
         : textSecondaryLight;
+  }
+
+  /// Theme-aware primary text color
+  static Color textPrimary(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? textPrimaryDark
+        : textPrimaryLight;
   }
 
   // Language badge colors

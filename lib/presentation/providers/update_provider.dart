@@ -6,6 +6,10 @@ import '../../data/repositories/update_repository.dart';
 import '../../data/services/update_download_service.dart';
 import '../../data/local/preferences/app_preferences.dart';
 
+const _vocabReleaseMetadataUrl =
+    'https://cdn.giaiphapsangtao.com/file/alpha-studio/vocabflip-app/version.json';
+const _vocabDownloadPageUrl = 'https://giaiphapsangtao.com/studio/vocab';
+
 /// State for the update process
 enum UpdateState {
   idle,
@@ -45,6 +49,7 @@ class UpdateProvider extends ChangeNotifier {
   String _currentVersion = '...';
 
   String get currentVersion => _currentVersion;
+
   /// Whether the platform supports auto-check for updates
   /// Windows: full auto-update (download + install)
   /// Android: check + notify (open download link)
@@ -53,9 +58,9 @@ class UpdateProvider extends ChangeNotifier {
     return Platform.isWindows || Platform.isAndroid;
   }
 
-  String get releasesUrl => 'https://github.com/LittleKai/vocab-flip/releases';
+  String get releasesUrl => _vocabDownloadPageUrl;
 
-  /// Open GitHub releases page in browser (for platforms without auto-update)
+  /// Open the Studio download page in browser (for platforms without auto-update)
   Future<void> openReleasesPage() async {
     final uri = Uri.parse(releasesUrl);
     if (await canLaunchUrl(uri)) {
@@ -63,7 +68,8 @@ class UpdateProvider extends ChangeNotifier {
     }
   }
 
-  bool get autoCheckUpdates => _initialized ? _preferences.autoCheckUpdates : true;
+  bool get autoCheckUpdates =>
+      _initialized ? _preferences.autoCheckUpdates : true;
 
   /// Initialize with preferences (idempotent - safe to call multiple times)
   Future<void> init(AppPreferences preferences) async {
@@ -71,8 +77,9 @@ class UpdateProvider extends ChangeNotifier {
 
     _preferences = preferences;
     _repository = UpdateRepository(
-      owner: 'LittleKai', // GitHub owner
-      repo: 'vocab-flip', //  repo name
+      owner: 'LittleKai', // GitHub fallback owner
+      repo: 'vocab-flip', // GitHub fallback repo
+      metadataUrl: _vocabReleaseMetadataUrl,
       preferences: preferences,
     );
 

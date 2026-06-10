@@ -88,6 +88,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isAuthenticated = context.watch<AuthProvider>().isAuthenticated;
 
     return Consumer2<DeckProvider, FlashcardProvider>(
       builder: (context, deckProvider, flashcardProvider, child) {
@@ -144,8 +145,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                       PopupMenuItem(
                           value: 'manage-published',
                           child: Text(l10n.managePublished))
-                    else if (deck.canPublish &&
-                        context.watch<AuthProvider>().isAuthenticated)
+                    else if (deck.canPublish && isAuthenticated)
                       PopupMenuItem(
                           value: 'publish', child: Text(l10n.publishToLibrary)),
                     if (deck.isLinked)

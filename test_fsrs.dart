@@ -1,0 +1,1 @@
+import "package:fsrs/fsrs.dart"; void main() { var sched = Scheduler(); var card = Card(cardId: 1, state: State.review, stability: 5.0, difficulty: 5.0, due: DateTime.now().toUtc()); var res = sched.reviewCard(card, Rating.again); print("Stability: ${res.card.stability}, State: ${res.card.state}, Step: ${res.card.step}"); }

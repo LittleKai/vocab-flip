@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 
 class AppErrorWidget extends StatelessWidget {
@@ -39,7 +40,7 @@ class AppErrorWidget extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
+                label: Text(AppLocalizations.of(context)!.tryAgain),
               ),
             ],
           ],

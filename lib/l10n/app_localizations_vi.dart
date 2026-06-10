@@ -654,6 +654,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get weeklyActivity => 'Hoạt động tuần';
 
   @override
+  String get studyHeatmap => 'Biểu đồ nhiệt học tập';
+
+  @override
+  String get cardMastery => 'Mức độ thành thạo thẻ';
+
+  @override
+  String get learningCards => 'Đang học';
+
+  @override
+  String get matureCards => 'Đã thành thạo';
+
+  @override
   String get deckProgress => 'Tiến độ bộ thẻ';
 
   @override
@@ -1694,4 +1706,125 @@ class AppLocalizationsVi extends AppLocalizations {
   String nNewFeedback(int count) {
     return '$count mới';
   }
+
+  @override
+  String get multipleChoice => 'Trắc nghiệm';
+
+  @override
+  String get typeAnswer => 'Gõ câu trả lời';
+
+  @override
+  String get weakWords => 'Luyện tập từ còn yếu';
+
+  @override
+  String get weakWordsDesc => 'Luyện tập các từ bạn hay làm sai';
+
+  @override
+  String get classicFlip => 'Lật thẻ cổ điển';
+
+  @override
+  String get studyMode => 'Chế độ học';
+
+  @override
+  String get typeYourAnswer => 'Gõ câu trả lời của bạn...';
+
+  @override
+  String get check => 'Kiểm tra';
+
+  @override
+  String get correct => 'Chính xác!';
+
+  @override
+  String get incorrect => 'Chưa chính xác!';
+
+  @override
+  String get startWeakWords => 'Bắt đầu luyện tập từ còn yếu';
+
+  @override
+  String get aiMnemonic => 'Mẹo ghi nhớ AI';
+
+  @override
+  String get generateMnemonic => 'Tạo mẹo ghi nhớ';
+
+  @override
+  String get generatingMnemonic => 'Đang tạo...';
+
+  @override
+  String get addMnemonicToNotes => 'Thêm vào ghi chú';
+
+  @override
+  String get aiCardGenerator => 'AI Tạo thẻ';
+
+  @override
+  String get generateCards => 'Tạo thẻ';
+
+  @override
+  String get textToGenerateCards => 'Dán văn bản hoặc link bài báo vào đây...';
+
+  @override
+  String get generatingCards => 'Đang tạo thẻ...';
+
+  @override
+  String get reviewDraftCards => 'Duyệt thẻ nháp';
+
+  @override
+  String get approve => 'Duyệt';
+
+  @override
+  String get reject => 'Bỏ qua';
+
+  @override
+  String get saveApprovedCards => 'Lưu các thẻ được duyệt';
+
+  @override
+  String get selectDeckForCards => 'Chọn bộ thẻ để lưu';
+
+  @override
+  String get allCardsReviewed => 'Đã duyệt tất cả thẻ nháp!';
+
+  @override
+  String get seeAll => 'Xem tất cả';
+
+  @override
+  String balanceCredits(int count) {
+    return 'Số dư: $count credit';
+  }
+
+  @override
+  String get topupCredit => 'Nạp Credit';
+
+  @override
+  String get advancedLearningScience => 'Khoa học học tập nâng cao';
+
+  @override
+  String get advancedLearningScienceDesc =>
+      'Xáo trộn ngữ nghĩa & phát hiện mệt mỏi (Thử nghiệm)';
+
+  @override
+  String get brainFatigueDetected => 'Phát hiện mệt mỏi trí não';
+
+  @override
+  String get brainFatigueDesc =>
+      'Bạn đang trả lời rất nhanh và sai liên tục. Nghỉ ngơi 5 phút sẽ giúp củng cố trí nhớ tốt hơn.';
+
+  @override
+  String get keepGoing => 'Tiếp tục';
+
+  @override
+  String get takeABreak => 'Nghỉ ngơi';
+
+  @override
+  String get rateThisDeck => 'Đánh giá bộ thẻ này';
+
+  @override
+  String get reviewOptional => 'Đánh giá (tùy chọn)';
+
+  @override
+  String get shareThoughts => 'Chia sẻ cảm nghĩ của bạn về bộ thẻ này...';
+
+  @override
+  String get couldNotLoadQr => 'Không thể tải mã QR';
+
+  @override
+  String get submit => 'Gửi';
 }

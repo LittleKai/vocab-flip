@@ -1,4 +1,4 @@
-/// Model representing an app version from GitHub releases
+/// Model representing an app version from release metadata.
 class AppVersion {
   final String version;
   final int buildNumber;

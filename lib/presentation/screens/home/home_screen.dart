@@ -9,6 +9,9 @@ import '../../providers/settings_provider.dart';
 import '../../providers/update_provider.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/common/responsive_grid.dart';
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
+import '../../widgets/stats/study_heatmap.dart';
 import '../../widgets/deck/deck_summary_card.dart';
 import '../deck/deck_list_screen.dart';
 import '../statistics/statistics_screen.dart';
@@ -80,10 +83,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Color _getTabColor(int index) {
+    switch (index) {
+      case 0:
+        return AppColors.primary; // Home - Indigo
+      case 1:
+        return const Color(0xFFF59E0B); // Decks - Amber
+      case 2:
+        return AppColors.success; // Library - Green
+      case 3:
+        return const Color(0xFF8B5CF6); // Dictionary - Purple
+      case 4:
+        return const Color(0xFFEC4899); // Stats - Pink
+      case 5:
+        return const Color(0xFF64748B); // Settings - BlueGrey
+      default:
+        return AppColors.primary;
+    }
+  }
+
   Widget _buildScreen(int index) {
     switch (index) {
       case 0:
-        return const _HomeTab();
+        return _HomeTab(
+          onSeeAllDecks: () => setState(() => _currentIndex = 1),
+        );
       case 1:
         return const DeckListScreen();
       case 2:
@@ -95,7 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case 5:
         return const SettingsScreen();
       default:
-        return const _HomeTab();
+        return _HomeTab(
+          onSeeAllDecks: () => setState(() => _currentIndex = 1),
+        );
     }
   }
 
@@ -104,41 +130,94 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      extendBody: true,
       body: _buildScreen(_currentIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
+      bottomNavigationBar: CurvedNavigationBar(
+        index: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.transparent,
+        color: Theme.of(context).colorScheme.surface,
+        buttonBackgroundColor: _getTabColor(_currentIndex),
+        animationCurve: Curves.easeOutQuart,
+        animationDuration: const Duration(milliseconds: 300),
         items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home_outlined),
-            activeIcon: const Icon(Icons.home),
+          CurvedNavigationBarItem(
+            child: Icon(
+              _currentIndex == 0 ? Icons.home_rounded : Icons.home_outlined,
+              color: _currentIndex == 0 ? Colors.white : _getTabColor(0),
+              size: 28,
+            ),
             label: l10n.home,
+            labelStyle: TextStyle(
+              color: _currentIndex == 0 ? _getTabColor(0) : AppColors.textSecondary(context),
+              fontSize: 11,
+              fontWeight: _currentIndex == 0 ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.folder_outlined),
-            activeIcon: const Icon(Icons.folder),
+          CurvedNavigationBarItem(
+            child: Icon(
+              _currentIndex == 1 ? Icons.folder_rounded : Icons.folder_outlined,
+              color: _currentIndex == 1 ? Colors.white : _getTabColor(1),
+              size: 28,
+            ),
             label: l10n.decks,
+            labelStyle: TextStyle(
+              color: _currentIndex == 1 ? _getTabColor(1) : AppColors.textSecondary(context),
+              fontSize: 11,
+              fontWeight: _currentIndex == 1 ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.public_outlined),
-            activeIcon: const Icon(Icons.public),
+          CurvedNavigationBarItem(
+            child: Icon(
+              _currentIndex == 2 ? Icons.public_rounded : Icons.public_outlined,
+              color: _currentIndex == 2 ? Colors.white : _getTabColor(2),
+              size: 28,
+            ),
             label: l10n.library,
+            labelStyle: TextStyle(
+              color: _currentIndex == 2 ? _getTabColor(2) : AppColors.textSecondary(context),
+              fontSize: 11,
+              fontWeight: _currentIndex == 2 ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.search),
-            activeIcon: const Icon(Icons.search),
+          CurvedNavigationBarItem(
+            child: Icon(
+              _currentIndex == 3 ? Icons.search_rounded : Icons.search_outlined,
+              color: _currentIndex == 3 ? Colors.white : _getTabColor(3),
+              size: 28,
+            ),
             label: l10n.dictionary,
+            labelStyle: TextStyle(
+              color: _currentIndex == 3 ? _getTabColor(3) : AppColors.textSecondary(context),
+              fontSize: 11,
+              fontWeight: _currentIndex == 3 ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.bar_chart_outlined),
-            activeIcon: const Icon(Icons.bar_chart),
+          CurvedNavigationBarItem(
+            child: Icon(
+              _currentIndex == 4 ? Icons.bar_chart_rounded : Icons.bar_chart_outlined,
+              color: _currentIndex == 4 ? Colors.white : _getTabColor(4),
+              size: 28,
+            ),
             label: l10n.stats,
+            labelStyle: TextStyle(
+              color: _currentIndex == 4 ? _getTabColor(4) : AppColors.textSecondary(context),
+              fontSize: 11,
+              fontWeight: _currentIndex == 4 ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.settings_outlined),
-            activeIcon: const Icon(Icons.settings),
+          CurvedNavigationBarItem(
+            child: Icon(
+              _currentIndex == 5 ? Icons.settings_rounded : Icons.settings_outlined,
+              color: _currentIndex == 5 ? Colors.white : _getTabColor(5),
+              size: 28,
+            ),
             label: l10n.settings,
+            labelStyle: TextStyle(
+              color: _currentIndex == 5 ? _getTabColor(5) : AppColors.textSecondary(context),
+              fontSize: 11,
+              fontWeight: _currentIndex == 5 ? FontWeight.w800 : FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -147,48 +226,49 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _HomeTab extends StatelessWidget {
-  const _HomeTab();
+  final VoidCallback? onSeeAllDecks;
+
+  const _HomeTab({this.onSeeAllDecks});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.appTitle),
-      ),
-      body: Consumer2<DeckProvider, SettingsProvider>(
-        builder: (context, deckProvider, settingsProvider, child) {
-          return RefreshIndicator(
-            onRefresh: () async {
-              await deckProvider.loadDecks();
-              settingsProvider.refreshStats();
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDashboardHeader(context, settingsProvider),
-                  const SizedBox(height: 16),
-                  _buildDueFocusPanel(context, deckProvider),
-                  const SizedBox(height: 16),
-                  _buildQuickStats(context, deckProvider, settingsProvider),
-                  const SizedBox(height: 24),
-                  _buildDueTodaySection(context, deckProvider),
-                  const SizedBox(height: 24),
-                  _buildRecentDecks(context, deckProvider),
-                ],
+      body: SafeArea(
+        child: Consumer2<DeckProvider, SettingsProvider>(
+          builder: (context, deckProvider, settingsProvider, child) {
+            return RefreshIndicator(
+              onRefresh: () async {
+                await deckProvider.loadDecks();
+                settingsProvider.refreshStats();
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeaderRow(context, settingsProvider),
+                    const SizedBox(height: 32),
+                    _buildHeroCard(context, deckProvider),
+                    const SizedBox(height: 32),
+                    _buildQuickStats(context, deckProvider, settingsProvider),
+                    const SizedBox(height: 32),
+                    StudyHeatmap(),
+                    const SizedBox(height: 40),
+                    _buildDueTodaySection(context, deckProvider),
+                    const SizedBox(height: 40),
+                    _buildRecentDecks(context, deckProvider),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildDashboardHeader(BuildContext context, SettingsProvider settings) {
+  Widget _buildHeaderRow(BuildContext context, SettingsProvider settings) {
     final l10n = AppLocalizations.of(context)!;
     final hour = DateTime.now().hour;
     final greeting = hour < 12
@@ -197,135 +277,147 @@ class _HomeTab extends StatelessWidget {
             ? l10n.goodAfternoon
             : l10n.goodEvening;
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      alignment: WrapAlignment.spaceBetween,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 220),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                greeting,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                l10n.readyToLearn,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary(context),
-                    ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 220),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.22),
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.local_fire_department,
-                  size: 18,
-                  color: AppColors.accent,
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    l10n.dayStreak(settings.streak),
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: AppColors.accent,
-                          fontWeight: FontWeight.w700,
-                        ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              greeting,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: AppColors.textPrimary(context),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
                   ),
-                ),
-              ],
             ),
-          ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.readyToLearn,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppColors.textSecondary(context),
+                  ),
+            ),
+          ],
+        ),
+        _HeroMetricChip(
+          icon: Icons.local_fire_department_rounded,
+          label: l10n.dayStreak(settings.streak),
+          color: AppColors.accent,
+          bgColor: AppColors.accent.withOpacity(0.12),
         ),
       ],
     );
   }
 
-  Widget _buildDueFocusPanel(BuildContext context, DeckProvider provider) {
+  Widget _buildHeroCard(BuildContext context, DeckProvider provider) {
     final l10n = AppLocalizations.of(context)!;
     final dueDecks = provider.decks.where((deck) => deck.dueCount > 0).toList();
     final primaryDeck = dueDecks.isNotEmpty ? dueDecks.first : null;
     final hasDue = provider.totalDueCards > 0 && primaryDeck != null;
 
+    final textColor = Colors.white;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withValues(
-              alpha: Theme.of(context).brightness == Brightness.dark
-                  ? 0.20
-                  : 0.55,
-            ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.16),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryDark,
+            AppColors.primary,
+            AppColors.secondaryDark,
+          ],
         ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.25),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  hasDue ? Icons.auto_stories_rounded : Icons.check_circle_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const Spacer(),
+              if (hasDue)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    primaryDeck.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 24),
           Text(
-            l10n.today,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w700,
+            hasDue ? '${provider.totalDueCards}' : '0',
+            style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w900,
+                  height: 1.1,
                 ),
           ),
-          const SizedBox(height: 8),
           Text(
             hasDue ? l10n.cardsDue(provider.totalDueCards) : l10n.allCaughtUp,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: textColor.withOpacity(0.9),
+                  fontWeight: FontWeight.w500,
                 ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            hasDue ? primaryDeck.name : l10n.noCardsToReviewToday,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary(context),
-                ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (hasDue) ...[
-            const SizedBox(height: 16),
-            SizedBox(
+          const SizedBox(height: 32),
+          if (hasDue)
+              SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => DeckNavigation.navigateToStudy(
-                  context,
-                  primaryDeck.id,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () => DeckNavigation.navigateToStudy(context, primaryDeck!.id),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.primary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
-                icon: const Icon(Icons.play_arrow),
-                label: Text(l10n.startStudy),
+                child: Text(
+                  l10n.startStudy,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
             ),
-          ],
         ],
       ),
     );
@@ -377,39 +469,79 @@ class _HomeTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.dueToday,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.dueToday,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+            ),
+            if (dueDecks.length > 3 && onSeeAllDecks != null)
+              TextButton(
+                onPressed: onSeeAllDecks,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                child: Text(l10n.seeAll),
               ),
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         if (dueDecks.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: AppColors.success.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primary.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.primary.withOpacity(0.08)),
             ),
             child: Column(
               children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: AppColors.success,
-                  size: 48,
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryDark,
+                        AppColors.primary,
+                        AppColors.secondaryDark,
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Text(
                   l10n.allCaughtUp,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary(context),
                       ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   l10n.noCardsToReviewToday,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondaryLight,
+                        color: AppColors.textSecondary(context),
                       ),
                 ),
               ],
@@ -440,13 +572,28 @@ class _HomeTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.recentDecks,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.recentDecks,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+            ),
+            if (onSeeAllDecks != null)
+              TextButton(
+                onPressed: onSeeAllDecks,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                child: Text(l10n.seeAll),
               ),
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         _ResponsiveCardList(
           items: provider.decks.take(3).toList(),
           itemBuilder: (deck) => DeckSummaryCard(
@@ -484,25 +631,87 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(height: 12),
           Text(
             value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary(context),
                 ),
           ),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondaryLight,
+                  color: AppColors.textSecondary(context),
+                  fontWeight: FontWeight.w500,
                 ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroMetricChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color? bgColor;
+
+  const _HeroMetricChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 220),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgColor ?? color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -537,7 +746,7 @@ class _ResponsiveCardList<T> extends StatelessWidget {
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
             crossAxisSpacing: 8,
-            mainAxisExtent: 124,
+            mainAxisExtent: 140,
           ),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

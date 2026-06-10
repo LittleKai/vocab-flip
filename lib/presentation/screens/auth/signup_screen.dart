@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import '../../widgets/dialogs/login_dialog.dart';
 
-/// Signup screen now redirects to LoginScreen (Google-only auth).
+/// Signup screen now redirects to LoginDialog (Google-only auth).
 /// Kept as a redirect for backward compatibility.
 class SignupScreen extends StatelessWidget {
   const SignupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Redirect to login screen (Google-only)
-    return const LoginScreen();
+    // Redirect to login dialog
+    return const LoginDialog();
   }
 }

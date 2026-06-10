@@ -104,6 +104,7 @@ class ChineseDictDao {
 
   /// Search for Chinese words (exact match first, then partial)
   Future<List<ChineseDictEntry>> search(String query, {int limit = 20}) async {
+    if (kIsWeb) return [];
     debugPrint('[ChineseDictDao] search("$query") - initialized=$_isInitialized, db=${_database != null}');
     if (!_isInitialized || _database == null) {
       debugPrint('[ChineseDictDao] search: not initialized, calling init()...');
@@ -160,6 +161,7 @@ class ChineseDictDao {
 
   /// Lookup a single word (exact match)
   Future<ChineseDictEntry?> lookup(String word) async {
+    if (kIsWeb) return null;
     if (!_isInitialized || _database == null) {
       await init();
     }
@@ -183,6 +185,7 @@ class ChineseDictDao {
 
   /// Search by pinyin
   Future<List<ChineseDictEntry>> searchByPinyin(String pinyin, {int limit = 20}) async {
+    if (kIsWeb) return [];
     if (!_isInitialized || _database == null) {
       await init();
     }

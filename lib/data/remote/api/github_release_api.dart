@@ -3,15 +3,17 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/app_version.dart';
 
-/// Service to fetch release information from GitHub API
+/// Service to fetch release information from a GitHub-compatible release API.
 class GitHubReleaseApi {
   final String owner;
   final String repo;
+  final String? metadataUrl;
   final http.Client? _client;
 
   GitHubReleaseApi({
     required this.owner,
     required this.repo,
+    this.metadataUrl,
     http.Client? client,
   }) : _client = client;
 
@@ -19,19 +21,22 @@ class GitHubReleaseApi {
 
   /// GitHub API endpoint for latest release
   String get _latestReleaseUrl =>
+      metadataUrl ??
       'https://api.github.com/repos/$owner/$repo/releases/latest';
 
   /// GitHub API endpoint for all releases
   String get _allReleasesUrl =>
       'https://api.github.com/repos/$owner/$repo/releases';
 
-  /// Fetch the latest release from GitHub
+  /// Fetch the latest release metadata.
   Future<AppVersion?> getLatestRelease() async {
     try {
       final response = await client.get(
         Uri.parse(_latestReleaseUrl),
         headers: {
-          'Accept': 'application/vnd.github.v3+json',
+          'Accept': metadataUrl == null
+              ? 'application/vnd.github.v3+json'
+              : 'application/json',
           'User-Agent': 'VocabFlip-App',
         },
       );
@@ -55,6 +60,11 @@ class GitHubReleaseApi {
 
   /// Fetch all releases (useful for finding the correct Windows release)
   Future<List<AppVersion>> getAllReleases({int perPage = 10}) async {
+    if (metadataUrl != null) {
+      final latest = await getLatestRelease();
+      return latest == null ? [] : [latest];
+    }
+
     try {
       final response = await client.get(
         Uri.parse('$_allReleasesUrl?per_page=$perPage'),
@@ -84,9 +94,20 @@ class GitHubReleaseApi {
 
   /// Get a specific release by tag
   Future<AppVersion?> getReleaseByTag(String tag) async {
+    if (metadataUrl != null) {
+      final latest = await getLatestRelease();
+      if (latest == null) return null;
+      final normalizedTag = tag.startsWith('v') ? tag.substring(1) : tag;
+      final normalizedLatest = latest.version.startsWith('v')
+          ? latest.version.substring(1)
+          : latest.version;
+      return normalizedLatest == normalizedTag ? latest : null;
+    }
+
     try {
       final response = await client.get(
-        Uri.parse('https://api.github.com/repos/$owner/$repo/releases/tags/$tag'),
+        Uri.parse(
+            'https://api.github.com/repos/$owner/$repo/releases/tags/$tag'),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
           'User-Agent': 'VocabFlip-App',

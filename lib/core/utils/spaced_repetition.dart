@@ -1,4 +1,9 @@
 import '../constants/app_constants.dart';
+import '../../data/models/card_srs_state.dart';
+
+abstract class SchedulerEngine {
+  ReviewResult review(CardSrsState state, ReviewRating rating, DateTime now);
+}
 
 /// SM-2 Spaced Repetition Algorithm Implementation
 ///
@@ -9,42 +14,88 @@ import '../constants/app_constants.dart';
 /// 3 - Correct response with serious difficulty
 /// 4 - Correct response after some hesitation
 /// 5 - Perfect response
-class SM2Algorithm {
-  SM2Algorithm._();
+class SM2Scheduler implements SchedulerEngine {
+  const SM2Scheduler();
+
+  @override
+  ReviewResult review(CardSrsState state, ReviewRating rating, DateTime now) {
+    return calculate(
+      quality: buttonToQuality(rating),
+      repetitions: state.repetitions,
+      lapses: state.lapses,
+      easinessFactor: state.easinessFactor,
+      interval: state.interval,
+      now: now,
+    );
+  }
 
   /// Calculate the next review based on the quality of the response
   /// Returns a [ReviewResult] containing the new interval, repetitions, and easiness factor
   static ReviewResult calculate({
     required int quality,
     required int repetitions,
+    required int lapses,
     required double easinessFactor,
     required int interval,
+    DateTime? now,
   }) {
     // Clamp quality to valid range
     quality = quality.clamp(0, 5);
+    final reviewTime = now ?? DateTime.now();
 
     double newEF = easinessFactor;
     int newInterval;
     int newRepetitions;
+    int newLapses = lapses;
 
     if (quality < 3) {
-      // Failed recall - reset to beginning
+      // Failed recall: make it due immediately and lower ease slightly.
       newRepetitions = 0;
-      newInterval = AppConstants.initialInterval;
+      newInterval = 0;
+      newLapses += 1;
+      newEF = (easinessFactor - 0.2).clamp(
+        AppConstants.minEasinessFactor,
+        double.infinity,
+      );
+    } else if (quality == AppConstants.ratingHard) {
+      // Hard recall should not multiply mature intervals too aggressively.
+      newRepetitions = repetitions + 1;
+      if (repetitions == 0) {
+        newInterval = AppConstants.initialInterval;
+      } else {
+        newInterval = (interval * 1.2).ceil();
+        // Ensure interval always increases
+        if (newInterval <= interval && interval > 0) {
+          newInterval = interval + 1;
+        }
+        newInterval = newInterval.clamp(
+          AppConstants.initialInterval,
+          36500,
+        );
+      }
+      newEF = (easinessFactor - 0.15).clamp(
+        AppConstants.minEasinessFactor,
+        double.infinity,
+      );
     } else {
       // Successful recall
       newRepetitions = repetitions + 1;
 
-      if (newRepetitions == 1) {
+      if (quality == AppConstants.ratingEasy && repetitions == 0) {
+        newInterval = AppConstants.secondInterval;
+        newRepetitions = 2; // Jump ahead so next review doesn't stall at secondInterval
+      } else if (newRepetitions == 1) {
         newInterval = AppConstants.initialInterval;
       } else if (newRepetitions == 2) {
         newInterval = AppConstants.secondInterval;
       } else {
-        newInterval = (interval * easinessFactor).round();
+        final easyBonus = quality == AppConstants.ratingEasy ? 1.3 : 1.0;
+        newInterval = (interval * easinessFactor * easyBonus).round();
       }
 
       // Update easiness factor
-      newEF = easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      newEF = easinessFactor +
+          (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
 
       // Ensure EF doesn't go below minimum
       if (newEF < AppConstants.minEasinessFactor) {
@@ -55,8 +106,9 @@ class SM2Algorithm {
     return ReviewResult(
       interval: newInterval,
       repetitions: newRepetitions,
+      lapses: newLapses,
       easinessFactor: newEF,
-      nextReviewDate: DateTime.now().add(Duration(days: newInterval)),
+      nextReviewDate: reviewTime.add(Duration(days: newInterval)),
     );
   }
 
@@ -77,6 +129,7 @@ class SM2Algorithm {
   /// Get preview of next review intervals for each rating option
   static Map<ReviewRating, int> getIntervalPreviews({
     required int repetitions,
+    required int lapses,
     required double easinessFactor,
     required int interval,
   }) {
@@ -85,6 +138,7 @@ class SM2Algorithm {
         rating: calculate(
           quality: buttonToQuality(rating),
           repetitions: repetitions,
+          lapses: lapses,
           easinessFactor: easinessFactor,
           interval: interval,
         ).interval,
@@ -130,18 +184,28 @@ enum ReviewRating {
 class ReviewResult {
   final int interval;
   final int repetitions;
+  final int lapses;
   final double easinessFactor;
+  final double? stability;
+  final double? difficulty;
+  final int? fsrsState;
+  final int? fsrsStep;
   final DateTime nextReviewDate;
 
   const ReviewResult({
     required this.interval,
     required this.repetitions,
+    required this.lapses,
     required this.easinessFactor,
+    this.stability,
+    this.difficulty,
+    this.fsrsState,
+    this.fsrsStep,
     required this.nextReviewDate,
   });
 
   @override
   String toString() {
-    return 'ReviewResult(interval: $interval days, reps: $repetitions, EF: ${easinessFactor.toStringAsFixed(2)}, next: $nextReviewDate)';
+    return 'ReviewResult(interval: $interval days, reps: $repetitions, lapses: $lapses, EF: ${easinessFactor.toStringAsFixed(2)}, stability: $stability, difficulty: $difficulty, fsrsState: $fsrsState, fsrsStep: $fsrsStep, next: $nextReviewDate)';
   }
 }

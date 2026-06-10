@@ -36,154 +36,218 @@ class PublicDeckCard extends StatelessWidget {
 
   Widget _buildFullCard(BuildContext context) {
     final category = Category.getById(deck.categoryId);
+    final accentColor = deck.hasRatings ? Colors.amber : AppColors.primary;
+    final cardTint = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.primary.withValues(alpha: 0.08)
+        : AppColors.primary.withValues(alpha: 0.035);
+    final borderRadius = BorderRadius.circular(18);
+    final visibleTags = deck.tags.take(3).toList();
+    final hiddenTagCount = deck.tags.length - visibleTags.length;
 
     return Card(
+      elevation: deck.hasRatings ? 2 : 0,
+      color: cardTint,
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.16)),
+      ),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // === Row 1: Image + Info + Deck ID ===
-              DeckCardHeader(
-                name: deck.name,
-                imagePath: deck.imageUrl,
-                frontFieldsLabel: _formatFields(deck.frontFields ?? 'word'),
-                backFieldsLabel: _formatFields(deck.backFields ?? 'meaning'),
-                sourceLanguage: deck.sourceLanguage,
-                targetLanguage: deck.targetLanguage,
-                reverseFieldOrder: deck.showBackFirst,
-                trailing: showDeckId ? _buildDeckIdBadge(context) : null,
-                subtitle: _buildAuthorDate(context),
-              ),
-
-              // Description row
-              if (deck.description != null && deck.description!.isNotEmpty) ...[
-                const SizedBox(height: 3),
-                Text(
-                  deck.description!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary(context),
-                      ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-
-              // === Tags (before category+stats) ===
-              if (deck.tags.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: deck.tags.map((tag) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '#$tag',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 12,
-                              color: AppColors.textSecondary(context),
-                            ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-
-              const SizedBox(height: 8),
-
-              // === Category, rate, card count, download count ===
-              Row(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(width: 6, color: accentColor),
+            ),
+          ),
+          InkWell(
+            onTap: onTap,
+            borderRadius: borderRadius,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Category chip with icon
-                  if (showCategory && category != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _getCategoryIcon(category.icon),
-                            size: 12,
-                            color: AppColors.secondary,
+                  // === Row 1: Image + Info + Deck ID ===
+                  DeckCardHeader(
+                    name: deck.name,
+                    imagePath: deck.imageUrl,
+                    frontFieldsLabel: _formatFields(deck.frontFields ?? 'word'),
+                    backFieldsLabel:
+                        _formatFields(deck.backFields ?? 'meaning'),
+                    sourceLanguage: deck.sourceLanguage,
+                    targetLanguage: deck.targetLanguage,
+                    reverseFieldOrder: deck.showBackFirst,
+                    trailing: showDeckId ? _buildDeckIdBadge(context) : null,
+                    subtitle: _buildAuthorDate(context),
+                  ),
+
+                  // Description row
+                  if (deck.description != null &&
+                      deck.description!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      deck.description!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary(context),
                           ),
-                          const SizedBox(width: 3),
-                          Text(
-                            category.name,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.secondary,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
-                                ),
-                          ),
-                        ],
-                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 4),
                   ],
 
-                  // Rating (always show)
-                  const Icon(Icons.star, color: Colors.amber, size: 14),
-                  const SizedBox(width: 2),
-                  Text(
-                    '${deck.averageRating.toStringAsFixed(1)}(${deck.ratingCount})',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
+                  // === Tags (before category+stats) ===
+                  if (deck.tags.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: [
+                        ...visibleTags.map((tag) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '#$tag',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary(context),
+                                  ),
+                            ),
+                          );
+                        }),
+                        if (hiddenTagCount > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '+$hiddenTagCount',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary(context),
+                                  ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 8),
+
+                  // === Category, rate, card count, download count ===
+                  Row(
+                    children: [
+                      // Category chip with icon
+                      if (showCategory && category != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getCategoryIcon(category.icon),
+                                size: 12,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                category.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: AppColors.secondary,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
-                  ),
+                        const SizedBox(width: 4),
+                      ],
 
-                  const Spacer(),
+                      // Rating (always show)
+                      const Icon(Icons.star, color: Colors.amber, size: 14),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${deck.averageRating.toStringAsFixed(1)}(${deck.ratingCount})',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                      ),
 
-                  // Card count
-                  Icon(Icons.style_outlined, size: 13, color: AppColors.info),
-                  const SizedBox(width: 2),
-                  Text(
-                    '${deck.cardCount}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.info,
-                          fontSize: 12,
-                        ),
-                  ),
+                      const Spacer(),
 
-                  const SizedBox(width: 8),
+                      // Card count
+                      const Icon(Icons.style_outlined,
+                          size: 13, color: AppColors.info),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${deck.cardCount}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.info,
+                              fontSize: 12,
+                            ),
+                      ),
 
-                  // Download count
-                  Icon(Icons.download_outlined, size: 13, color: AppColors.secondary),
-                  const SizedBox(width: 2),
-                  Text(
-                    _formatCount(deck.downloadCount),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.secondary,
-                          fontSize: 12,
-                        ),
+                      const SizedBox(width: 8),
+
+                      // Download count
+                      const Icon(Icons.download_outlined,
+                          size: 13, color: AppColors.secondary),
+                      const SizedBox(width: 2),
+                      Text(
+                        _formatCount(deck.downloadCount),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.secondary,
+                              fontSize: 12,
+                            ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   /// Author + date row used as subtitle in header
   Widget _buildAuthorDate(BuildContext context) {
-    final authorName = context.read<PublicLibraryProvider>()
-        .getCachedAuthorProfile(deck.authorId)?.nickname ?? deck.authorName;
+    final authorName = context
+            .watch<PublicLibraryProvider>()
+            .getCachedAuthorProfile(deck.authorId)
+            ?.nickname ??
+        deck.authorName;
 
     return Row(
       children: [
@@ -211,7 +275,8 @@ class PublicDeckCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Icon(Icons.calendar_today, size: 11, color: AppColors.textSecondary(context)),
+        Icon(Icons.calendar_today,
+            size: 11, color: AppColors.textSecondary(context)),
         const SizedBox(width: 3),
         Text(
           _formatDate(deck.publishedAt ?? deck.createdAt),
@@ -242,7 +307,7 @@ class PublicDeckCard extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.primary, width: 1.5),
           borderRadius: BorderRadius.circular(6),
-          color: AppColors.primary.withOpacity(0.05),
+          color: AppColors.primary.withValues(alpha: 0.05),
         ),
         child: Text(
           deck.shortId ?? deck.id,
@@ -258,6 +323,10 @@ class PublicDeckCard extends StatelessWidget {
 
   Widget _buildCompactCard(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.14)),
+      ),
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -279,8 +348,11 @@ class PublicDeckCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Builder(builder: (context) {
-                      final compactAuthorName = context.read<PublicLibraryProvider>()
-                          .getCachedAuthorProfile(deck.authorId)?.nickname ?? deck.authorName;
+                      final compactAuthorName = context
+                              .watch<PublicLibraryProvider>()
+                              .getCachedAuthorProfile(deck.authorId)
+                              ?.nickname ??
+                          deck.authorName;
                       return Text(
                         '${deck.cardCount} cards • by $compactAuthorName',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -322,27 +394,42 @@ class PublicDeckCard extends StatelessWidget {
 
   IconData _getCategoryIcon(String? iconName) {
     switch (iconName) {
-      case 'school': return Icons.school;
-      case 'translate': return Icons.translate;
-      case 'flight': return Icons.flight;
-      case 'business': return Icons.business;
-      case 'home': return Icons.home;
-      case 'menu_book': return Icons.menu_book;
-      case 'chat_bubble': return Icons.chat_bubble;
-      case 'more_horiz': return Icons.more_horiz;
-      default: return Icons.category;
+      case 'school':
+        return Icons.school;
+      case 'translate':
+        return Icons.translate;
+      case 'flight':
+        return Icons.flight;
+      case 'business':
+        return Icons.business;
+      case 'home':
+        return Icons.home;
+      case 'menu_book':
+        return Icons.menu_book;
+      case 'chat_bubble':
+        return Icons.chat_bubble;
+      case 'more_horiz':
+        return Icons.more_horiz;
+      default:
+        return Icons.category;
     }
   }
 
   String _formatFields(String fields) {
     return fields.split(',').map((f) {
       switch (f.trim()) {
-        case 'word': return 'Word';
-        case 'phonetic': return 'Phonetic';
-        case 'meaning': return 'Meaning';
-        case 'example': return 'Example';
-        case 'notes': return 'Notes';
-        default: return f.trim();
+        case 'word':
+          return 'Word';
+        case 'phonetic':
+          return 'Phonetic';
+        case 'meaning':
+          return 'Meaning';
+        case 'example':
+          return 'Example';
+        case 'notes':
+          return 'Notes';
+        default:
+          return f.trim();
       }
     }).join(', ');
   }

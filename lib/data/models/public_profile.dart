@@ -12,27 +12,6 @@ class PublicProfile {
     this.updatedAt,
   });
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'nickname': nickname,
-      'avatar_url': avatarUrl,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    };
-  }
-
-  factory PublicProfile.fromFirestore(String userId, Map<String, dynamic> data) {
-    return PublicProfile(
-      userId: userId,
-      nickname: data['nickname'] as String?,
-      avatarUrl: data['avatar_url'] as String?,
-      updatedAt: data['updated_at'] != null
-          ? (data['updated_at'] is DateTime
-              ? data['updated_at'] as DateTime
-              : DateTime.tryParse(data['updated_at'].toString()))
-          : null,
-    );
-  }
-
   factory PublicProfile.fromMap(String userId, Map<String, dynamic> map) {
     return PublicProfile(
       userId: userId,

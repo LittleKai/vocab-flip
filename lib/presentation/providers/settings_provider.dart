@@ -11,6 +11,7 @@ class SettingsProvider extends ChangeNotifier {
   int _reviewCardsPerDay = 100;
   bool _showPhonetic = true;
   bool _autoPlayAudio = false;
+  bool _advancedLearningScience = false;
   int _streak = 0;
   int _totalStudyTime = 0;
   int _flashcardImageMaxWidth = AppPreferences.defaultFlashcardImageMaxWidth;
@@ -31,6 +32,7 @@ class SettingsProvider extends ChangeNotifier {
   int get reviewCardsPerDay => _reviewCardsPerDay;
   bool get showPhonetic => _showPhonetic;
   bool get autoPlayAudio => _autoPlayAudio;
+  bool get advancedLearningScience => _advancedLearningScience;
   int get streak => _streak;
   int get totalStudyTime => _totalStudyTime;
   int get flashcardImageMaxWidth => _flashcardImageMaxWidth;
@@ -57,6 +59,7 @@ class SettingsProvider extends ChangeNotifier {
     _reviewCardsPerDay = _preferences.reviewCardsPerDay;
     _showPhonetic = _preferences.showPhonetic;
     _autoPlayAudio = _preferences.autoPlayAudio;
+    _advancedLearningScience = _preferences.advancedLearningScience;
     _streak = _preferences.streak;
     _totalStudyTime = _preferences.totalStudyTime;
     _flashcardImageMaxWidth = _preferences.flashcardImageMaxWidth;
@@ -106,6 +109,12 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setAutoPlayAudio(bool value) async {
     _autoPlayAudio = value;
     await _preferences.setAutoPlayAudio(value);
+    notifyListeners();
+  }
+
+  Future<void> setAdvancedLearningScience(bool value) async {
+    _advancedLearningScience = value;
+    await _preferences.setAdvancedLearningScience(value);
     notifyListeners();
   }
 

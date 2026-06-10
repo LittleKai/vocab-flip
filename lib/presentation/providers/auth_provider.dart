@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/api/api_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 enum AuthStatus {
@@ -33,7 +34,18 @@ class AuthProvider extends ChangeNotifier {
   int get balance => _user?.balance ?? 0;
 
   AuthProvider({String? initialToken}) {
+    ApiClient().onUnauthorized = _handleUnauthorized;
     _init(initialToken: initialToken);
+  }
+
+  void _handleUnauthorized() {
+    if (_status != AuthStatus.unauthenticated) {
+      debugPrint('AuthProvider: Received unauthorized signal, logging out user.');
+      _user = null;
+      _status = AuthStatus.unauthenticated;
+      _error = 'Session expired. Please log in again.';
+      notifyListeners();
+    }
   }
 
   Future<void> _init({String? initialToken}) async {
@@ -41,21 +53,26 @@ class AuthProvider extends ChangeNotifier {
     _status = AuthStatus.loading;
     notifyListeners();
 
+    debugPrint('AuthProvider._init: initialToken=${initialToken != null ? "${initialToken.length} chars" : "null"}, kIsWeb=$kIsWeb');
+
     if (initialToken != null && initialToken.isNotEmpty) {
       await _authRepository.setToken(initialToken);
     } else if (kIsWeb) {
       // In the embedded web build the Alpha Studio shell sends the JWT via
       // postMessage after the iframe is ready. Avoid calling /auth/me before
       // that token arrives, otherwise the startup request logs a noisy 401.
+      debugPrint('AuthProvider._init: kIsWeb and no initialToken, setting unauthenticated');
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return;
     }
 
     // Check if token exists and fetch user profile
+    debugPrint('AuthProvider._init: calling getMe()...');
     final AppUser? me = await _authRepository.getMe();
     if (version != _loadVersion) return;
 
+    debugPrint('AuthProvider._init: getMe() returned ${me != null ? "user: ${me.email}" : "null"}');
     if (me != null) {
       _user = me;
       _status = AuthStatus.authenticated;
@@ -69,13 +86,19 @@ class AuthProvider extends ChangeNotifier {
   Future<void> applyToken(String token) async {
     if (token.isEmpty) return;
 
+    debugPrint('AuthProvider.applyToken: received token (${token.length} chars)');
     final wasAuthenticated = isAuthenticated;
     final version = ++_loadVersion;
 
     await _authRepository.setToken(token);
+    debugPrint('AuthProvider.applyToken: token stored, now calling getMe()...');
     final me = await _authRepository.getMe();
-    if (version != _loadVersion) return;
+    if (version != _loadVersion) {
+      debugPrint('AuthProvider.applyToken: version mismatch, aborting');
+      return;
+    }
 
+    debugPrint('AuthProvider.applyToken: getMe() returned ${me != null ? "user: ${me.email}" : "null"}');
     if (me != null) {
       _user = me;
       _status = AuthStatus.authenticated;
@@ -86,6 +109,7 @@ class AuthProvider extends ChangeNotifier {
     } else {
       _user = null;
       _status = AuthStatus.unauthenticated;
+      debugPrint('AuthProvider.applyToken: getMe returned null => unauthenticated');
     }
 
     notifyListeners();

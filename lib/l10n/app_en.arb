@@ -62,7 +62,7 @@
   "displayModeDesc": "Choose which side of the card to show first",
   "frontFirst": "Front First",
   "backFirst": "Back First",
-  "exampleSentence": "Example",
+  "exampleSentence": "Example sentence (optional)",
   "noteLabel": "Note",
   "confirmDelete": "Are you sure you want to delete this?",
   "flipCard": "Tap to flip",
@@ -76,7 +76,6 @@
   "thisWeek": "This Week",
   "thisMonth": "This Month",
   "allTime": "All Time",
-
   "library": "Library",
   "dictionary": "Dictionary",
   "stats": "Stats",
@@ -84,14 +83,12 @@
   "topRated": "Top Rated",
   "newDecks": "New",
   "browse": "Browse",
-
   "goodMorning": "Good morning!",
   "goodAfternoon": "Good afternoon!",
   "goodEvening": "Good evening!",
   "readyToLearn": "Ready to learn some new words?",
   "allCaughtUp": "All caught up!",
   "noCardsToReviewToday": "No cards to review today",
-
   "due": "Due",
   "dueToday": "Due Today",
   "recentDecks": "Recent Decks",
@@ -112,7 +109,6 @@
     }
   },
   "cards": "Cards",
-
   "myDecks": "My Decks",
   "noDecksYet": "No decks yet",
   "createFirstDeck": "Create your first deck to start learning!",
@@ -126,7 +122,6 @@
   "unlinkFromLibrary": "Unlink from Library",
   "managePublished": "Manage Published",
   "loadingDecks": "Loading decks...",
-
   "total": "Total",
   "newCards": "New",
   "learning": "Learning",
@@ -156,7 +151,6 @@
       }
     }
   },
-
   "skip": "Skip",
   "shuffle": "Shuffle",
   "tryAgain": "Try Again",
@@ -176,7 +170,6 @@
       }
     }
   },
-
   "wordFront": "Word / Front",
   "enterWord": "Enter the word to learn",
   "lookUp": "Look up",
@@ -184,7 +177,6 @@
   "phoneticHint": "IPA, Pinyin, Hiragana, etc.",
   "meaningBack": "Meaning / Back",
   "enterMeaning": "Enter the meaning in Vietnamese",
-  "exampleSentence": "Example sentence (optional)",
   "addExample": "Add an example sentence",
   "notesOptional": "Notes (optional)",
   "addNotes": "Add any notes or hints",
@@ -200,10 +192,8 @@
   "pleaseEnterWordFirst": "Please enter a word first",
   "flashcardAdded": "Flashcard added!",
   "autoFillFromDictionary": "Auto-fill from dictionary",
-
   "viewCards": "View Cards",
   "noFlashcards": "No flashcards",
-
   "sourceLanguageLabel": "Source Language:",
   "searchForWord": "Search for a word...",
   "lookingUp": "Looking up...",
@@ -224,7 +214,6 @@
   "fallbackToEnglishDesc": "Use English dictionary if Vietnamese not found",
   "selectDeck": "Select Deck",
   "addedToDeck": "Added to deck",
-
   "appearance": "Appearance",
   "useDarkTheme": "Use dark theme",
   "studySettings": "Study",
@@ -259,11 +248,14 @@
   "dataReset": "All data has been reset",
   "selectLanguage": "Select Language",
   "numberOfCards": "Number of cards",
-
   "overview": "Overview",
   "days": "days",
   "created": "created",
   "weeklyActivity": "Weekly Activity",
+  "studyHeatmap": "Study Heatmap",
+  "cardMastery": "Card Mastery",
+  "learningCards": "Learning",
+  "matureCards": "Mature",
   "deckProgress": "Deck Progress",
   "cardsLearnedCount": "{learned} / {total} cards learned",
   "@cardsLearnedCount": {
@@ -291,7 +283,6 @@
   "fri": "Fri",
   "sat": "Sat",
   "sun": "Sun",
-
   "filter": "Filter",
   "all": "All",
   "noFeaturedDecks": "No featured decks yet",
@@ -331,7 +322,6 @@
       }
     }
   },
-
   "deckDetails": "Deck Details",
   "ratingsReviews": "Ratings & Reviews",
   "previewCards": "Preview Cards",
@@ -385,7 +375,6 @@
       }
     }
   },
-
   "publishDeck": "Publish Deck",
   "deckNotFound": "Deck not found",
   "category": "Category",
@@ -399,7 +388,6 @@
   "canUpdateAnytime": "You can update or unpublish anytime",
   "deckPublished": "Deck published successfully!",
   "deckUpdated": "Deck updated successfully!",
-
   "myPublishedDecks": "My Published Decks",
   "active": "Active",
   "inactive": "Inactive",
@@ -415,7 +403,6 @@
   "unpublishConfirm": "Unpublish Deck?",
   "unpublishDescription": "This will remove the deck from the public library. Users who already imported it will still have their copies.",
   "deckUnpublished": "Deck unpublished",
-
   "updates": "Updates",
   "markAllRead": "Mark all read",
   "availableUpdates": "Available Updates",
@@ -440,7 +427,6 @@
   },
   "checkForUpdates": "Check for Updates",
   "noUpdatesAvailable": "No updates available",
-
   "loading": "Loading...",
   "error": "Error",
   "success": "Success",
@@ -462,22 +448,18 @@
     }
   },
   "actionCannotBeUndone": "This action cannot be undone.",
-
   "unlinkDeck": "Unlink Deck",
   "unlinkDeckMessage": "This will remove the connection to the original deck. You will no longer receive updates from the author.",
   "unlink": "Unlink",
   "deckUnlinked": "Deck unlinked",
-
   "noFlashcardsYet": "No flashcards yet",
   "addFlashcardsToStart": "Add flashcards to start learning!",
-
   "descriptionOptional": "Description (optional)",
   "describeWhatDeckAbout": "Describe what this deck is about",
   "pleaseEnterDeckName": "Please enter a deck name",
   "deckNameHint": "e.g., Japanese N5 Vocabulary",
   "languageOfWordsToLearn": "The language of the words you want to learn",
   "updateDeck": "Update Deck",
-
   "image": "Image",
   "imageOptional": "Image (optional)",
   "localFile": "Local File",
@@ -492,7 +474,6 @@
   "backImage": "Back Image",
   "shareImageOnBothSides": "Share image on both sides",
   "shareImageDescription": "Show the front image on the back side as well",
-
   "flashcardImageSize": "Flashcard Image Size",
   "recommendedForMobile": "Recommended for mobile",
   "recommendedForDesktop": "Recommended for desktop",
@@ -513,7 +494,6 @@
   "medium": "Medium",
   "large": "Large",
   "extraLarge": "Extra Large",
-
   "account": "Account",
   "signInWithEmail": "Sign in with Email",
   "createAccount": "Create Account",
@@ -543,7 +523,6 @@
     }
   },
   "signOutConfirm": "Are you sure you want to sign out?",
-
   "basicInfo": "Basic Info",
   "cardStructure": "Card Structure",
   "cardStructureDesc": "Configure which fields appear on front and back of cards",
@@ -564,7 +543,6 @@
   "lockedField": "Locked",
   "autoPlayTts": "Auto-play Pronunciation",
   "autoPlayTtsDesc": "Automatically play pronunciation when flipping cards",
-
   "ttsHelp": "TTS Installation Guide",
   "ttsLanguagesMissing": "Missing TTS Languages",
   "ttsLanguagesMissingDesc": "The following languages are not available for text-to-speech:",
@@ -583,8 +561,6 @@
   "resetTtsWarningDesc": "Show TTS installation warning again when entering decks",
   "ttsWarningReset": "TTS warning has been reset",
   "close": "Close",
-
-  "updates": "Updates",
   "updateAvailable": "Update Available",
   "updateRequired": "This update is required to continue using the app.",
   "autoCheckUpdates": "Auto-check for updates",
@@ -611,7 +587,6 @@
       }
     }
   },
-
   "support": "Support",
   "donate": "Donate",
   "donateDesc": "Support the developer",
@@ -620,7 +595,6 @@
   "saveQrImage": "Save QR Image",
   "qrSaved": "QR image saved",
   "qrSaveFailed": "Failed to save QR image",
-
   "importFromExcel": "Import from Excel",
   "exportToExcel": "Export to Excel",
   "errorExportingExcel": "Error exporting to Excel",
@@ -661,7 +635,6 @@
       }
     }
   },
-
   "googleDriveBackup": "Google Drive Backup",
   "notConnectedToGoogleDrive": "Not Connected to Google Drive",
   "connectToBackupData": "Connect to backup and restore your flashcard data",
@@ -681,30 +654,46 @@
   "backupSuccessMessage": "Successfully backed up {deckCount} decks with {cardCount} cards",
   "@backupSuccessMessage": {
     "placeholders": {
-      "deckCount": {"type": "int"},
-      "cardCount": {"type": "int"}
+      "deckCount": {
+        "type": "int"
+      },
+      "cardCount": {
+        "type": "int"
+      }
     }
   },
   "restoreSuccessMessage": "Restored {deckCount} decks with {cardCount} cards",
   "@restoreSuccessMessage": {
     "placeholders": {
-      "deckCount": {"type": "int"},
-      "cardCount": {"type": "int"}
+      "deckCount": {
+        "type": "int"
+      },
+      "cardCount": {
+        "type": "int"
+      }
     }
   },
   "decksSkipped": "{count} existing decks were skipped",
   "@decksSkipped": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "restoreBackup": "Restore Backup",
   "backupInfo": "Backup from {date}\n{deckCount} decks, {cardCount} cards",
   "@backupInfo": {
     "placeholders": {
-      "date": {"type": "String"},
-      "deckCount": {"type": "int"},
-      "cardCount": {"type": "int"}
+      "date": {
+        "type": "String"
+      },
+      "deckCount": {
+        "type": "int"
+      },
+      "cardCount": {
+        "type": "int"
+      }
     }
   },
   "selectRestoreMode": "Select restore mode:",
@@ -716,19 +705,26 @@
   "deleteBackupConfirm": "Are you sure you want to delete the backup from {date}?",
   "@deleteBackupConfirm": {
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
   "backupDeleted": "Backup deleted",
   "backupSummary": "{deckCount} decks, {cardCount} cards ({size})",
   "@backupSummary": {
     "placeholders": {
-      "deckCount": {"type": "int"},
-      "cardCount": {"type": "int"},
-      "size": {"type": "String"}
+      "deckCount": {
+        "type": "int"
+      },
+      "cardCount": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
     }
   },
-
   "editProfile": "Edit Profile",
   "profileUpdated": "Profile updated",
   "nicknameTaken": "This nickname is already taken",
@@ -743,38 +739,44 @@
   "genderFemale": "Female",
   "genderOther": "Other",
   "genderPreferNotToSay": "Prefer not to say",
-
   "enterDeckId": "Enter deck ID...",
   "importById": "Import by ID",
   "uploadingImages": "Uploading images {completed}/{total}...",
   "@uploadingImages": {
     "placeholders": {
-      "completed": {"type": "int"},
-      "total": {"type": "int"}
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "downloadingImages": "Downloading images {completed}/{total}...",
   "@downloadingImages": {
     "placeholders": {
-      "completed": {"type": "int"},
-      "total": {"type": "int"}
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "imageUploadFailed": "{count} image(s) failed to upload",
   "@imageUploadFailed": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "shareDeckId": "Share Deck ID",
   "copyDeckIdToShare": "Copy deck ID so others can import it",
   "deckIdCopied": "Deck ID copied to clipboard",
-
   "deckImage": "Deck Image",
   "selectDeckToPublish": "Select a deck to publish",
   "allDecksPublished": "All your decks are already published",
-
   "sortBy": "Sort by",
   "sortNameAZ": "Name (A-Z)",
   "sortNameZA": "Name (Z-A)",
@@ -784,11 +786,9 @@
   "sortOldest": "Oldest",
   "noMatchingDecks": "No matching decks",
   "clearFilters": "Clear Filters",
-
   "reimportDeck": "Re-import to local",
   "reimportDescription": "Local deck was deleted. Re-import from published version.",
   "reimportSuccess": "Deck re-imported successfully",
-
   "viewReviews": "View Reviews",
   "filterByRating": "Filter by rating",
   "allRatings": "All",
@@ -803,7 +803,6 @@
       }
     }
   },
-
   "feedbackTitle": "Send Feedback",
   "feedbackCategoryLabel": "Category",
   "feedbackCategoryBug": "Bug Report",
@@ -817,7 +816,6 @@
   "feedbackSuccess": "Thank you for your feedback!",
   "feedbackError": "Failed to send feedback. Please try again.",
   "feedbackMessageRequired": "Please enter your feedback",
-
   "adminSection": "Admin",
   "adminFeedback": "User Feedback",
   "noFeedbackYet": "No feedback received yet",
@@ -828,5 +826,51 @@
         "type": "int"
       }
     }
-  }
+  },
+  "multipleChoice": "Multiple Choice",
+  "typeAnswer": "Type Answer",
+  "weakWords": "Weak Words Practice",
+  "weakWordsDesc": "Practice words you have struggled with",
+  "classicFlip": "Classic Flip",
+  "studyMode": "Study Mode",
+  "typeYourAnswer": "Type your answer...",
+  "check": "Check",
+  "correct": "Correct!",
+  "incorrect": "Incorrect!",
+  "startWeakWords": "Start Weak Words Practice",
+  "aiMnemonic": "AI Mnemonic",
+  "generateMnemonic": "Generate Mnemonic",
+  "generatingMnemonic": "Generating...",
+  "addMnemonicToNotes": "Add to Notes",
+  "aiCardGenerator": "AI Card Generator",
+  "generateCards": "Generate Cards",
+  "textToGenerateCards": "Paste text or article link here...",
+  "generatingCards": "Generating cards...",
+  "reviewDraftCards": "Review Draft Cards",
+  "approve": "Approve",
+  "reject": "Reject",
+  "saveApprovedCards": "Save Approved Cards",
+  "selectDeckForCards": "Select Deck for Cards",
+  "allCardsReviewed": "All cards reviewed!",
+  "seeAll": "See All",
+  "balanceCredits": "Balance: {count} credits",
+  "@balanceCredits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "topupCredit": "Top up",
+  "advancedLearningScience": "Advanced Learning Science",
+  "advancedLearningScienceDesc": "Semantic shuffle & fatigue detection (Experimental)",
+  "brainFatigueDetected": "Brain Fatigue Detected",
+  "brainFatigueDesc": "You are answering very quickly and getting several incorrect. Taking a 5-minute break will help consolidate your memory.",
+  "keepGoing": "Keep going",
+  "takeABreak": "Take a break",
+  "rateThisDeck": "Rate this deck",
+  "reviewOptional": "Review (optional)",
+  "shareThoughts": "Share your thoughts about this deck...",
+  "couldNotLoadQr": "Could not load QR code",
+  "submit": "Submit"
 }

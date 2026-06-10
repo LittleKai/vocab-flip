@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import '../../core/constants/app_constants.dart';
+import 'card_srs_state.dart';
 
 class Flashcard {
   final String id;
@@ -18,11 +19,19 @@ class Flashcard {
   final DateTime updatedAt;
 
   // Review data (SM-2)
-  final double easinessFactor;
-  final int interval;
-  final int repetitions;
-  final DateTime? nextReviewDate;
-  final DateTime? lastReviewDate;
+  final CardSrsState srsState;
+
+  // Getters for backwards compatibility
+  double get easinessFactor => srsState.easinessFactor;
+  int get interval => srsState.interval;
+  int get repetitions => srsState.repetitions;
+  DateTime? get nextReviewDate => srsState.nextReviewDate;
+  DateTime? get lastReviewDate => srsState.lastReviewDate;
+  int get lapses => srsState.lapses;
+  double? get stability => srsState.stability;
+  double? get difficulty => srsState.difficulty;
+  int? get fsrsState => srsState.fsrsState;
+  int? get fsrsStep => srsState.fsrsStep;
 
   Flashcard({
     String? id,
@@ -39,15 +48,34 @@ class Flashcard {
     List<String>? tags,
     DateTime? createdAt,
     DateTime? updatedAt,
-    this.easinessFactor = AppConstants.defaultEasinessFactor,
-    this.interval = 0,
-    this.repetitions = 0,
-    this.nextReviewDate,
-    this.lastReviewDate,
+    CardSrsState? srsState,
+    double? easinessFactor,
+    int? interval,
+    int? repetitions,
+    int? lapses,
+    double? stability,
+    double? difficulty,
+    int? fsrsState,
+    int? fsrsStep,
+    DateTime? nextReviewDate,
+    DateTime? lastReviewDate,
   })  : id = id ?? const Uuid().v4(),
         tags = tags ?? [],
         createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+        updatedAt = updatedAt ?? DateTime.now(),
+        srsState = srsState ??
+            CardSrsState(
+              easinessFactor: easinessFactor ?? AppConstants.defaultEasinessFactor,
+              interval: interval ?? 0,
+              repetitions: repetitions ?? 0,
+              lapses: lapses ?? 0,
+              stability: stability,
+              difficulty: difficulty,
+              fsrsState: fsrsState,
+              fsrsStep: fsrsStep,
+              nextReviewDate: nextReviewDate,
+              lastReviewDate: lastReviewDate,
+            );
 
   /// Check if legacy image is a URL (http/https)
   bool get isImageUrl => imageUrl != null &&
@@ -113,12 +141,29 @@ class Flashcard {
     List<String>? tags,
     DateTime? createdAt,
     DateTime? updatedAt,
+    CardSrsState? srsState,
     double? easinessFactor,
     int? interval,
     int? repetitions,
+    int? lapses,
+    double? stability,
+    double? difficulty,
+    int? fsrsState,
+    int? fsrsStep,
     DateTime? nextReviewDate,
     DateTime? lastReviewDate,
   }) {
+    final mergedSrsState = srsState ?? this.srsState.copyWith(
+      easinessFactor: easinessFactor,
+      interval: interval,
+      repetitions: repetitions,
+      lapses: lapses,
+      stability: stability,
+      difficulty: difficulty,
+      nextReviewDate: nextReviewDate,
+      lastReviewDate: lastReviewDate,
+    );
+
     return Flashcard(
       id: id ?? this.id,
       deckId: deckId ?? this.deckId,
@@ -134,11 +179,7 @@ class Flashcard {
       tags: tags ?? this.tags,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
-      easinessFactor: easinessFactor ?? this.easinessFactor,
-      interval: interval ?? this.interval,
-      repetitions: repetitions ?? this.repetitions,
-      nextReviewDate: nextReviewDate ?? this.nextReviewDate,
-      lastReviewDate: lastReviewDate ?? this.lastReviewDate,
+      srsState: mergedSrsState,
     );
   }
 
@@ -161,6 +202,11 @@ class Flashcard {
       'easiness_factor': easinessFactor,
       'interval': interval,
       'repetitions': repetitions,
+      'lapses': lapses,
+      'stability': srsState.stability,
+      'difficulty': srsState.difficulty,
+      'fsrs_state': srsState.fsrsState,
+      'fsrs_step': srsState.fsrsStep,
       'next_review_date': nextReviewDate?.toIso8601String(),
       'last_review_date': lastReviewDate?.toIso8601String(),
     };
@@ -185,6 +231,22 @@ class Flashcard {
       easinessFactor: (map['easiness_factor'] as num?)?.toDouble() ?? AppConstants.defaultEasinessFactor,
       interval: map['interval'] as int? ?? 0,
       repetitions: map['repetitions'] as int? ?? 0,
+      srsState: CardSrsState(
+        easinessFactor: (map['easiness_factor'] as num?)?.toDouble() ?? AppConstants.defaultEasinessFactor,
+        interval: map['interval'] as int? ?? 0,
+        repetitions: map['repetitions'] as int? ?? 0,
+        lapses: map['lapses'] as int? ?? 0,
+        stability: (map['stability'] as num?)?.toDouble(),
+        difficulty: (map['difficulty'] as num?)?.toDouble(),
+        fsrsState: map['fsrs_state'] as int?,
+        fsrsStep: map['fsrs_step'] as int?,
+        nextReviewDate: map['next_review_date'] != null
+            ? DateTime.parse(map['next_review_date'] as String)
+            : null,
+        lastReviewDate: map['last_review_date'] != null
+            ? DateTime.parse(map['last_review_date'] as String)
+            : null,
+      ),
       nextReviewDate: map['next_review_date'] != null
           ? DateTime.parse(map['next_review_date'] as String)
           : null,
@@ -211,6 +273,11 @@ class Flashcard {
         'easiness_factor': easinessFactor,
         'interval': interval,
         'repetitions': repetitions,
+        'lapses': lapses,
+        'stability': stability,
+        'difficulty': difficulty,
+        'fsrs_state': fsrsState,
+        'fsrs_step': fsrsStep,
         'next_review': nextReviewDate?.toIso8601String(),
       },
     };
@@ -240,6 +307,20 @@ class Flashcard {
           AppConstants.defaultEasinessFactor,
       interval: reviewData['interval'] as int? ?? 0,
       repetitions: reviewData['repetitions'] as int? ?? 0,
+      srsState: CardSrsState(
+        easinessFactor: (reviewData['easiness_factor'] as num?)?.toDouble() ?? AppConstants.defaultEasinessFactor,
+        interval: reviewData['interval'] as int? ?? 0,
+        repetitions: reviewData['repetitions'] as int? ?? 0,
+        lapses: reviewData['lapses'] as int? ?? 0,
+        stability: (reviewData['stability'] as num?)?.toDouble(),
+        difficulty: (reviewData['difficulty'] as num?)?.toDouble(),
+        fsrsState: reviewData['fsrs_state'] as int?,
+        fsrsStep: reviewData['fsrs_step'] as int?,
+        nextReviewDate: reviewData['next_review'] != null
+            ? DateTime.parse(reviewData['next_review'] as String)
+            : null,
+        lastReviewDate: null, // Depending on if it's stored
+      ),
       nextReviewDate: reviewData['next_review'] != null
           ? DateTime.parse(reviewData['next_review'] as String)
           : null,

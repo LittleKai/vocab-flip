@@ -9,9 +9,9 @@ A multi-language vocabulary learning flashcard app built with Flutter.
 - **Dictionary Integration** - Auto-fill from online dictionaries (Laban, Mazii, LacViet)
 - **Text-to-Speech** - Pronunciation for all supported languages
 - **Public Library** - Browse, import, and share decks with the community
-- **Cloud Sync** - Firebase authentication and deck publishing
+- **Cloud Sync** - Alpha Studio account sync, deck publishing, and public library
 - **Dark Mode** - Light and dark theme support
-- **Auto-Update** - Automatic updates via GitHub Releases (Windows)
+- **Auto-Update** - Automatic updates via Backblaze B2 release metadata (Windows) and APK links (Android)
 
 ## Screenshots
 
@@ -47,8 +47,8 @@ flutter build windows --release
 # Android
 flutter build apk --release
 
-# Web
-flutter build web --release
+# Web embedded in Alpha Studio
+flutter build web --release --base-href "/vocab/"
 ```
 
 ## Tech Stack
@@ -56,7 +56,8 @@ flutter build web --release
 - **Framework:** Flutter 3.38
 - **State Management:** Provider
 - **Database:** SQLite (sqflite)
-- **Backend:** Firebase (Auth, Firestore)
+- **Backend:** Alpha Studio Backend (Express + MongoDB)
+- **Release Storage:** Backblaze B2 public CDN
 - **APIs:** Free Dictionary, Laban, Mazii, LacViet
 
 ## Project Structure

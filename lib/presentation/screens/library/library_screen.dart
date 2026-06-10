@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -206,7 +205,9 @@ class _BrowseTabState extends State<_BrowseTab> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final provider = context.read<PublicLibraryProvider>();
-      if (!provider.isLoading && !provider.isLoadingMore && provider.hasMoreDecks) {
+      if (!provider.isLoading &&
+          !provider.isLoadingMore &&
+          provider.hasMoreDecks) {
         provider.browse();
       }
     }
@@ -248,63 +249,96 @@ class _BrowseTabState extends State<_BrowseTab> {
 
   late final l10n = AppLocalizations.of(context)!;
 
-  Widget _buildSearchFilterBar(BuildContext context, PublicLibraryProvider provider) {
+  Widget _buildSearchFilterBar(
+      BuildContext context, PublicLibraryProvider provider) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
-      child: Row(
-        children: [
-          // Search field
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: l10n.searchDecks,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          provider.search('');
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.14)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: l10n.searchDecks,
+                  isDense: true,
+                  filled: true,
+                  fillColor: AppColors.primary.withValues(alpha: 0.06),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            provider.search('');
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                textInputAction: TextInputAction.search,
+                onChanged: (_) => setState(() {}),
+                onSubmitted: (value) {
+                  provider.search(value.trim());
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 110),
+              child: Text(
+                l10n.decksCount(provider.decks.length),
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppColors.textSecondary(context),
+                      fontWeight: FontWeight.w700,
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.tune_rounded, size: 20),
+              color: AppColors.primary,
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.primary.withOpacity(0.08),
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              textInputAction: TextInputAction.search,
-              onChanged: (_) => setState(() {}),
-              onSubmitted: (value) {
-                provider.search(value.trim());
+              onPressed: () {
+                FilterSheet.show(
+                  context: context,
+                  currentFilter: provider.filter,
+                  categories: provider.categories,
+                  onApply: provider.setFilter,
+                );
               },
+              tooltip: l10n.filter,
             ),
-          ),
-          const SizedBox(width: 4),
-          // Deck count
-          Text(
-            l10n.decksCount(provider.decks.length),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(context),
-                ),
-          ),
-          // Filter button
-          IconButton(
-            icon: const Icon(Icons.tune, size: 20),
-            onPressed: () {
-              FilterSheet.show(
-                context: context,
-                currentFilter: provider.filter,
-                categories: provider.categories,
-                onApply: provider.setFilter,
-              );
-            },
-            tooltip: l10n.filter,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -464,9 +498,8 @@ class _MyDecksTabState extends State<_MyDecksTab> {
     final deckProvider = context.read<DeckProvider>();
     final publishProvider = context.read<PublishProvider>();
     final navigator = Navigator.of(context);
-    final unpublishedDecks = deckProvider.decks
-        .where((d) => !d.isPublished)
-        .toList();
+    final unpublishedDecks =
+        deckProvider.decks.where((d) => !d.isPublished).toList();
 
     if (unpublishedDecks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -495,25 +528,28 @@ class _MyDecksTabState extends State<_MyDecksTab> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Text(
                   l10n.selectDeckToPublish,
                   style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
               ...unpublishedDecks.map((deck) => ListTile(
-                leading: const Icon(Icons.style),
-                title: Text(deck.name),
-                subtitle: Text(l10n.cardsCount(deck.cardCount)),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  navigator.pushNamed('/publish', arguments: deck.id).then((_) {
-                    publishProvider.loadMyPublishedDecks();
-                  });
-                },
-              )),
+                    leading: const Icon(Icons.style),
+                    title: Text(deck.name),
+                    subtitle: Text(l10n.cardsCount(deck.cardCount)),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      navigator
+                          .pushNamed('/publish', arguments: deck.id)
+                          .then((_) {
+                        publishProvider.loadMyPublishedDecks();
+                      });
+                    },
+                  )),
               const SizedBox(height: 8),
             ],
           ),
@@ -590,7 +626,8 @@ class _MyDecksTabState extends State<_MyDecksTab> {
                 subtitle: Text(l10n.removeFromLibrary),
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  _confirmUnpublish(context, publicDeckId, publishProvider, messenger, l10n);
+                  _confirmUnpublish(
+                      context, publicDeckId, publishProvider, messenger, l10n);
                 },
               ),
               ListTile(
@@ -678,9 +715,8 @@ class _MyDecksTabState extends State<_MyDecksTab> {
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(
         SnackBar(
-          content: Text(success
-              ? l10n.deckUpdated
-              : publishProvider.error ?? l10n.error),
+          content: Text(
+              success ? l10n.deckUpdated : publishProvider.error ?? l10n.error),
         ),
       );
     } catch (e) {
@@ -712,7 +748,8 @@ class _MyDecksTabState extends State<_MyDecksTab> {
           TextButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
-              final success = await publishProvider.unpublishByPublicId(publicDeckId);
+              final success =
+                  await publishProvider.unpublishByPublicId(publicDeckId);
               messenger.showSnackBar(
                 SnackBar(
                   content: Text(success
@@ -735,7 +772,7 @@ Widget _buildEmptyState(BuildContext context, String message) {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
+        const Icon(
           Icons.library_books_outlined,
           size: 64,
           color: AppColors.textSecondaryLight,

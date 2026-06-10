@@ -17,6 +17,7 @@ import 'presentation/providers/update_provider.dart';
 import 'presentation/providers/backup_provider.dart';
 import 'presentation/providers/profile_provider.dart';
 import 'presentation/providers/admin_feedback_provider.dart';
+import 'presentation/providers/ai_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/deck/deck_detail_screen.dart';
 import 'presentation/screens/deck/create_deck_screen.dart';
@@ -26,7 +27,7 @@ import 'presentation/screens/publish/publish_deck_screen.dart';
 import 'presentation/screens/publish/manage_published_screen.dart';
 import 'presentation/screens/sync/sync_notifications_screen.dart';
 import 'presentation/screens/admin/admin_feedback_screen.dart';
-import 'presentation/screens/auth/login_screen.dart';
+import 'presentation/widgets/dialogs/login_dialog.dart';
 import 'data/local/preferences/app_preferences.dart';
 import 'core/web/web_sso.dart';
 
@@ -90,6 +91,7 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
           create: (_) => UpdateProvider(),
         ),
         ChangeNotifierProvider(create: (_) => BackupProvider()),
+        ChangeNotifierProvider(create: (_) => AiProvider()),
         ChangeNotifierProvider.value(value: profileProvider),
         ChangeNotifierProvider(
           create: (_) => AdminFeedbackProvider(preferences: widget.preferences),
@@ -162,8 +164,10 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
           builder: (_) => const AdminFeedbackScreen(),
         );
       case '/login':
-        return MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
+        return PageRouteBuilder(
+          opaque: false,
+          barrierColor: Colors.black54,
+          pageBuilder: (_, __, ___) => const LoginDialog(),
         );
       default:
         return null;

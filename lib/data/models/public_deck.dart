@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 /// Model for a publicly shared deck in the library
 class PublicDeck {
   final String id;
@@ -123,66 +121,6 @@ class PublicDeck {
     );
   }
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      'original_local_id': originalLocalId,
-      'author_id': authorId,
-      'author_name': authorName,
-      'name': name,
-      'description': description,
-      'source_language': sourceLanguage,
-      'target_language': targetLanguage,
-      'category_id': categoryId,
-      'tags': tags,
-      'card_count': cardCount,
-      'version': version,
-      'rating_sum': ratingSum,
-      'rating_count': ratingCount,
-      'download_count': downloadCount,
-      'created_at': Timestamp.fromDate(createdAt),
-      'updated_at': Timestamp.fromDate(updatedAt),
-      'published_at': publishedAt != null ? Timestamp.fromDate(publishedAt!) : null,
-      'is_active': isActive,
-      'short_id': shortId,
-      'image_url': imageUrl,
-      'front_fields': frontFields,
-      'back_fields': backFields,
-      'image_display_mode': imageDisplayMode,
-      'show_back_first': showBackFirst,
-    };
-  }
-
-  factory PublicDeck.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return PublicDeck(
-      id: doc.id,
-      originalLocalId: data['original_local_id'] as String?,
-      authorId: data['author_id'] as String,
-      authorName: data['author_name'] as String,
-      name: data['name'] as String,
-      description: data['description'] as String?,
-      sourceLanguage: data['source_language'] as String,
-      targetLanguage: data['target_language'] as String,
-      categoryId: data['category_id'] as String,
-      tags: (data['tags'] as List<dynamic>?)?.cast<String>() ?? [],
-      cardCount: data['card_count'] as int? ?? 0,
-      version: data['version'] as int? ?? 1,
-      ratingSum: (data['rating_sum'] as num?)?.toDouble() ?? 0,
-      ratingCount: data['rating_count'] as int? ?? 0,
-      downloadCount: data['download_count'] as int? ?? 0,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updated_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      publishedAt: (data['published_at'] as Timestamp?)?.toDate(),
-      isActive: data['is_active'] as bool? ?? true,
-      shortId: data['short_id'] as String?,
-      imageUrl: data['image_url'] as String?,
-      frontFields: data['front_fields'] as String?,
-      backFields: data['back_fields'] as String?,
-      imageDisplayMode: data['image_display_mode'] as String?,
-      showBackFirst: data['show_back_first'] as bool? ?? false,
-    );
-  }
-
   /// Create from REST API response (Map with parsed values)
   factory PublicDeck.fromMap(Map<String, dynamic> data) {
     return PublicDeck(
@@ -217,7 +155,6 @@ class PublicDeck {
   static DateTime _parseDateTime(dynamic value) {
     if (value == null) return DateTime.now();
     if (value is DateTime) return value;
-    if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
     return DateTime.now();
   }

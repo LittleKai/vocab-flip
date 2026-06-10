@@ -44,6 +44,15 @@ void clearStoredWebSsoToken() {
   html.window.localStorage.remove(_vocabTokenKey);
 }
 
+String? getWebBaseUrl() {
+  final hostname = html.window.location.hostname;
+  debugPrint('Web SSO: checking hostname: $hostname');
+  if (hostname == 'localhost' || hostname == '127.0.0.1') {
+    return 'http://localhost:3001/api';
+  }
+  return null;
+}
+
 Map<String, dynamic>? _parseSsoMessage(dynamic data) {
   if (data is Map) {
     return Map<String, dynamic>.from(data);

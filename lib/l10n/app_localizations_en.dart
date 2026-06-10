@@ -657,6 +657,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyActivity => 'Weekly Activity';
 
   @override
+  String get studyHeatmap => 'Study Heatmap';
+
+  @override
+  String get cardMastery => 'Card Mastery';
+
+  @override
+  String get learningCards => 'Learning';
+
+  @override
+  String get matureCards => 'Mature';
+
+  @override
   String get deckProgress => 'Deck Progress';
 
   @override
@@ -1701,4 +1713,125 @@ class AppLocalizationsEn extends AppLocalizations {
   String nNewFeedback(int count) {
     return '$count new';
   }
+
+  @override
+  String get multipleChoice => 'Multiple Choice';
+
+  @override
+  String get typeAnswer => 'Type Answer';
+
+  @override
+  String get weakWords => 'Weak Words Practice';
+
+  @override
+  String get weakWordsDesc => 'Practice words you have struggled with';
+
+  @override
+  String get classicFlip => 'Classic Flip';
+
+  @override
+  String get studyMode => 'Study Mode';
+
+  @override
+  String get typeYourAnswer => 'Type your answer...';
+
+  @override
+  String get check => 'Check';
+
+  @override
+  String get correct => 'Correct!';
+
+  @override
+  String get incorrect => 'Incorrect!';
+
+  @override
+  String get startWeakWords => 'Start Weak Words Practice';
+
+  @override
+  String get aiMnemonic => 'AI Mnemonic';
+
+  @override
+  String get generateMnemonic => 'Generate Mnemonic';
+
+  @override
+  String get generatingMnemonic => 'Generating...';
+
+  @override
+  String get addMnemonicToNotes => 'Add to Notes';
+
+  @override
+  String get aiCardGenerator => 'AI Card Generator';
+
+  @override
+  String get generateCards => 'Generate Cards';
+
+  @override
+  String get textToGenerateCards => 'Paste text or article link here...';
+
+  @override
+  String get generatingCards => 'Generating cards...';
+
+  @override
+  String get reviewDraftCards => 'Review Draft Cards';
+
+  @override
+  String get approve => 'Approve';
+
+  @override
+  String get reject => 'Reject';
+
+  @override
+  String get saveApprovedCards => 'Save Approved Cards';
+
+  @override
+  String get selectDeckForCards => 'Select Deck for Cards';
+
+  @override
+  String get allCardsReviewed => 'All cards reviewed!';
+
+  @override
+  String get seeAll => 'See All';
+
+  @override
+  String balanceCredits(int count) {
+    return 'Balance: $count credits';
+  }
+
+  @override
+  String get topupCredit => 'Top up';
+
+  @override
+  String get advancedLearningScience => 'Advanced Learning Science';
+
+  @override
+  String get advancedLearningScienceDesc =>
+      'Semantic shuffle & fatigue detection (Experimental)';
+
+  @override
+  String get brainFatigueDetected => 'Brain Fatigue Detected';
+
+  @override
+  String get brainFatigueDesc =>
+      'You are answering very quickly and getting several incorrect. Taking a 5-minute break will help consolidate your memory.';
+
+  @override
+  String get keepGoing => 'Keep going';
+
+  @override
+  String get takeABreak => 'Take a break';
+
+  @override
+  String get rateThisDeck => 'Rate this deck';
+
+  @override
+  String get reviewOptional => 'Review (optional)';
+
+  @override
+  String get shareThoughts => 'Share your thoughts about this deck...';
+
+  @override
+  String get couldNotLoadQr => 'Could not load QR code';
+
+  @override
+  String get submit => 'Submit';
 }

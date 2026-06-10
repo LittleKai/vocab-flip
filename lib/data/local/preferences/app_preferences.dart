@@ -26,6 +26,8 @@ class AppPreferences {
   static const String _keyLastUpdateCheck = 'last_update_check';
   static const String _keySkippedVersion = 'skipped_version';
   static const String _keyAutoCheckUpdates = 'auto_check_updates';
+  static const String _keyAdvancedLearningScience = 'advanced_learning_science';
+  static const String _keyLastSyncCursor = 'last_sync_cursor';
 
   // Deck list filter
   static const String _keyDeckFilterCategory = 'deck_filter_category';
@@ -190,6 +192,18 @@ class AppPreferences {
   bool get autoCheckUpdates => _prefs.getBool(_keyAutoCheckUpdates) ?? true;
   Future<bool> setAutoCheckUpdates(bool value) =>
       _prefs.setBool(_keyAutoCheckUpdates, value);
+
+  bool get advancedLearningScience => _prefs.getBool(_keyAdvancedLearningScience) ?? false;
+  Future<bool> setAdvancedLearningScience(bool value) =>
+      _prefs.setBool(_keyAdvancedLearningScience, value);
+
+  // Last sync cursor
+  DateTime? get lastSyncCursor {
+    final timestamp = _prefs.getString(_keyLastSyncCursor);
+    return timestamp != null ? DateTime.parse(timestamp) : null;
+  }
+  Future<bool> setLastSyncCursor(DateTime value) =>
+      _prefs.setString(_keyLastSyncCursor, value.toIso8601String());
 
   // Deck list filter
   String? get deckFilterCategory => _prefs.getString(_keyDeckFilterCategory);

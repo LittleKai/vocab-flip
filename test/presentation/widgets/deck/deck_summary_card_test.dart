@@ -48,7 +48,8 @@ void main() {
     expect(find.text('42 cards'), findsOneWidget);
   });
 
-  testWidgets('shows study button only when a study callback is provided', (tester) async {
+  testWidgets('shows study button only when a study callback is provided',
+      (tester) async {
     await _pumpCard(tester, deck: _deck(dueCount: 4));
 
     expect(find.text('Study'), findsNothing);
@@ -78,5 +79,13 @@ void main() {
 
     expect(find.text('Study'), findsOneWidget);
     expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+  });
+
+  testWidgets('emphasizes due study cards with progress and play affordance',
+      (tester) async {
+    await _pumpCard(tester, deck: _deck(dueCount: 4), onStudy: () {});
+
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
   });
 }

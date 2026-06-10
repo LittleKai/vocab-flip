@@ -1,17 +1,24 @@
 import 'package:flutter/foundation.dart';
 import '../../local/database/chinese_dict_dao.dart';
 import '../../models/dictionary_result.dart';
+import '../../api/api_client.dart';
 
 /// Hanzii API for Chinese-Vietnamese translation
-/// Uses local SQLite database from LacViet dictionary
+/// Uses local SQLite database from LacViet dictionary on mobile/desktop,
+/// and falls back to Alpha Studio REST API on Web.
 class HanziiApi {
   final ChineseDictDao _dao;
+  final ApiClient _apiClient;
 
-  HanziiApi({ChineseDictDao? dao}) : _dao = dao ?? ChineseDictDao.instance;
+  HanziiApi({ChineseDictDao? dao, ApiClient? apiClient})
+      : _dao = dao ?? ChineseDictDao.instance,
+        _apiClient = apiClient ?? ApiClient();
 
   /// Initialize the database (should be called on app start)
   Future<void> init() async {
-    await _dao.init();
+    if (!kIsWeb) {
+      await _dao.init();
+    }
   }
 
   /// Look up a Chinese word and get Vietnamese translation
@@ -19,14 +26,34 @@ class HanziiApi {
     debugPrint('[HanziiApi] lookup: "$word"');
 
     try {
-      final entry = await _dao.lookup(word);
-      if (entry == null) {
-        debugPrint('[HanziiApi] No exact match found');
+      if (kIsWeb) {
+        // Use REST API for Web
+        final response = await _apiClient.dio.get('/vocab/dictionary/chinese/lookup', queryParameters: {'word': word});
+        if (response.data['success'] == true && response.data['data'] != null) {
+          final data = response.data['data'];
+          final entry = ChineseDictEntry(
+            id: data['wordId'] ?? 0,
+            word: data['word'] ?? '',
+            pinyin: data['pinyin'],
+            hanViet: data['hanViet'],
+            definition: data['definition'] ?? '',
+          );
+          debugPrint('[HanziiApi] Found (Web): ${entry.word}');
+          return _entryToResult(entry);
+        }
+        debugPrint('[HanziiApi] No exact match found (Web)');
         return null;
-      }
+      } else {
+        // Use local SQLite for Mobile/Desktop
+        final entry = await _dao.lookup(word);
+        if (entry == null) {
+          debugPrint('[HanziiApi] No exact match found (Local)');
+          return null;
+        }
 
-      debugPrint('[HanziiApi] Found: ${entry.word}');
-      return _entryToResult(entry);
+        debugPrint('[HanziiApi] Found (Local): ${entry.word}');
+        return _entryToResult(entry);
+      }
     } catch (e) {
       debugPrint('[HanziiApi] Error: $e');
       return null;
@@ -38,10 +65,29 @@ class HanziiApi {
     debugPrint('[HanziiApi] search: "$query" (limit: $limit)');
 
     try {
-      final entries = await _dao.search(query, limit: limit);
-      debugPrint('[HanziiApi] Found ${entries.length} results');
+      if (kIsWeb) {
+        // Use REST API for Web
+        final response = await _apiClient.dio.get('/vocab/dictionary/chinese/search', queryParameters: {'query': query, 'limit': limit});
+        if (response.data['success'] == true && response.data['data'] != null) {
+          final items = response.data['data'] as List;
+          final entries = items.map((data) => ChineseDictEntry(
+            id: data['wordId'] ?? 0,
+            word: data['word'] ?? '',
+            pinyin: data['pinyin'],
+            hanViet: data['hanViet'],
+            definition: data['definition'] ?? '',
+          )).toList();
+          debugPrint('[HanziiApi] Found ${entries.length} results (Web)');
+          return entries.map((e) => _entryToResult(e)).toList();
+        }
+        return [];
+      } else {
+        // Use local SQLite for Mobile/Desktop
+        final entries = await _dao.search(query, limit: limit);
+        debugPrint('[HanziiApi] Found ${entries.length} results (Local)');
 
-      return entries.map((e) => _entryToResult(e)).toList();
+        return entries.map((e) => _entryToResult(e)).toList();
+      }
     } catch (e) {
       debugPrint('[HanziiApi] Error: $e');
       return [];

@@ -115,6 +115,11 @@ class AppDatabase {
         easiness_factor REAL NOT NULL DEFAULT 2.5,
         interval INTEGER NOT NULL DEFAULT 0,
         repetitions INTEGER NOT NULL DEFAULT 0,
+        lapses INTEGER NOT NULL DEFAULT 0,
+        stability REAL,
+        difficulty REAL,
+        fsrs_state INTEGER,
+        fsrs_step INTEGER,
         next_review_date TEXT,
         last_review_date TEXT,
         FOREIGN KEY (deck_id) REFERENCES ${AppConstants.tableDecks}(id) ON DELETE CASCADE
@@ -196,6 +201,22 @@ class AppDatabase {
 
     await db.execute('''
       CREATE INDEX idx_imported_links_public_deck ON ${AppConstants.tableImportedDeckLinks}(public_deck_id)
+    ''');
+
+    // Create sync queue table
+    await db.execute('''
+      CREATE TABLE sync_queue (
+        id TEXT PRIMARY KEY,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
+        operation TEXT NOT NULL,
+        payload TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    
+    await db.execute('''
+      CREATE INDEX idx_sync_queue_created_at ON sync_queue(created_at)
     ''');
   }
 
@@ -293,6 +314,46 @@ class AppDatabase {
       await _safeAddColumn(db, AppConstants.tableDecks, 'was_imported INTEGER DEFAULT 0');
       // Mark existing linked decks as was_imported
       await db.execute('UPDATE ${AppConstants.tableDecks} SET was_imported = 1 WHERE linked_public_deck_id IS NOT NULL');
+    }
+
+    if (oldVersion < 11) {
+      debugPrint('AppDatabase: Applying migration v10 -> v11 (adding lapses to flashcards)');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'lapses INTEGER NOT NULL DEFAULT 0');
+    }
+
+    if (oldVersion < 12) {
+      debugPrint('AppDatabase: Applying migration v11 -> v12 (adding sync_queue table)');
+      await db.execute('''
+        CREATE TABLE sync_queue (
+          id TEXT PRIMARY KEY,
+          entity_type TEXT NOT NULL,
+          entity_id TEXT NOT NULL,
+          operation TEXT NOT NULL,
+          payload TEXT,
+          created_at TEXT NOT NULL
+        )
+      ''');
+    }
+
+    if (oldVersion < 13) {
+      debugPrint('AppDatabase: Applying migration v12 -> v13 (FSRS: adding stability and difficulty to flashcards)');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'stability REAL');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'difficulty REAL');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'fsrs_state INTEGER');
+      await _safeAddColumn(db, AppConstants.tableFlashcards, 'fsrs_step INTEGER');
+      
+      // Convert SM-2 to FSRS for existing cards
+      // S ≈ interval
+      // D ≈ 10 - ((EF - 1.3) * (5.0 / 1.2)) clamped to [1, 10]
+      await db.execute('''
+        UPDATE ${AppConstants.tableFlashcards}
+        SET 
+          stability = interval,
+          difficulty = MAX(1.0, MIN(10.0, 10.0 - ((easiness_factor - 1.3) * 4.16))),
+          fsrs_state = 2, /* State.review */
+          fsrs_step = 0
+        WHERE repetitions > 0 AND stability IS NULL
+      ''');
     }
   }
 

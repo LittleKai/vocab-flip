@@ -62,7 +62,7 @@
   "displayModeDesc": "Chọn mặt thẻ hiển thị trước",
   "frontFirst": "Mặt trước",
   "backFirst": "Mặt sau",
-  "exampleSentence": "Ví dụ",
+  "exampleSentence": "Câu ví dụ (tùy chọn)",
   "noteLabel": "Ghi chú",
   "confirmDelete": "Bạn có chắc muốn xóa không?",
   "flipCard": "Chạm để lật",
@@ -76,7 +76,6 @@
   "thisWeek": "Tuần này",
   "thisMonth": "Tháng này",
   "allTime": "Tất cả",
-
   "library": "Thư viện",
   "dictionary": "Từ điển",
   "stats": "Thống kê",
@@ -84,21 +83,18 @@
   "topRated": "Đánh giá cao",
   "newDecks": "Mới",
   "browse": "Duyệt",
-
   "goodMorning": "Chào buổi sáng!",
   "goodAfternoon": "Chào buổi chiều!",
   "goodEvening": "Chào buổi tối!",
   "readyToLearn": "Sẵn sàng học từ mới chưa?",
   "allCaughtUp": "Đã hoàn thành!",
   "noCardsToReviewToday": "Không có thẻ cần ôn hôm nay",
-
   "due": "Cần ôn",
   "dueToday": "Cần ôn hôm nay",
   "recentDecks": "Bộ thẻ gần đây",
   "dayStreak": "Chuỗi {count} ngày",
   "cardsDue": "{count} thẻ cần ôn",
   "cards": "Thẻ",
-
   "myDecks": "Bộ thẻ của tôi",
   "noDecksYet": "Chưa có bộ thẻ",
   "createFirstDeck": "Tạo bộ thẻ đầu tiên để bắt đầu học!",
@@ -112,7 +108,6 @@
   "unlinkFromLibrary": "Hủy liên kết",
   "managePublished": "Quản lý đã đăng",
   "loadingDecks": "Đang tải bộ thẻ...",
-
   "total": "Tổng",
   "newCards": "Mới",
   "learning": "Đang học",
@@ -121,7 +116,6 @@
   "nCards": "{count} thẻ",
   "nNew": "{count} mới",
   "nReview": "{count} ôn tập",
-
   "skip": "Bỏ qua",
   "shuffle": "Xáo trộn",
   "tryAgain": "Thử lại",
@@ -134,7 +128,6 @@
   "continueSession": "Tiếp tục",
   "progressSaved": "Tiến trình của bạn sẽ được lưu.",
   "studyN": "Học ({count})",
-
   "wordFront": "Từ / Mặt trước",
   "enterWord": "Nhập từ cần học",
   "lookUp": "Tra cứu",
@@ -142,7 +135,6 @@
   "phoneticHint": "IPA, Pinyin, Hiragana, v.v.",
   "meaningBack": "Nghĩa / Mặt sau",
   "enterMeaning": "Nhập nghĩa tiếng Việt",
-  "exampleSentence": "Câu ví dụ (tùy chọn)",
   "addExample": "Thêm câu ví dụ",
   "notesOptional": "Ghi chú (tùy chọn)",
   "addNotes": "Thêm ghi chú hoặc gợi ý",
@@ -158,10 +150,8 @@
   "pleaseEnterWordFirst": "Vui lòng nhập từ trước",
   "flashcardAdded": "Đã thêm flashcard!",
   "autoFillFromDictionary": "Tự động điền từ từ điển",
-
   "viewCards": "Xem thẻ",
   "noFlashcards": "Không có flashcard",
-
   "sourceLanguageLabel": "Ngôn ngữ nguồn:",
   "searchForWord": "Tìm kiếm từ...",
   "lookingUp": "Đang tra cứu...",
@@ -182,7 +172,6 @@
   "fallbackToEnglishDesc": "Dùng từ điển Anh nếu không tìm thấy tiếng Việt",
   "selectDeck": "Chọn bộ thẻ",
   "addedToDeck": "Đã thêm vào bộ thẻ",
-
   "appearance": "Giao diện",
   "useDarkTheme": "Sử dụng giao diện tối",
   "studySettings": "Học tập",
@@ -217,7 +206,6 @@
   "dataReset": "Đã xóa tất cả dữ liệu",
   "selectLanguage": "Chọn ngôn ngữ",
   "numberOfCards": "Số lượng thẻ",
-
   "overview": "Tổng quan",
   "days": "ngày",
   "created": "đã tạo",
@@ -232,7 +220,6 @@
   "fri": "T6",
   "sat": "T7",
   "sun": "CN",
-
   "filter": "Lọc",
   "all": "Tất cả",
   "noFeaturedDecks": "Chưa có bộ thẻ nổi bật",
@@ -248,7 +235,6 @@
   "tryDifferentKeywords": "Thử từ khóa khác hoặc duyệt theo danh mục",
   "decksCount": "{count} bộ thẻ",
   "resultsFor": "{count} kết quả cho \"{query}\"",
-
   "deckDetails": "Chi tiết bộ thẻ",
   "ratingsReviews": "Đánh giá & Nhận xét",
   "previewCards": "Xem trước thẻ",
@@ -267,7 +253,6 @@
   "downloadsCount": "{count} lượt tải",
   "reviewsCount": "{count} đánh giá",
   "cardsCount": "{count} thẻ",
-
   "publishDeck": "Đăng bộ thẻ",
   "deckNotFound": "Không tìm thấy bộ thẻ",
   "category": "Danh mục",
@@ -281,7 +266,6 @@
   "canUpdateAnytime": "Bạn có thể cập nhật hoặc gỡ bất cứ lúc nào",
   "deckPublished": "Đã đăng bộ thẻ thành công!",
   "deckUpdated": "Đã cập nhật bộ thẻ thành công!",
-
   "myPublishedDecks": "Bộ thẻ đã đăng",
   "active": "Hoạt động",
   "inactive": "Không hoạt động",
@@ -297,7 +281,6 @@
   "unpublishConfirm": "Gỡ bộ thẻ?",
   "unpublishDescription": "Thao tác này sẽ xóa bộ thẻ khỏi thư viện công cộng. Người dùng đã nhập vẫn giữ được bản sao của họ.",
   "deckUnpublished": "Đã gỡ bộ thẻ",
-
   "updates": "Cập nhật",
   "markAllRead": "Đánh dấu đã đọc",
   "availableUpdates": "Cập nhật có sẵn",
@@ -308,7 +291,6 @@
   "updatedToVersion": "Đã cập nhật lên v{version}",
   "checkForUpdates": "Kiểm tra cập nhật",
   "noUpdatesAvailable": "Không có cập nhật",
-
   "loading": "Đang tải...",
   "error": "Lỗi",
   "success": "Thành công",
@@ -316,22 +298,18 @@
   "deleteConfirmTitle": "Xóa {name}",
   "deleteConfirmMessage": "Bạn có chắc muốn xóa \"{name}\"? Không thể hoàn tác thao tác này.",
   "actionCannotBeUndone": "Không thể hoàn tác thao tác này.",
-
   "unlinkDeck": "Hủy liên kết",
   "unlinkDeckMessage": "Thao tác này sẽ xóa kết nối với bộ thẻ gốc. Bạn sẽ không còn nhận được cập nhật từ tác giả.",
   "unlink": "Hủy liên kết",
   "deckUnlinked": "Đã hủy liên kết bộ thẻ",
-
   "noFlashcardsYet": "Chưa có flashcard",
   "addFlashcardsToStart": "Thêm flashcard để bắt đầu học!",
-
   "descriptionOptional": "Mô tả (tùy chọn)",
   "describeWhatDeckAbout": "Mô tả nội dung bộ thẻ",
   "pleaseEnterDeckName": "Vui lòng nhập tên bộ thẻ",
   "deckNameHint": "VD: Từ vựng N5 tiếng Nhật",
   "languageOfWordsToLearn": "Ngôn ngữ của từ bạn muốn học",
   "updateDeck": "Cập nhật bộ thẻ",
-
   "image": "Hình ảnh",
   "imageOptional": "Hình ảnh (tùy chọn)",
   "localFile": "File cục bộ",
@@ -346,7 +324,6 @@
   "backImage": "Hình mặt sau",
   "shareImageOnBothSides": "Hiện hình ở cả hai mặt",
   "shareImageDescription": "Hiện hình mặt trước ở cả mặt sau",
-
   "flashcardImageSize": "Kích cỡ ảnh Flashcard",
   "recommendedForMobile": "Khuyên dùng cho điện thoại",
   "recommendedForDesktop": "Khuyên dùng cho máy tính",
@@ -360,7 +337,6 @@
   "medium": "Vừa",
   "large": "Lớn",
   "extraLarge": "Rất lớn",
-
   "account": "Tài khoản",
   "signInWithEmail": "Đăng nhập bằng Email",
   "createAccount": "Tạo tài khoản",
@@ -383,7 +359,6 @@
   "resetPasswordSent": "Đã gửi email đặt lại mật khẩu",
   "signedInAs": "Đã đăng nhập với {email}",
   "signOutConfirm": "Bạn có chắc muốn đăng xuất?",
-
   "basicInfo": "Thông tin cơ bản",
   "cardStructure": "Cấu trúc thẻ",
   "cardStructureDesc": "Cấu hình các trường hiển thị ở mặt trước và mặt sau",
@@ -404,7 +379,6 @@
   "lockedField": "Đã khóa",
   "autoPlayTts": "Tự động phát âm",
   "autoPlayTtsDesc": "Tự động phát âm khi lật thẻ",
-
   "ttsHelp": "Hướng dẫn cài đặt TTS",
   "ttsLanguagesMissing": "Thiếu ngôn ngữ TTS",
   "ttsLanguagesMissingDesc": "Các ngôn ngữ sau chưa được cài đặt cho phát âm:",
@@ -423,8 +397,6 @@
   "resetTtsWarningDesc": "Hiển thị lại cảnh báo cài đặt TTS khi vào bộ thẻ",
   "ttsWarningReset": "Đã đặt lại cảnh báo TTS",
   "close": "Đóng",
-
-  "updates": "Cập nhật",
   "updateAvailable": "Có bản cập nhật",
   "updateRequired": "Bản cập nhật này là bắt buộc để tiếp tục sử dụng ứng dụng.",
   "autoCheckUpdates": "Tự động kiểm tra cập nhật",
@@ -444,7 +416,6 @@
   "checkingForUpdates": "Chạm để kiểm tra cập nhật",
   "updateFailed": "Cập nhật thất bại",
   "updateAvailableVersion": "Phiên bản {version} có sẵn",
-
   "support": "Hỗ trợ",
   "donate": "Ủng hộ",
   "donateDesc": "Hỗ trợ nhà phát triển",
@@ -453,7 +424,6 @@
   "saveQrImage": "Lưu ảnh QR",
   "qrSaved": "Đã lưu ảnh QR",
   "qrSaveFailed": "Không thể lưu ảnh QR",
-
   "importFromExcel": "Nhập từ Excel",
   "exportToExcel": "Xuất ra Excel",
   "errorExportingExcel": "Lỗi khi xuất file Excel",
@@ -470,7 +440,6 @@
   "continueImport": "Tiếp tục",
   "warning": "Cảnh báo",
   "importCompleted": "Hoàn tất: {added} thẻ mới, {updated} thẻ cập nhật",
-
   "googleDriveBackup": "Sao lưu Google Drive",
   "notConnectedToGoogleDrive": "Chưa kết nối Google Drive",
   "connectToBackupData": "Kết nối để sao lưu và khôi phục dữ liệu flashcard",
@@ -501,7 +470,6 @@
   "deleteBackupConfirm": "Bạn có chắc muốn xóa bản sao lưu từ {date}?",
   "backupDeleted": "Đã xóa bản sao lưu",
   "backupSummary": "{deckCount} bộ thẻ, {cardCount} thẻ ({size})",
-
   "editProfile": "Chỉnh sửa hồ sơ",
   "profileUpdated": "Đã cập nhật hồ sơ",
   "nicknameTaken": "Nickname này đã được sử dụng",
@@ -516,21 +484,17 @@
   "genderFemale": "Nữ",
   "genderOther": "Khác",
   "genderPreferNotToSay": "Không muốn nói",
-
   "enterDeckId": "Nhập ID bộ thẻ...",
   "importById": "Nhập theo ID",
   "uploadingImages": "Đang tải ảnh {completed}/{total}...",
   "downloadingImages": "Đang tải ảnh về {completed}/{total}...",
   "imageUploadFailed": "{count} ảnh tải lên thất bại",
-
   "shareDeckId": "Chia sẻ ID bộ thẻ",
   "copyDeckIdToShare": "Sao chép ID để người khác nhập bộ thẻ",
   "deckIdCopied": "Đã sao chép ID bộ thẻ",
-
   "deckImage": "Ảnh bộ thẻ",
   "selectDeckToPublish": "Chọn bộ thẻ để đăng",
   "allDecksPublished": "Tất cả bộ thẻ đã được đăng",
-
   "sortBy": "Sắp xếp",
   "sortNameAZ": "Tên (A-Z)",
   "sortNameZA": "Tên (Z-A)",
@@ -540,11 +504,9 @@
   "sortOldest": "Cũ nhất",
   "noMatchingDecks": "Không tìm thấy bộ thẻ phù hợp",
   "clearFilters": "Xóa bộ lọc",
-
   "reimportDeck": "Nhập lại về máy",
   "reimportDescription": "Deck local đã bị xóa. Nhập lại từ bản đã publish.",
   "reimportSuccess": "Đã nhập lại deck thành công",
-
   "viewReviews": "Xem đánh giá",
   "filterByRating": "Lọc theo đánh giá",
   "allRatings": "Tất cả",
@@ -552,7 +514,6 @@
   "enterYourNickname": "Biệt danh của bạn (tùy chọn)",
   "noReviewsYet": "Chưa có đánh giá",
   "nStarRating": "{count}★",
-
   "feedbackTitle": "Gửi phản hồi",
   "feedbackCategoryLabel": "Danh mục",
   "feedbackCategoryBug": "Báo lỗi",
@@ -566,7 +527,6 @@
   "feedbackSuccess": "Cảm ơn bạn đã gửi phản hồi!",
   "feedbackError": "Gửi phản hồi thất bại. Vui lòng thử lại.",
   "feedbackMessageRequired": "Vui lòng nhập nội dung phản hồi",
-
   "adminSection": "Quản trị",
   "adminFeedback": "Phản hồi người dùng",
   "noFeedbackYet": "Chưa có phản hồi nào",
@@ -577,5 +537,55 @@
         "type": "int"
       }
     }
-  }
+  },
+  "studyHeatmap": "Biểu đồ nhiệt học tập",
+  "cardMastery": "Mức độ thành thạo thẻ",
+  "learningCards": "Đang học",
+  "matureCards": "Đã thành thạo",
+  "multipleChoice": "Trắc nghiệm",
+  "typeAnswer": "Gõ câu trả lời",
+  "weakWords": "Luyện tập từ còn yếu",
+  "weakWordsDesc": "Luyện tập các từ bạn hay làm sai",
+  "classicFlip": "Lật thẻ cổ điển",
+  "studyMode": "Chế độ học",
+  "typeYourAnswer": "Gõ câu trả lời của bạn...",
+  "check": "Kiểm tra",
+  "correct": "Chính xác!",
+  "incorrect": "Chưa chính xác!",
+  "startWeakWords": "Bắt đầu luyện tập từ còn yếu",
+  "aiMnemonic": "Mẹo ghi nhớ AI",
+  "generateMnemonic": "Tạo mẹo ghi nhớ",
+  "generatingMnemonic": "Đang tạo...",
+  "addMnemonicToNotes": "Thêm vào ghi chú",
+  "aiCardGenerator": "AI Tạo thẻ",
+  "generateCards": "Tạo thẻ",
+  "textToGenerateCards": "Dán văn bản hoặc link bài báo vào đây...",
+  "generatingCards": "Đang tạo thẻ...",
+  "reviewDraftCards": "Duyệt thẻ nháp",
+  "approve": "Duyệt",
+  "reject": "Bỏ qua",
+  "saveApprovedCards": "Lưu các thẻ được duyệt",
+  "selectDeckForCards": "Chọn bộ thẻ để lưu",
+  "allCardsReviewed": "Đã duyệt tất cả thẻ nháp!",
+  "seeAll": "Xem tất cả",
+  "balanceCredits": "Số dư: {count} credit",
+  "@balanceCredits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "topupCredit": "Nạp Credit",
+  "advancedLearningScience": "Khoa học học tập nâng cao",
+  "advancedLearningScienceDesc": "Xáo trộn ngữ nghĩa & phát hiện mệt mỏi (Thử nghiệm)",
+  "brainFatigueDetected": "Phát hiện mệt mỏi trí não",
+  "brainFatigueDesc": "Bạn đang trả lời rất nhanh và sai liên tục. Nghỉ ngơi 5 phút sẽ giúp củng cố trí nhớ tốt hơn.",
+  "keepGoing": "Tiếp tục",
+  "takeABreak": "Nghỉ ngơi",
+  "rateThisDeck": "Đánh giá bộ thẻ này",
+  "reviewOptional": "Đánh giá (tùy chọn)",
+  "shareThoughts": "Chia sẻ cảm nghĩ của bạn về bộ thẻ này...",
+  "couldNotLoadQr": "Không thể tải mã QR",
+  "submit": "Gửi"
 }
