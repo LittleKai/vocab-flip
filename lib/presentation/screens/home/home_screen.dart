@@ -127,15 +127,26 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isNarrow = screenWidth < 450;
+    
+    final navBarHeight = isNarrow ? 62.0 : 70.0;
+    final iconSize = isNarrow ? 22.0 : 26.0;
+    final double fontSize = isNarrow ? 9.5 : 12.0;
 
     return Scaffold(
       extendBody: true,
       body: _buildScreen(_currentIndex),
       bottomNavigationBar: CurvedNavigationBar(
+        height: navBarHeight,
         index: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         backgroundColor: Colors.transparent,
-        color: Theme.of(context).colorScheme.surface,
+        color: Color.lerp(
+          Theme.of(context).colorScheme.surface,
+          _getTabColor(_currentIndex),
+          Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.06,
+        )!,
         buttonBackgroundColor: _getTabColor(_currentIndex),
         animationCurve: Curves.easeOutQuart,
         animationDuration: const Duration(milliseconds: 300),
@@ -144,12 +155,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               _currentIndex == 0 ? Icons.home_rounded : Icons.home_outlined,
               color: _currentIndex == 0 ? Colors.white : _getTabColor(0),
-              size: 28,
+              size: iconSize,
             ),
-            label: l10n.home,
+            label: l10n.home.toUpperCase(),
             labelStyle: TextStyle(
               color: _currentIndex == 0 ? _getTabColor(0) : AppColors.textSecondary(context),
-              fontSize: 11,
+              fontSize: fontSize,
               fontWeight: _currentIndex == 0 ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
@@ -157,12 +168,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               _currentIndex == 1 ? Icons.folder_rounded : Icons.folder_outlined,
               color: _currentIndex == 1 ? Colors.white : _getTabColor(1),
-              size: 28,
+              size: iconSize,
             ),
-            label: l10n.decks,
+            label: l10n.decks.toUpperCase(),
             labelStyle: TextStyle(
               color: _currentIndex == 1 ? _getTabColor(1) : AppColors.textSecondary(context),
-              fontSize: 11,
+              fontSize: fontSize,
               fontWeight: _currentIndex == 1 ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
@@ -170,12 +181,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               _currentIndex == 2 ? Icons.public_rounded : Icons.public_outlined,
               color: _currentIndex == 2 ? Colors.white : _getTabColor(2),
-              size: 28,
+              size: iconSize,
             ),
-            label: l10n.library,
+            label: l10n.library.toUpperCase(),
             labelStyle: TextStyle(
               color: _currentIndex == 2 ? _getTabColor(2) : AppColors.textSecondary(context),
-              fontSize: 11,
+              fontSize: fontSize,
               fontWeight: _currentIndex == 2 ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
@@ -183,12 +194,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               _currentIndex == 3 ? Icons.search_rounded : Icons.search_outlined,
               color: _currentIndex == 3 ? Colors.white : _getTabColor(3),
-              size: 28,
+              size: iconSize,
             ),
-            label: l10n.dictionary,
+            label: l10n.dictionary.toUpperCase(),
             labelStyle: TextStyle(
               color: _currentIndex == 3 ? _getTabColor(3) : AppColors.textSecondary(context),
-              fontSize: 11,
+              fontSize: fontSize,
               fontWeight: _currentIndex == 3 ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
@@ -196,12 +207,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               _currentIndex == 4 ? Icons.bar_chart_rounded : Icons.bar_chart_outlined,
               color: _currentIndex == 4 ? Colors.white : _getTabColor(4),
-              size: 28,
+              size: iconSize,
             ),
-            label: l10n.stats,
+            label: l10n.stats.toUpperCase(),
             labelStyle: TextStyle(
               color: _currentIndex == 4 ? _getTabColor(4) : AppColors.textSecondary(context),
-              fontSize: 11,
+              fontSize: fontSize,
               fontWeight: _currentIndex == 4 ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
@@ -209,12 +220,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               _currentIndex == 5 ? Icons.settings_rounded : Icons.settings_outlined,
               color: _currentIndex == 5 ? Colors.white : _getTabColor(5),
-              size: 28,
+              size: iconSize,
             ),
-            label: l10n.settings,
+            label: l10n.settings.toUpperCase(),
             labelStyle: TextStyle(
               color: _currentIndex == 5 ? _getTabColor(5) : AppColors.textSecondary(context),
-              fontSize: 11,
+              fontSize: fontSize,
               fontWeight: _currentIndex == 5 ? FontWeight.w800 : FontWeight.w600,
             ),
           ),

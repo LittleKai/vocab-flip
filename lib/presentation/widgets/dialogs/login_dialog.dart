@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
@@ -12,11 +13,19 @@ class LoginDialog {
     final _passwordController = TextEditingController();
     final _nameController = TextEditingController();
     bool _isRegistering = false;
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     AwesomeDialog(
       context: context,
-      width: 450,
-      dialogType: DialogType.info,
+      width: 520,
+      dialogType: kIsWeb ? DialogType.noHeader : DialogType.info,
+      customHeader: kIsWeb
+          ? CircleAvatar(
+              radius: 32,
+              backgroundColor: primaryColor.withOpacity(0.12),
+              child: Icon(Icons.login_rounded, size: 36, color: primaryColor),
+            )
+          : null,
       animType: AnimType.bottomSlide,
       dialogBackgroundColor: Theme.of(context).colorScheme.surface,
       body: StatefulBuilder(
@@ -89,7 +98,7 @@ class LoginDialog {
                   TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: l10n.fullName,
+                      labelText: l10n.nickname,
                       border: const OutlineInputBorder(),
                     ),
                     textInputAction: TextInputAction.next,

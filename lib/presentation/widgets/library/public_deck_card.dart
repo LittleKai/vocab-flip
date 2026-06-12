@@ -37,9 +37,12 @@ class PublicDeckCard extends StatelessWidget {
   Widget _buildFullCard(BuildContext context) {
     final category = Category.getById(deck.categoryId);
     final accentColor = deck.hasRatings ? Colors.amber : AppColors.primary;
-    final cardTint = Theme.of(context).brightness == Brightness.dark
-        ? AppColors.primary.withValues(alpha: 0.08)
-        : AppColors.primary.withValues(alpha: 0.035);
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+    final cardTint = Color.lerp(
+      surfaceColor,
+      AppColors.primary,
+      Theme.of(context).brightness == Brightness.dark ? 0.08 : 0.04,
+    )!;
     final borderRadius = BorderRadius.circular(18);
     final visibleTags = deck.tags.take(3).toList();
     final hiddenTagCount = deck.tags.length - visibleTags.length;

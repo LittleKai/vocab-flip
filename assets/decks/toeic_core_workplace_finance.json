@@ -1,0 +1,1620 @@
+{
+  "decks": [
+    {
+      "name": "TOEIC Core Vocabulary - Workplace & Finance",
+      "description": "Tổng hợp từ vựng TOEIC thiết yếu chủ đề công sở, hội họp, nhân sự và tài chính giúp người học đạt mục tiêu 550+.",
+      "source_language": "en",
+      "target_language": "vi",
+      "category": "toeic",
+      "tags": [
+        "toeic",
+        "workplace",
+        "finance",
+        "business"
+      ],
+      "cards": [
+        {
+          "front": "recruit",
+          "front_phonetic": "/rɪˈkruːt/",
+          "back": "tuyển dụng",
+          "examples": [
+            "The company plans to recruit 50 new employees this year."
+          ],
+          "notes": "Verb. Synonyms: hire, employ",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=recruit"
+        },
+        {
+          "front": "candidate",
+          "front_phonetic": "/ˈkændɪdət/",
+          "back": "ứng viên",
+          "examples": [
+            "The ideal candidate will have at least three years of experience."
+          ],
+          "notes": "Noun. Synonyms: applicant, hopeful",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=candidate"
+        },
+        {
+          "front": "interview",
+          "front_phonetic": "/ˈɪntərvjuː/",
+          "back": "phỏng vấn",
+          "examples": [
+            "She has a job interview with the HR department tomorrow."
+          ],
+          "notes": "Noun/Verb. Synonyms: meeting, consultation",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=interview"
+        },
+        {
+          "front": "resume",
+          "front_phonetic": "/ˈrezəmeɪ/",
+          "back": "sơ yếu lý lịch",
+          "examples": [
+            "Please submit your resume and cover letter by Friday."
+          ],
+          "notes": "Noun. Synonyms: CV, curriculum vitae",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=resume"
+        },
+        {
+          "front": "qualification",
+          "front_phonetic": "/ˌkwɑːlɪfɪˈkeɪʃn/",
+          "back": "bằng cấp, trình độ",
+          "examples": [
+            "He has the right qualifications for the management position."
+          ],
+          "notes": "Noun. Synonyms: credential, certification",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=qualification"
+        },
+        {
+          "front": "applicant",
+          "front_phonetic": "/ˈæplɪkənt/",
+          "back": "người nộp đơn",
+          "examples": [
+            "Every applicant must complete a written test."
+          ],
+          "notes": "Noun. Synonyms: candidate, job-seeker",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=applicant"
+        },
+        {
+          "front": "personnel",
+          "front_phonetic": "/ˌpɜːrsəˈnel/",
+          "back": "nhân sự",
+          "examples": [
+            "All personnel must attend the mandatory safety training."
+          ],
+          "notes": "Noun. Synonyms: staff, employees",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=personnel"
+        },
+        {
+          "front": "employee",
+          "front_phonetic": "/ɪmˈplɔɪiː/",
+          "back": "nhân viên",
+          "examples": [
+            "The company offers health insurance to every full-time employee."
+          ],
+          "notes": "Noun. Synonyms: worker, staff member",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=employee"
+        },
+        {
+          "front": "employer",
+          "front_phonetic": "/ɪmˈplɔɪər/",
+          "back": "nhà tuyển dụng",
+          "examples": [
+            "Her employer provides excellent retirement benefits."
+          ],
+          "notes": "Noun. Synonyms: boss, company",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=employer"
+        },
+        {
+          "front": "salary",
+          "front_phonetic": "/ˈsæləri/",
+          "back": "tiền lương",
+          "examples": [
+            "The starting salary for this position is very competitive."
+          ],
+          "notes": "Noun. Synonyms: pay, wage",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=salary"
+        },
+        {
+          "front": "wage",
+          "front_phonetic": "/weɪdʒ/",
+          "back": "tiền công",
+          "examples": [
+            "Minimum wage has increased in several states this year."
+          ],
+          "notes": "Noun. Synonyms: pay, earnings",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=wage"
+        },
+        {
+          "front": "benefit",
+          "front_phonetic": "/ˈbenɪfɪt/",
+          "back": "phúc lợi, lợi ích",
+          "examples": [
+            "The job offers excellent benefits, including dental care."
+          ],
+          "notes": "Noun. Synonyms: perk, advantage",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=benefit"
+        },
+        {
+          "front": "compensation",
+          "front_phonetic": "/ˌkɑːmpenˈseɪʃn/",
+          "back": "sự đền bù, tiền lương",
+          "examples": [
+            "The compensation package includes a generous bonus structure."
+          ],
+          "notes": "Noun. Synonyms: payment, remuneration",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=compensation"
+        },
+        {
+          "front": "promotion",
+          "front_phonetic": "/prəˈmoʊʃn/",
+          "back": "sự thăng chức",
+          "examples": [
+            "She received a promotion to senior manager after two years."
+          ],
+          "notes": "Noun. Synonyms: advancement, upgrade",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=promotion"
+        },
+        {
+          "front": "promote",
+          "front_phonetic": "/prəˈmoʊt/",
+          "back": "thăng chức, thúc đẩy",
+          "examples": [
+            "The director decided to promote him for his hard work."
+          ],
+          "notes": "Verb. Synonyms: advance, elevate",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=promote"
+        },
+        {
+          "front": "resign",
+          "front_phonetic": "/rɪˈzaɪn/",
+          "back": "từ chức",
+          "examples": [
+            "The CEO will resign at the end of the fiscal year."
+          ],
+          "notes": "Verb. Synonyms: quit, step down",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=resign"
+        },
+        {
+          "front": "retire",
+          "front_phonetic": "/rɪˈtaɪər/",
+          "back": "nghỉ hưu",
+          "examples": [
+            "He plans to retire next year and travel the world."
+          ],
+          "notes": "Verb. Synonyms: stop working, step down",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=retire"
+        },
+        {
+          "front": "terminate",
+          "front_phonetic": "/ˈtɜːrmɪneɪt/",
+          "back": "chấm dứt, sa thải",
+          "examples": [
+            "The company had to terminate his contract due to poor performance."
+          ],
+          "notes": "Verb. Synonyms: end, fire",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=terminate"
+        },
+        {
+          "front": "dismiss",
+          "front_phonetic": "/dɪsˈmɪs/",
+          "back": "sa thải, giải tán",
+          "examples": [
+            "The manager decided to dismiss the employee for arriving late repeatedly."
+          ],
+          "notes": "Verb. Synonyms: fire, let go",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=dismiss"
+        },
+        {
+          "front": "evaluate",
+          "front_phonetic": "/ɪˈvæljueɪt/",
+          "back": "đánh giá",
+          "examples": [
+            "We need to evaluate the performance of all team members."
+          ],
+          "notes": "Verb. Synonyms: assess, appraise",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=evaluate"
+        },
+        {
+          "front": "feedback",
+          "front_phonetic": "/ˈfiːdbæk/",
+          "back": "phản hồi",
+          "examples": [
+            "Positive feedback from customers helps us improve our services."
+          ],
+          "notes": "Noun. Synonyms: response, comments",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=feedback"
+        },
+        {
+          "front": "performance",
+          "front_phonetic": "/pərˈfɔːrməns/",
+          "back": "hiệu suất, phần trình diễn",
+          "examples": [
+            "The employee performance review is scheduled for next week."
+          ],
+          "notes": "Noun. Synonyms: execution, productivity",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=performance"
+        },
+        {
+          "front": "appraisal",
+          "front_phonetic": "/əˈpreɪzl/",
+          "back": "sự đánh giá",
+          "examples": [
+            "Your annual appraisal will determine your salary increase."
+          ],
+          "notes": "Noun. Synonyms: assessment, evaluation",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=appraisal"
+        },
+        {
+          "front": "orientation",
+          "front_phonetic": "/ˌɔːriənˈteɪʃn/",
+          "back": "sự định hướng",
+          "examples": [
+            "New hires must attend a two-day orientation program."
+          ],
+          "notes": "Noun. Synonyms: introduction, induction",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=orientation"
+        },
+        {
+          "front": "payroll",
+          "front_phonetic": "/ˈpeɪroʊl/",
+          "back": "bảng lương",
+          "examples": [
+            "The accounting department processes payroll every two weeks."
+          ],
+          "notes": "Noun. Synonyms: wage list, earnings",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=payroll"
+        },
+        {
+          "front": "collaborate",
+          "front_phonetic": "/kəˈlæbəreɪt/",
+          "back": "hợp tác",
+          "examples": [
+            "We need to collaborate with the marketing team on this project."
+          ],
+          "notes": "Verb. Synonyms: cooperate, work together",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=collaborate"
+        },
+        {
+          "front": "negotiate",
+          "front_phonetic": "/nɪˈɡoʊʃieɪt/",
+          "back": "đàm phán",
+          "examples": [
+            "The manager will negotiate the terms of the new contract."
+          ],
+          "notes": "Verb. Synonyms: bargain, discuss",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=negotiate"
+        },
+        {
+          "front": "agenda",
+          "front_phonetic": "/əˈdʒendə/",
+          "back": "chương trình nghị sự",
+          "examples": [
+            "The first item on the agenda is the quarterly financial report."
+          ],
+          "notes": "Noun. Synonyms: schedule, itinerary",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=agenda"
+        },
+        {
+          "front": "minute",
+          "front_phonetic": "/ˈmɪnɪt/",
+          "back": "biên bản cuộc họp",
+          "examples": [
+            "Please review the minutes from our last board meeting."
+          ],
+          "notes": "Noun (plural). Synonyms: record, notes",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=minute"
+        },
+        {
+          "front": "chair",
+          "front_phonetic": "/tʃer/",
+          "back": "chủ tọa",
+          "examples": [
+            "She will chair the committee meeting this afternoon."
+          ],
+          "notes": "Verb/Noun. Synonyms: head, preside over",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=chair"
+        },
+        {
+          "front": "preside",
+          "front_phonetic": "/prɪˈzaɪd/",
+          "back": "chủ trì",
+          "examples": [
+            "The CEO will preside over the annual shareholders meeting."
+          ],
+          "notes": "Verb. Synonyms: officiate, conduct",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=preside"
+        },
+        {
+          "front": "adjourn",
+          "front_phonetic": "/əˈdʒɜːrn/",
+          "back": "dời lại, kết thúc",
+          "examples": [
+            "The meeting is adjourned until tomorrow morning."
+          ],
+          "notes": "Verb. Synonyms: suspend, postpone",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=adjourn"
+        },
+        {
+          "front": "postpone",
+          "front_phonetic": "/poʊstˈpoʊn/",
+          "back": "hoãn lại",
+          "examples": [
+            "We have to postpone the conference due to bad weather."
+          ],
+          "notes": "Verb. Synonyms: delay, put off",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=postpone"
+        },
+        {
+          "front": "schedule",
+          "front_phonetic": "/ˈskedʒuːl/",
+          "back": "lên lịch, lịch trình",
+          "examples": [
+            "Let’s schedule a meeting to discuss the project timeline."
+          ],
+          "notes": "Verb/Noun. Synonyms: arrange, timetable",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=schedule"
+        },
+        {
+          "front": "finalize",
+          "front_phonetic": "/ˈfaɪnəlaɪz/",
+          "back": "hoàn tất",
+          "examples": [
+            "We will finalize the design layout by the end of the day."
+          ],
+          "notes": "Verb. Synonyms: conclude, complete",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=finalize"
+        },
+        {
+          "front": "consensus",
+          "front_phonetic": "/kənˈsensəs/",
+          "back": "sự đồng thuận",
+          "examples": [
+            "The team reached a consensus on the new marketing strategy."
+          ],
+          "notes": "Noun. Synonyms: agreement, harmony",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=consensus"
+        },
+        {
+          "front": "unanimous",
+          "front_phonetic": "/juˈnænɪməs/",
+          "back": "nhất trí",
+          "examples": [
+            "The board made a unanimous decision to acquire the startup."
+          ],
+          "notes": "Adjective. Synonyms: unified, agreed",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=unanimous"
+        },
+        {
+          "front": "deadline",
+          "front_phonetic": "/ˈdedlaɪn/",
+          "back": "hạn chót",
+          "examples": [
+            "We must work overtime to meet the strict deadline."
+          ],
+          "notes": "Noun. Synonyms: time limit, target date",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=deadline"
+        },
+        {
+          "front": "objective",
+          "front_phonetic": "/əbˈdʒektɪv/",
+          "back": "mục tiêu",
+          "examples": [
+            "Our main objective is to increase sales by 20% this quarter."
+          ],
+          "notes": "Noun. Synonyms: goal, aim",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=objective"
+        },
+        {
+          "front": "goal",
+          "front_phonetic": "/ɡoʊl/",
+          "back": "mục tiêu",
+          "examples": [
+            "Setting clear goals is essential for team success."
+          ],
+          "notes": "Noun. Synonyms: target, aim",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=goal"
+        },
+        {
+          "front": "priority",
+          "front_phonetic": "/praɪˈɔːrəti/",
+          "back": "sự ưu tiên",
+          "examples": [
+            "Customer satisfaction is our top priority."
+          ],
+          "notes": "Noun. Synonyms: preference, primary concern",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=priority"
+        },
+        {
+          "front": "brief",
+          "front_phonetic": "/briːf/",
+          "back": "thông báo tóm tắt",
+          "examples": [
+            "The manager will brief the team on the new policies."
+          ],
+          "notes": "Verb/Adjective. Synonyms: update, concise",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=brief"
+        },
+        {
+          "front": "delegate",
+          "front_phonetic": "/ˈdelɪɡeɪt/",
+          "back": "ủy quyền, giao việc",
+          "examples": [
+            "A good leader knows how to delegate tasks effectively."
+          ],
+          "notes": "Verb. Synonyms: assign, entrust",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=delegate"
+        },
+        {
+          "front": "conference",
+          "front_phonetic": "/ˈkɑːnfərəns/",
+          "back": "hội nghị",
+          "examples": [
+            "She is attending a medical conference in London."
+          ],
+          "notes": "Noun. Synonyms: convention, seminar",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=conference"
+        },
+        {
+          "front": "seminar",
+          "front_phonetic": "/ˈsemɪnɑːr/",
+          "back": "hội thảo",
+          "examples": [
+            "The seminar on digital marketing will take place next week."
+          ],
+          "notes": "Noun. Synonyms: workshop, class",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=seminar"
+        },
+        {
+          "front": "workshop",
+          "front_phonetic": "/ˈwɜːrkʃɑːp/",
+          "back": "hội thảo thực hành",
+          "examples": [
+            "We are organizing a training workshop for new employees."
+          ],
+          "notes": "Noun. Synonyms: training session, seminar",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=workshop"
+        },
+        {
+          "front": "presentation",
+          "front_phonetic": "/ˌpreznˈteɪʃn/",
+          "back": "bài thuyết trình",
+          "examples": [
+            "He gave an excellent presentation on the company’s future."
+          ],
+          "notes": "Noun. Synonyms: demonstration, talk",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=presentation"
+        },
+        {
+          "front": "proposal",
+          "front_phonetic": "/prəˈpoʊzl/",
+          "back": "bản đề xuất",
+          "examples": [
+            "The client accepted our proposal for the new advertising campaign."
+          ],
+          "notes": "Noun. Synonyms: suggestion, plan",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=proposal"
+        },
+        {
+          "front": "propose",
+          "front_phonetic": "/prəˈpoʊz/",
+          "back": "đề xuất",
+          "examples": [
+            "I propose that we increase our social media advertising budget."
+          ],
+          "notes": "Verb. Synonyms: suggest, recommend",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=propose"
+        },
+        {
+          "front": "implement",
+          "front_phonetic": "/ˈɪmplɪment/",
+          "back": "thực hiện, thi hành",
+          "examples": [
+            "We need to implement the new software system by Monday."
+          ],
+          "notes": "Verb. Synonyms: execute, apply",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=implement"
+        },
+        {
+          "front": "budget",
+          "front_phonetic": "/ˈbʌdʒɪt/",
+          "back": "ngân sách",
+          "examples": [
+            "The marketing department has a limited budget this year."
+          ],
+          "notes": "Noun. Synonyms: financial plan, funds",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=budget"
+        },
+        {
+          "front": "deficit",
+          "front_phonetic": "/ˈdefɪsɪt/",
+          "back": "sự thâm hụt",
+          "examples": [
+            "The government is trying to reduce the national deficit."
+          ],
+          "notes": "Noun. Synonyms: shortfall, loss",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=deficit"
+        },
+        {
+          "front": "revenue",
+          "front_phonetic": "/ˈrevənuː/",
+          "back": "doanh thu",
+          "examples": [
+            "Company revenue increased significantly in the third quarter."
+          ],
+          "notes": "Noun. Synonyms: income, earnings",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=revenue"
+        },
+        {
+          "front": "profit",
+          "front_phonetic": "/ˈprɑːfɪt/",
+          "back": "lợi nhuận",
+          "examples": [
+            "Our net profit has doubled compared to last year."
+          ],
+          "notes": "Noun. Synonyms: gain, earnings",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=profit"
+        },
+        {
+          "front": "loss",
+          "front_phonetic": "/lɔːs/",
+          "back": "sự thua lỗ",
+          "examples": [
+            "The business reported a substantial loss in the first half of the year."
+          ],
+          "notes": "Noun. Synonyms: deficit, decline",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=loss"
+        },
+        {
+          "front": "margin",
+          "front_phonetic": "/ˈmɑːrdʒɪn/",
+          "back": "tỷ suất lợi nhuận",
+          "examples": [
+            "We need to reduce costs to improve our profit margin."
+          ],
+          "notes": "Noun. Synonyms: profitability, allowance",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=margin"
+        },
+        {
+          "front": "expense",
+          "front_phonetic": "/ɪkˈspens/",
+          "back": "chi phí",
+          "examples": [
+            "Travel expenses will be reimbursed by the company."
+          ],
+          "notes": "Noun. Synonyms: cost, expenditure",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=expense"
+        },
+        {
+          "front": "expenditure",
+          "front_phonetic": "/ɪkˈspendɪtʃər/",
+          "back": "sự chi tiêu",
+          "examples": [
+            "Capital expenditure for the new factory was approved by the board."
+          ],
+          "notes": "Noun. Synonyms: spending, costs",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=expenditure"
+        },
+        {
+          "front": "invest",
+          "front_phonetic": "/ɪnˈvest/",
+          "back": "đầu tư",
+          "examples": [
+            "It is wise to invest in renewable energy projects."
+          ],
+          "notes": "Verb. Synonyms: fund, finance",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=invest"
+        },
+        {
+          "front": "investment",
+          "front_phonetic": "/ɪnˈvestmənt/",
+          "back": "sự đầu tư",
+          "examples": [
+            "Real estate is considered a safe long-term investment."
+          ],
+          "notes": "Noun. Synonyms: asset, holding",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=investment"
+        },
+        {
+          "front": "investor",
+          "front_phonetic": "/ɪnˈvestər/",
+          "back": "nhà đầu tư",
+          "examples": [
+            "The startup attracted several prominent angel investors."
+          ],
+          "notes": "Noun. Synonyms: shareholder, financier",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=investor"
+        },
+        {
+          "front": "dividend",
+          "front_phonetic": "/ˈdɪvɪdend/",
+          "back": "cổ tức",
+          "examples": [
+            "Shareholders will receive a dividend of  per share."
+          ],
+          "notes": "Noun. Synonyms: share, return",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=dividend"
+        },
+        {
+          "front": "share",
+          "front_phonetic": "/ʃer/",
+          "back": "cổ phần",
+          "examples": [
+            "He owns a large number of shares in the tech company."
+          ],
+          "notes": "Noun. Synonyms: stock, portion",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=share"
+        },
+        {
+          "front": "stock",
+          "front_phonetic": "/stɑːk/",
+          "back": "cổ phiếu",
+          "examples": [
+            "The stock market crashed unexpectedly last week."
+          ],
+          "notes": "Noun. Synonyms: shares, equities",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=stock"
+        },
+        {
+          "front": "equity",
+          "front_phonetic": "/ˈekwəti/",
+          "back": "vốn chủ sở hữu",
+          "examples": [
+            "The company has strong brand equity in the global market."
+          ],
+          "notes": "Noun. Synonyms: value, assets",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=equity"
+        },
+        {
+          "front": "asset",
+          "front_phonetic": "/ˈæset/",
+          "back": "tài sản",
+          "examples": [
+            "Intellectual property is a valuable asset for any software firm."
+          ],
+          "notes": "Noun. Synonyms: property, resources",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=asset"
+        },
+        {
+          "front": "liability",
+          "front_phonetic": "/ˌlaɪəˈbɪləti/",
+          "back": "khoản nợ, trách nhiệm pháp lý",
+          "examples": [
+            "The company has more liabilities than assets right now."
+          ],
+          "notes": "Noun. Synonyms: debt, obligation",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=liability"
+        },
+        {
+          "front": "audit",
+          "front_phonetic": "/ˈɔːdɪt/",
+          "back": "kiểm toán",
+          "examples": [
+            "An independent firm will conduct an audit of our financial records."
+          ],
+          "notes": "Noun/Verb. Synonyms: inspection, review",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=audit"
+        },
+        {
+          "front": "tax",
+          "front_phonetic": "/tæks/",
+          "back": "thuế",
+          "examples": [
+            "The government introduced a new tax on luxury goods."
+          ],
+          "notes": "Noun. Synonyms: duty, tariff",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=tax"
+        },
+        {
+          "front": "bankrupt",
+          "front_phonetic": "/ˈbæŋkrʌpt/",
+          "back": "phá sản",
+          "examples": [
+            "The retail chain went bankrupt after a massive drop in sales."
+          ],
+          "notes": "Adjective. Synonyms: insolvent, ruined",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=bankrupt"
+        },
+        {
+          "front": "bankruptcy",
+          "front_phonetic": "/ˈbæŋkrʌptsi/",
+          "back": "sự phá sản",
+          "examples": [
+            "The company filed for bankruptcy protection yesterday."
+          ],
+          "notes": "Noun. Synonyms: insolvency, financial ruin",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=bankruptcy"
+        },
+        {
+          "front": "debt",
+          "front_phonetic": "/det/",
+          "back": "khoản nợ",
+          "examples": [
+            "They are struggling to pay off their massive corporate debt."
+          ],
+          "notes": "Noun. Synonyms: liability, obligation",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=debt"
+        },
+        {
+          "front": "loan",
+          "front_phonetic": "/loʊn/",
+          "back": "khoản vay",
+          "examples": [
+            "We applied for a bank loan to expand the business."
+          ],
+          "notes": "Noun. Synonyms: credit, advance",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=loan"
+        },
+        {
+          "front": "mortgage",
+          "front_phonetic": "/ˈmɔːrɡɪdʒ/",
+          "back": "thế chấp",
+          "examples": [
+            "He took out a 30-year mortgage to buy the new office building."
+          ],
+          "notes": "Noun. Synonyms: home loan, pledge",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=mortgage"
+        },
+        {
+          "front": "interest",
+          "front_phonetic": "/ˈɪntrəst/",
+          "back": "lãi suất",
+          "examples": [
+            "The central bank decided to lower interest rates this month."
+          ],
+          "notes": "Noun. Synonyms: rate, return",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=interest"
+        },
+        {
+          "front": "merge",
+          "front_phonetic": "/mɜːrdʒ/",
+          "back": "sáp nhập",
+          "examples": [
+            "The two leading telecommunications companies plan to merge."
+          ],
+          "notes": "Verb. Synonyms: combine, unite",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=merge"
+        },
+        {
+          "front": "merger",
+          "front_phonetic": "/ˈmɜːrdʒər/",
+          "back": "sự sáp nhập",
+          "examples": [
+            "The merger between the two banks was approved by regulators."
+          ],
+          "notes": "Noun. Synonyms: amalgamation, integration",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=merger"
+        },
+        {
+          "front": "acquisition",
+          "front_phonetic": "/ˌækwɪˈzɪʃn/",
+          "back": "sự mua lại",
+          "examples": [
+            "The acquisition of the startup will expand our market share."
+          ],
+          "notes": "Noun. Synonyms: purchase, takeover",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=acquisition"
+        },
+        {
+          "front": "acquire",
+          "front_phonetic": "/əˈkwaɪər/",
+          "back": "mua lại, thâu tóm",
+          "examples": [
+            "They plan to acquire a smaller competitor to eliminate competition."
+          ],
+          "notes": "Verb. Synonyms: buy, obtain",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=acquire"
+        },
+        {
+          "front": "strategy",
+          "front_phonetic": "/ˈstrætədʒi/",
+          "back": "chiến lược",
+          "examples": [
+            "We need a new marketing strategy to attract younger customers."
+          ],
+          "notes": "Noun. Synonyms: plan, approach",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=strategy"
+        },
+        {
+          "front": "strategic",
+          "front_phonetic": "/strəˈtiːdʒɪk/",
+          "back": "mang tính chiến lược",
+          "examples": [
+            "The strategic partnership will benefit both organizations."
+          ],
+          "notes": "Adjective. Synonyms: tactical, planned",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=strategic"
+        },
+        {
+          "front": "manufacture",
+          "front_phonetic": "/ˌmænjuˈfæktʃər/",
+          "back": "sản xuất",
+          "examples": [
+            "The factory manufactures car parts for international export."
+          ],
+          "notes": "Verb. Synonyms: produce, assemble",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=manufacture"
+        },
+        {
+          "front": "distribute",
+          "front_phonetic": "/dɪˈstrɪbjuːt/",
+          "back": "phân phối",
+          "examples": [
+            "We distribute our products to over 50 countries worldwide."
+          ],
+          "notes": "Verb. Synonyms: circulate, deliver",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=distribute"
+        },
+        {
+          "front": "supply",
+          "front_phonetic": "/səˈplaɪ/",
+          "back": "cung cấp, nguồn cung",
+          "examples": [
+            "There is a shortage in the global supply of microchips."
+          ],
+          "notes": "Noun/Verb. Synonyms: stock, provide",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=supply"
+        },
+        {
+          "front": "logistics",
+          "front_phonetic": "/ləˈdʒɪstɪks/",
+          "back": "hậu cần",
+          "examples": [
+            "The logistics department is responsible for shipping and receiving."
+          ],
+          "notes": "Noun. Synonyms: coordination, transport",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=logistics"
+        },
+        {
+          "front": "inventory",
+          "front_phonetic": "/ˈɪnvəntɔːri/",
+          "back": "hàng tồn kho",
+          "examples": [
+            "We need to conduct an inventory check at the end of the month."
+          ],
+          "notes": "Noun. Synonyms: stock, supply",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=inventory"
+        },
+        {
+          "front": "warehouse",
+          "front_phonetic": "/ˈwerhaʊs/",
+          "back": "nhà kho",
+          "examples": [
+            "The goods are currently stored in a large warehouse downtown."
+          ],
+          "notes": "Noun. Synonyms: depot, storage",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=warehouse"
+        },
+        {
+          "front": "ship",
+          "front_phonetic": "/ʃɪp/",
+          "back": "vận chuyển",
+          "examples": [
+            "The company will ship your order within 24 hours."
+          ],
+          "notes": "Verb. Synonyms: transport, dispatch",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=ship"
+        },
+        {
+          "front": "freight",
+          "front_phonetic": "/freɪt/",
+          "back": "hàng hóa vận chuyển",
+          "examples": [
+            "The cost of air freight has increased significantly this year."
+          ],
+          "notes": "Noun. Synonyms: cargo, transport",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=freight"
+        },
+        {
+          "front": "facility",
+          "front_phonetic": "/fəˈsɪləti/",
+          "back": "cơ sở vật chất",
+          "examples": [
+            "Our new production facility features state-of-the-art equipment."
+          ],
+          "notes": "Noun. Synonyms: building, premises",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=facility"
+        },
+        {
+          "front": "maintain",
+          "front_phonetic": "/meɪnˈteɪn/",
+          "back": "bảo trì, duy trì",
+          "examples": [
+            "We must maintain high standards of quality control."
+          ],
+          "notes": "Verb. Synonyms: preserve, keep up",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=maintain"
+        },
+        {
+          "front": "maintenance",
+          "front_phonetic": "/ˈmeɪntənəns/",
+          "back": "sự bảo trì",
+          "examples": [
+            "Regular maintenance will prevent machine breakdowns."
+          ],
+          "notes": "Noun. Synonyms: upkeep, servicing",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=maintenance"
+        },
+        {
+          "front": "inspect",
+          "front_phonetic": "/ɪnˈspekt/",
+          "back": "kiểm tra",
+          "examples": [
+            "A safety officer will inspect the construction site tomorrow."
+          ],
+          "notes": "Verb. Synonyms: examine, review",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=inspect"
+        },
+        {
+          "front": "inspection",
+          "front_phonetic": "/ɪnˈspekʃn/",
+          "back": "sự kiểm tra",
+          "examples": [
+            "The restaurant passed the health inspection with a perfect score."
+          ],
+          "notes": "Noun. Synonyms: examination, checkup",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=inspection"
+        },
+        {
+          "front": "comply",
+          "front_phonetic": "/kəmˈplaɪ/",
+          "back": "tuân thủ",
+          "examples": [
+            "All employees must comply with the new safety regulations."
+          ],
+          "notes": "Verb. Synonyms: obey, observe",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=comply"
+        },
+        {
+          "front": "compliance",
+          "front_phonetic": "/kəmˈplaɪəns/",
+          "back": "sự tuân thủ",
+          "examples": [
+            "The company is in full compliance with environmental laws."
+          ],
+          "notes": "Noun. Synonyms: obedience, adherence",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=compliance"
+        },
+        {
+          "front": "policy",
+          "front_phonetic": "/ˈpɑːləsi/",
+          "back": "chính sách",
+          "examples": [
+            "It is against company policy to use office computers for personal use."
+          ],
+          "notes": "Noun. Synonyms: rule, guideline",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=policy"
+        },
+        {
+          "front": "regulation",
+          "front_phonetic": "/ˌreɡjuˈleɪʃn/",
+          "back": "quy định",
+          "examples": [
+            "New government regulations will affect the banking industry."
+          ],
+          "notes": "Noun. Synonyms: rule, law",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=regulation"
+        },
+        {
+          "front": "standard",
+          "front_phonetic": "/ˈstændərd/",
+          "back": "tiêu chuẩn",
+          "examples": [
+            "Our products meet the highest international safety standards."
+          ],
+          "notes": "Noun. Synonyms: benchmark, criterion",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=standard"
+        },
+        {
+          "front": "certify",
+          "front_phonetic": "/ˈsɜːrtɪfaɪ/",
+          "back": "chứng nhận",
+          "examples": [
+            "This document will certify that you have completed the course."
+          ],
+          "notes": "Verb. Synonyms: validate, verify",
+          "tags": [
+            "toeic",
+            "workplace",
+            "finance",
+            "business"
+          ],
+          "front_image_url": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=500&auto=format&fit=crop&text=certify"
+        }
+      ],
+      "image_path": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1000&auto=format&fit=crop"
+    }
+  ]
+}

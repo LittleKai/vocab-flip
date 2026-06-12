@@ -1,0 +1,754 @@
+{
+  "version": "1.0",
+  "exported_at": "2026-06-12T17:24:00.908Z",
+  "decks": [
+    {
+      "name": "English Daily Life A1/A2",
+      "description": "Bộ từ vựng cơ bản về đời sống hàng ngày (lời chào, nhà cửa, món ăn, thời gian, mua sắm, phương tiện) dành cho người mới bắt đầu học Tiếng Anh.",
+      "source_language": "en",
+      "target_language": "vi",
+      "show_back_first": false,
+      "front_fields": [
+        "word",
+        "phonetic"
+      ],
+      "back_fields": [
+        "meaning",
+        "example",
+        "notes"
+      ],
+      "image_display_mode": "both",
+      "image_path": "https://i.ytimg.com/vi/iWo34xW5D-0/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDzllsz_3jAxeiIP49SK9BFNcpU8w",
+      "auto_play_tts_on_flip": true,
+      "category": "daily",
+      "tags": [
+        "english",
+        "daily",
+        "a1",
+        "a2"
+      ],
+      "cards": [
+        {
+          "front": "hello",
+          "front_phonetic": "/həˈləʊ/",
+          "back": "xin chào",
+          "examples": [
+            "Hello, how are you?"
+          ],
+          "notes": "Interjection"
+        },
+        {
+          "front": "goodbye",
+          "front_phonetic": "/ɡʊdˈbaɪ/",
+          "back": "tạm biệt",
+          "examples": [
+            "Goodbye! See you tomorrow."
+          ],
+          "notes": "Interjection"
+        },
+        {
+          "front": "please",
+          "front_phonetic": "/pliːz/",
+          "back": "làm ơn, vui lòng",
+          "examples": [
+            "Can you help me, please?"
+          ],
+          "notes": "Adverb"
+        },
+        {
+          "front": "thank you",
+          "front_phonetic": "/θæŋk juː/",
+          "back": "cảm ơn",
+          "examples": [
+            "Thank you for your help."
+          ],
+          "notes": "Phrase"
+        },
+        {
+          "front": "sorry",
+          "front_phonetic": "/ˈsɒri/",
+          "back": "xin lỗi",
+          "examples": [
+            "I am sorry I am late."
+          ],
+          "notes": "Adjective"
+        },
+        {
+          "front": "excuse me",
+          "front_phonetic": "/ɪkˈsjuːz miː/",
+          "back": "xin lỗi (khi làm phiền)",
+          "examples": [
+            "Excuse me, where is the station?"
+          ],
+          "notes": "Phrase"
+        },
+        {
+          "front": "yes",
+          "front_phonetic": "/jes/",
+          "back": "vâng, có",
+          "examples": [
+            "Yes, I understand."
+          ],
+          "notes": "Adverb"
+        },
+        {
+          "front": "no",
+          "front_phonetic": "/nəʊ/",
+          "back": "không",
+          "examples": [
+            "No, thank you."
+          ],
+          "notes": "Adverb"
+        },
+        {
+          "front": "welcome",
+          "front_phonetic": "/ˈwelkəm/",
+          "back": "chào mừng, hoan nghênh",
+          "examples": [
+            "Welcome to our home!"
+          ],
+          "notes": "Adjective / Interjection"
+        },
+        {
+          "front": "nice",
+          "front_phonetic": "/naɪs/",
+          "back": "tốt, đẹp, vui",
+          "examples": [
+            "Nice to meet you."
+          ],
+          "notes": "Adjective"
+        },
+        {
+          "front": "house",
+          "front_phonetic": "/haʊs/",
+          "back": "ngôi nhà",
+          "examples": [
+            "They live in a big house."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "room",
+          "front_phonetic": "/ruːm/",
+          "back": "căn phòng",
+          "examples": [
+            "This is my bedroom."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "door",
+          "front_phonetic": "/dɔː(r)/",
+          "back": "cửa ra vào",
+          "examples": [
+            "Please close the door."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "window",
+          "front_phonetic": "/ˈwɪndəʊ/",
+          "back": "cửa sổ",
+          "examples": [
+            "Open the window, please."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "table",
+          "front_phonetic": "/ˈteɪbl/",
+          "back": "cái bàn",
+          "examples": [
+            "The book is on the table."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "chair",
+          "front_phonetic": "/tʃeə(r)/",
+          "back": "cái ghế",
+          "examples": [
+            "Sit on this chair."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "bed",
+          "front_phonetic": "/bed/",
+          "back": "cái giường",
+          "examples": [
+            "I go to bed at 10 PM."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "kitchen",
+          "front_phonetic": "/ˈkɪtʃɪn/",
+          "back": "nhà bếp",
+          "examples": [
+            "She is cooking in the kitchen."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "bathroom",
+          "front_phonetic": "/ˈbɑːθruːm/",
+          "back": "phòng tắm",
+          "examples": [
+            "Where is the bathroom?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "garden",
+          "front_phonetic": "/ˈɡɑːdn/",
+          "back": "khu vườn",
+          "examples": [
+            "We have flowers in the garden."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "wall",
+          "front_phonetic": "/wɔːl/",
+          "back": "bức tường",
+          "examples": [
+            "The wall is painted blue."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "floor",
+          "front_phonetic": "/flɔː(r)/",
+          "back": "sàn nhà",
+          "examples": [
+            "Please sweep the floor."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "roof",
+          "front_phonetic": "/ruːf/",
+          "back": "mái nhà",
+          "examples": [
+            "The bird is on the roof."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "key",
+          "front_phonetic": "/kiː/",
+          "back": "chìa khóa",
+          "examples": [
+            "I lost my house keys."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "lamp",
+          "front_phonetic": "/læmp/",
+          "back": "cây đèn",
+          "examples": [
+            "Turn on the lamp."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "water",
+          "front_phonetic": "/ˈwɔːtə(r)/",
+          "back": "nước",
+          "examples": [
+            "Can I have some water?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "food",
+          "front_phonetic": "/fuːd/",
+          "back": "thức ăn",
+          "examples": [
+            "I like Italian food."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "rice",
+          "front_phonetic": "/raɪs/",
+          "back": "gạo, cơm",
+          "examples": [
+            "We eat rice every day."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "bread",
+          "front_phonetic": "/bred/",
+          "back": "bánh mì",
+          "examples": [
+            "I want a slice of bread."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "meat",
+          "front_phonetic": "/miːt/",
+          "back": "thịt",
+          "examples": [
+            "He doesn't eat meat."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "fish",
+          "front_phonetic": "/fɪʃ/",
+          "back": "cá",
+          "examples": [
+            "We are having fish for dinner."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "egg",
+          "front_phonetic": "/eɡ/",
+          "back": "quả trứng",
+          "examples": [
+            "I eat an egg for breakfast."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "apple",
+          "front_phonetic": "/ˈæpl/",
+          "back": "quả táo",
+          "examples": [
+            "An apple a day is good for you."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "banana",
+          "front_phonetic": "/bəˈnɑːnə/",
+          "back": "quả chuối",
+          "examples": [
+            "Monkeys love bananas."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "milk",
+          "front_phonetic": "/mɪlk/",
+          "back": "sữa",
+          "examples": [
+            "Do you want milk in your coffee?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "coffee",
+          "front_phonetic": "/ˈkɒfi/",
+          "back": "cà phê",
+          "examples": [
+            "I drink coffee in the morning."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "tea",
+          "front_phonetic": "/tiː/",
+          "back": "trà",
+          "examples": [
+            "Would you like a cup of tea?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "sugar",
+          "front_phonetic": "/ˈʃʊɡə(r)/",
+          "back": "đường",
+          "examples": [
+            "I need sugar for my tea."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "salt",
+          "front_phonetic": "/sɔːlt/",
+          "back": "muối",
+          "examples": [
+            "Pass me the salt, please."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "soup",
+          "front_phonetic": "/suːp/",
+          "back": "món súp, canh",
+          "examples": [
+            "This soup is very hot."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "time",
+          "front_phonetic": "/taɪm/",
+          "back": "thời gian",
+          "examples": [
+            "What time is it?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "day",
+          "front_phonetic": "/deɪ/",
+          "back": "ngày",
+          "examples": [
+            "It is a beautiful day."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "night",
+          "front_phonetic": "/naɪt/",
+          "back": "đêm",
+          "examples": [
+            "I sleep well at night."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "morning",
+          "front_phonetic": "/ˈmɔːnɪŋ/",
+          "back": "buổi sáng",
+          "examples": [
+            "Good morning!"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "afternoon",
+          "front_phonetic": "/ˌɑːftəˈnuːn/",
+          "back": "buổi chiều",
+          "examples": [
+            "Let's meet in the afternoon."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "evening",
+          "front_phonetic": "/ˈiːvnɪŋ/",
+          "back": "buổi tối",
+          "examples": [
+            "We watch TV in the evening."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "today",
+          "front_phonetic": "/təˈdeɪ/",
+          "back": "hôm nay",
+          "examples": [
+            "Today is Monday."
+          ],
+          "notes": "Noun / Adverb"
+        },
+        {
+          "front": "tomorrow",
+          "front_phonetic": "/təˈmɒrəʊ/",
+          "back": "ngày mai",
+          "examples": [
+            "I will see you tomorrow."
+          ],
+          "notes": "Noun / Adverb"
+        },
+        {
+          "front": "yesterday",
+          "front_phonetic": "/ˈjestədeɪ/",
+          "back": "hôm qua",
+          "examples": [
+            "It rained yesterday."
+          ],
+          "notes": "Noun / Adverb"
+        },
+        {
+          "front": "week",
+          "front_phonetic": "/wiːk/",
+          "back": "tuần",
+          "examples": [
+            "There are seven days in a week."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "month",
+          "front_phonetic": "/mʌnθ/",
+          "back": "tháng",
+          "examples": [
+            "My birthday is next month."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "year",
+          "front_phonetic": "/jɪə(r)/",
+          "back": "năm",
+          "examples": [
+            "Happy New Year!"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "hour",
+          "front_phonetic": "/ˈaʊə(r)/",
+          "back": "giờ, tiếng đồng hồ",
+          "examples": [
+            "The movie takes two hours."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "minute",
+          "front_phonetic": "/ˈmɪnɪt/",
+          "back": "phút",
+          "examples": [
+            "Wait a minute, please."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "now",
+          "front_phonetic": "/naʊ/",
+          "back": "bây giờ",
+          "examples": [
+            "I have to go now."
+          ],
+          "notes": "Adverb"
+        },
+        {
+          "front": "shop",
+          "front_phonetic": "/ʃɒp/",
+          "back": "cửa hàng",
+          "examples": [
+            "I am going to the shop."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "money",
+          "front_phonetic": "/ˈmʌni/",
+          "back": "tiền",
+          "examples": [
+            "I don't have enough money."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "price",
+          "front_phonetic": "/praɪs/",
+          "back": "giá cả",
+          "examples": [
+            "What is the price of this shirt?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "buy",
+          "front_phonetic": "/baɪ/",
+          "back": "mua",
+          "examples": [
+            "I want to buy a new phone."
+          ],
+          "notes": "Verb"
+        },
+        {
+          "front": "sell",
+          "front_phonetic": "/sel/",
+          "back": "bán",
+          "examples": [
+            "Do they sell shoes here?"
+          ],
+          "notes": "Verb"
+        },
+        {
+          "front": "pay",
+          "front_phonetic": "/peɪ/",
+          "back": "trả tiền, thanh toán",
+          "examples": [
+            "Can I pay by card?"
+          ],
+          "notes": "Verb"
+        },
+        {
+          "front": "cost",
+          "front_phonetic": "/kɒst/",
+          "back": "có giá là, tốn",
+          "examples": [
+            "How much does it cost?"
+          ],
+          "notes": "Verb"
+        },
+        {
+          "front": "cheap",
+          "front_phonetic": "/tʃiːp/",
+          "back": "rẻ",
+          "examples": [
+            "These apples are cheap."
+          ],
+          "notes": "Adjective"
+        },
+        {
+          "front": "expensive",
+          "front_phonetic": "/ɪkˈspensɪv/",
+          "back": "đắt đỏ",
+          "examples": [
+            "That car is very expensive."
+          ],
+          "notes": "Adjective"
+        },
+        {
+          "front": "bag",
+          "front_phonetic": "/bæɡ/",
+          "back": "cái túi",
+          "examples": [
+            "Do you need a bag?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "clothes",
+          "front_phonetic": "/kləʊðz/",
+          "back": "quần áo",
+          "examples": [
+            "I need to wash my clothes."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "shirt",
+          "front_phonetic": "/ʃɜːt/",
+          "back": "áo sơ mi",
+          "examples": [
+            "He is wearing a blue shirt."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "shoes",
+          "front_phonetic": "/ʃuːz/",
+          "back": "đôi giày",
+          "examples": [
+            "Take off your shoes."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "size",
+          "front_phonetic": "/saɪz/",
+          "back": "kích cỡ",
+          "examples": [
+            "What size are you?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "open",
+          "front_phonetic": "/ˈəʊpən/",
+          "back": "mở cửa",
+          "examples": [
+            "Is the shop open today?"
+          ],
+          "notes": "Adjective / Verb"
+        },
+        {
+          "front": "car",
+          "front_phonetic": "/kɑː(r)/",
+          "back": "ô tô",
+          "examples": [
+            "He drives a red car."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "bus",
+          "front_phonetic": "/bʌs/",
+          "back": "xe buýt",
+          "examples": [
+            "I take the bus to work."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "train",
+          "front_phonetic": "/treɪn/",
+          "back": "tàu hỏa",
+          "examples": [
+            "The train arrives at 5 PM."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "bicycle",
+          "front_phonetic": "/ˈbaɪsɪkl/",
+          "back": "xe đạp",
+          "examples": [
+            "She rides her bicycle to school."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "plane",
+          "front_phonetic": "/pleɪn/",
+          "back": "máy bay",
+          "examples": [
+            "The plane flies high."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "airport",
+          "front_phonetic": "/ˈeəpɔːt/",
+          "back": "sân bay",
+          "examples": [
+            "We are waiting at the airport."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "station",
+          "front_phonetic": "/ˈsteɪʃn/",
+          "back": "nhà ga, trạm",
+          "examples": [
+            "Meet me at the train station."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "ticket",
+          "front_phonetic": "/ˈtɪkɪt/",
+          "back": "vé",
+          "examples": [
+            "Can I buy a ticket, please?"
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "road",
+          "front_phonetic": "/rəʊd/",
+          "back": "con đường",
+          "examples": [
+            "The road is very long."
+          ],
+          "notes": "Noun"
+        },
+        {
+          "front": "street",
+          "front_phonetic": "/striːt/",
+          "back": "đường phố",
+          "examples": [
+            "They live on this street."
+          ],
+          "notes": "Noun"
+        }
+      ]
+    }
+  ]
+}

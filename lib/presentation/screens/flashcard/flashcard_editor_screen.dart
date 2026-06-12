@@ -568,7 +568,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   Future<void> _pickImage() async {
     // Always use 1000px max width for better quality
     const maxWidth = 1000;
-    final savedPath = await _imageService.pickAndSaveImage(maxWidth: maxWidth);
+    final savedPath = await _imageService.pickAndSaveImage(maxWidth: maxWidth, useB2: false);
     if (savedPath != null) {
       if (_localImagePath != null && _localImagePath != savedPath) {
         await _imageService.deleteImage(_localImagePath!);

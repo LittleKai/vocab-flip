@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../core/utils/romaji_converter.dart';
 import '../../../data/models/dictionary_result.dart';
+import '../../../data/services/tts_service.dart';
 import '../../providers/dictionary_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -36,6 +37,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isNarrow = MediaQuery.of(context).size.width < 450;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,13 +71,15 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                         // Language selector + conversion buttons + settings
                         Row(
                           children: [
-                            Text('${l10n.dictionary}: ', 
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500, 
-                                  color: AppColors.textSecondaryLight
-                                )
-                            ),
-                            const SizedBox(width: 4),
+                            if (!isNarrow) ...[
+                              Text('${l10n.dictionary}: ', 
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500, 
+                                    color: AppColors.textSecondaryLight
+                                  )
+                              ),
+                              const SizedBox(width: 4),
+                            ],
                             // Language dropdown
                             DropdownButton<SupportedLanguage>(
                               value: provider.selectedLanguage,
@@ -294,9 +298,20 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
   }
 
   void _search(DictionaryProvider provider) {
-    final query = _searchController.text.trim();
+    String query = _searchController.text.trim();
     if (query.isNotEmpty) {
-      provider.lookup(query);
+      // Auto-convert Romaji to Hiragana for Japanese
+      if (provider.selectedLanguage == SupportedLanguage.japanese) {
+        if (!RomajiConverter.isJapanese(query) && RomajiConverter.isRomaji(query)) {
+          query = RomajiConverter.convertToKana(query, toKatakana: false);
+          _searchController.value = TextEditingValue(
+            text: query,
+            selection: TextSelection.collapsed(offset: query.length),
+          );
+        }
+      }
+      
+      provider.lookup(query, limit: _resultLimit);
       _focusNode.unfocus();
     }
   }
@@ -486,11 +501,11 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
   Widget _buildResults(BuildContext context, DictionaryProvider provider) {
     final l10n = AppLocalizations.of(context)!;
 
-    if (provider.isLoading) {
+    if (provider.isLoading && provider.results.isEmpty) {
       return LoadingWidget(message: l10n.lookingUp);
     }
 
-    if (provider.error != null) {
+    if (provider.error != null && provider.results.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -537,51 +552,79 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     // Display all results as a scrollable list
     final hasFallbackBanner =
         provider.usedFallback && provider.fallbackSource != null;
-    final itemCount = provider.results.length + (hasFallbackBanner ? 1 : 0);
+    final baseItemCount = provider.results.length + (hasFallbackBanner ? 1 : 0);
+    final showLoadingAtBottom = provider.isLoading && provider.results.isNotEmpty;
+    final itemCount = baseItemCount + (showLoadingAtBottom ? 1 : 0);
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: itemCount,
       itemBuilder: (context, index) {
-        // Show fallback notification banner as first item
-        if (hasFallbackBanner && index == 0) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Không tìm được từ điển Việt. Đang hiển thị kết quả từ ${provider.fallbackSource}.',
-                    style: const TextStyle(fontSize: 13, color: Colors.orange),
+          // Loading indicator at the bottom
+          if (showLoadingAtBottom && index == itemCount - 1) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Text(
+                    'Đang tìm thêm trên các nguồn online...',
+                    style: TextStyle(
+                      color: AppColors.textSecondaryLight.withValues(alpha: 0.8),
+                      fontStyle: FontStyle.italic,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Show fallback notification banner as first item
+          if (hasFallbackBanner && index == 0) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Không tìm được từ điển Việt. Đang hiển thị kết quả từ ${provider.fallbackSource}.',
+                      style: const TextStyle(fontSize: 13, color: Colors.orange),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final resultIndex = hasFallbackBanner ? index - 1 : index;
+          final result = provider.results[resultIndex];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _DictionaryResultCard(
+              result: result,
+              resultIndex: resultIndex + 1,
+              totalResults: provider.results.length,
+              selectedLanguage: provider.selectedLanguage,
+              onAddToDeck: () => _showAddToDeckDialog(context, result),
             ),
           );
-        }
-
-        final resultIndex = hasFallbackBanner ? index - 1 : index;
-        final result = provider.results[resultIndex];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _DictionaryResultCard(
-            result: result,
-            resultIndex: resultIndex + 1,
-            totalResults: provider.results.length,
-            selectedLanguage: provider.selectedLanguage,
-            onAddToDeck: () => _showAddToDeckDialog(context, result),
-          ),
-        );
-      },
-    );
+        },
+      );
   }
 
   void _showAddToDeckDialog(BuildContext context, DictionaryResult result) {
@@ -1120,18 +1163,34 @@ class _DictionaryResultCard extends StatelessWidget {
                               ),
                           ],
                         ),
-                        Text(
-                          result.word,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: SelectableText(
+                                result.word,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
                             ),
-                      ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: const Icon(Icons.volume_up, color: AppColors.primary),
+                              onPressed: () {
+                                TtsService().speak(result.word, language: selectedLanguage);
+                              },
+                              tooltip: 'Phát âm (TTS)',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
                       if (result.phonetic != null) ...[
                         const SizedBox(height: 4),
-                        Text(
+                        SelectableText(
                           result.phonetic!,
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1330,7 +1389,7 @@ class _MeaningSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(definition.definition),
+                      child: SelectableText(definition.definition),
                     ),
                   ],
                 ),
@@ -1338,7 +1397,7 @@ class _MeaningSection extends StatelessWidget {
                   const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
-                    child: Text(
+                    child: SelectableText(
                       '"${definition.example}"',
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,

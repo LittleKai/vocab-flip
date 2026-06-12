@@ -55,29 +55,45 @@ class DictionaryRepository {
     SupportedLanguage language, {
     bool fallbackToEnglish = true,
     String fetchMode = 'both',
+    int limit = 10,
+    void Function(DictionaryResult)? onResult,
   }) async {
-    debugPrint('[DictionaryRepository] lookupAll: "$word" (fallback: $fallbackToEnglish, fetchMode: $fetchMode)');
+    debugPrint('[DictionaryRepository] lookupAll: "$word" (fallback: $fallbackToEnglish, fetchMode: $fetchMode, limit: $limit)');
+
+    Future<void> runParallel(List<Future<dynamic>> tasks, void Function(dynamic) onRes) async {
+      await Future.wait(tasks.map((task) async {
+        try {
+          final res = await task;
+          if (res != null) {
+            onRes(res);
+          }
+        } catch (e) {
+          debugPrint('[DictionaryRepository] Task error: $e');
+        }
+      }));
+    }
 
     switch (language) {
       case SupportedLanguage.english:
         if (fetchMode == 'both') {
           final results = <DictionaryResult>[];
-          final offlineResult = await _offlineEnApi.lookup(word);
-          if (offlineResult != null) {
-            debugPrint('[DictionaryRepository] Got Vietnamese result from Offline StarDict EN');
-            results.add(offlineResult);
-          }
           
-          final labanResult = await _labanApi.lookup(word);
-          if (labanResult != null) {
-            debugPrint('[DictionaryRepository] Got Vietnamese result from Laban');
-            results.add(labanResult);
-          }
+          final tasks = <Future<DictionaryResult?>>[];
+          tasks.add(_offlineEnApi.lookup(word));
+          tasks.add(_labanApi.lookup(word));
           
+          await runParallel(tasks, (res) {
+            if (res is DictionaryResult) {
+              results.add(res);
+              onResult?.call(res);
+            }
+          });
+
           if (results.isEmpty && fallbackToEnglish) {
             debugPrint('[DictionaryRepository] Falling back to FreeDictionary');
             final freeResult = await _freeDictionaryApi.lookup(word);
             if (freeResult != null) {
+              onResult?.call(freeResult);
               return DictionaryLookupResult(
                 results: [freeResult],
                 usedFallback: true,
@@ -89,6 +105,7 @@ class DictionaryRepository {
         } else if (fetchMode == 'offline') {
           final offlineResult = await _offlineEnApi.lookup(word);
           if (offlineResult != null) {
+            onResult?.call(offlineResult);
             return DictionaryLookupResult(results: [offlineResult]);
           }
           return DictionaryLookupResult(results: []);
@@ -96,11 +113,13 @@ class DictionaryRepository {
           // Online only
           final labanResult = await _labanApi.lookup(word);
           if (labanResult != null) {
+            onResult?.call(labanResult);
             return DictionaryLookupResult(results: [labanResult]);
           }
           if (fallbackToEnglish) {
             final freeResult = await _freeDictionaryApi.lookup(word);
             if (freeResult != null) {
+              onResult?.call(freeResult);
               return DictionaryLookupResult(
                 results: [freeResult],
                 usedFallback: true,
@@ -114,22 +133,31 @@ class DictionaryRepository {
       case SupportedLanguage.japanese:
         if (fetchMode == 'both') {
           final results = <DictionaryResult>[];
-          final offlineResultJa = await _offlineJaApi.lookup(word);
-          if (offlineResultJa != null) {
-            debugPrint('[DictionaryRepository] Got Vietnamese result from Offline StarDict JA');
-            results.add(offlineResultJa);
-          }
           
-          final maziiResults = await _maziiApi.search(word);
-          for (var r in maziiResults) {
-            results.add(r.toDictionaryResult());
-          }
+          final tasks = <Future<dynamic>>[];
+          tasks.add(_offlineJaApi.lookup(word));
+          tasks.add(_maziiApi.search(word, limit: limit));
+          
+          await runParallel(tasks, (res) {
+            if (res is DictionaryResult) {
+              results.add(res);
+              onResult?.call(res);
+            } else if (res is List) {
+              for (var r in res) {
+                final dr = r.toDictionaryResult();
+                results.add(dr);
+                onResult?.call(dr);
+              }
+            }
+          });
           
           if (results.isEmpty && fallbackToEnglish) {
             debugPrint('[DictionaryRepository] Falling back to Jisho');
             final jishoResults = await _jishoApi.search(word);
+            final mapped = jishoResults.map((r) => r.toDictionaryResult()).toList();
+            for (var dr in mapped) onResult?.call(dr);
             return DictionaryLookupResult(
-              results: jishoResults.map((r) => r.toDictionaryResult()).toList(),
+              results: mapped,
               usedFallback: jishoResults.isNotEmpty,
               fallbackSource: 'Jisho (Nhật-Anh)',
             );
@@ -138,21 +166,26 @@ class DictionaryRepository {
         } else if (fetchMode == 'offline') {
           final offlineResultJa = await _offlineJaApi.lookup(word);
           if (offlineResultJa != null) {
+            onResult?.call(offlineResultJa);
             return DictionaryLookupResult(results: [offlineResultJa]);
           }
           return DictionaryLookupResult(results: []);
         } else {
           // Online only
-          final maziiResults = await _maziiApi.search(word);
+          final maziiResults = await _maziiApi.search(word, limit: limit);
           if (maziiResults.isNotEmpty) {
+            final mapped = maziiResults.map((r) => r.toDictionaryResult()).toList();
+            for (var dr in mapped) onResult?.call(dr);
             return DictionaryLookupResult(
-              results: maziiResults.map((r) => r.toDictionaryResult()).toList(),
+              results: mapped,
             );
           }
           if (fallbackToEnglish) {
             final jishoResults = await _jishoApi.search(word);
+            final mapped = jishoResults.map((r) => r.toDictionaryResult()).toList();
+            for (var dr in mapped) onResult?.call(dr);
             return DictionaryLookupResult(
-              results: jishoResults.map((r) => r.toDictionaryResult()).toList(),
+              results: mapped,
               usedFallback: jishoResults.isNotEmpty,
               fallbackSource: 'Jisho (Nhật-Anh)',
             );
@@ -163,12 +196,23 @@ class DictionaryRepository {
       case SupportedLanguage.chinese:
         if (fetchMode == 'both') {
           final results = <DictionaryResult>[];
-          final offlineResultZh = await _offlineZhApi.lookup(word);
-          if (offlineResultZh != null) {
-            results.add(offlineResultZh);
-          }
-          final chineseDictResults = await _chineseDictApi.search(word, fetchMode: fetchMode);
-          results.addAll(chineseDictResults.map((r) => r.toDictionaryResult()));
+          
+          final tasks = <Future<dynamic>>[];
+          tasks.add(_offlineZhApi.lookup(word));
+          tasks.add(_chineseDictApi.search(word, fetchMode: fetchMode));
+          
+          await runParallel(tasks, (res) {
+            if (res is DictionaryResult) {
+              results.add(res);
+              onResult?.call(res);
+            } else if (res is List) {
+              for (var r in res) {
+                final dr = r.toDictionaryResult();
+                results.add(dr);
+                onResult?.call(dr);
+              }
+            }
+          });
           
           return DictionaryLookupResult(
             results: results,
@@ -178,6 +222,7 @@ class DictionaryRepository {
           final offlineResultZh = await _offlineZhApi.lookup(word);
           if (offlineResultZh != null) {
             debugPrint('[DictionaryRepository] Got Vietnamese result from Offline StarDict ZH');
+            onResult?.call(offlineResultZh);
             return DictionaryLookupResult(results: [offlineResultZh]);
           }
           
@@ -185,15 +230,19 @@ class DictionaryRepository {
           final chineseDictResults = await _chineseDictApi.search(word, fetchMode: fetchMode);
           if (chineseDictResults.isNotEmpty) {
             debugPrint('[DictionaryRepository] Got ${chineseDictResults.length} Chinese-Vietnamese results from chineseDict');
+            final mapped = chineseDictResults.map((r) => r.toDictionaryResult()).toList();
+            for (var dr in mapped) onResult?.call(dr);
             return DictionaryLookupResult(
-              results: chineseDictResults.map((r) => r.toDictionaryResult()).toList(),
+              results: mapped,
             );
           }
         } else {
           // Online only
           final chineseDictResults = await _chineseDictApi.search(word, fetchMode: fetchMode);
+          final mapped = chineseDictResults.map((r) => r.toDictionaryResult()).toList();
+          for (var dr in mapped) onResult?.call(dr);
           return DictionaryLookupResult(
-            results: chineseDictResults.map((r) => r.toDictionaryResult()).toList(),
+            results: mapped,
           );
         }
         return DictionaryLookupResult(results: []);

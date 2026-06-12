@@ -209,8 +209,9 @@ class MaziiApi {
                 debugPrint('[MaziiApi] POST + Word: ${result.word} (meanings: ${result.meanings.length})');
               }
             }
-            debugPrint('[MaziiApi] POST Parsed ${parsed.length} valid results');
-            return parsed;
+            final limitedParsed = parsed.take(limit).toList();
+            debugPrint('[MaziiApi] POST Parsed ${parsed.length} valid results, returning ${limitedParsed.length} due to limit');
+            return limitedParsed;
           }
         }
       }
@@ -255,8 +256,9 @@ class MaziiApi {
                 debugPrint('[MaziiApi] + Word: ${result.word}');
               }
             }
-            debugPrint('[MaziiApi] Parsed ${parsed.length} valid results');
-            return parsed;
+            final limitedParsed = parsed.take(limit).toList();
+            debugPrint('[MaziiApi] GET Parsed ${parsed.length} valid results, returning ${limitedParsed.length} due to limit');
+            return limitedParsed;
           }
         }
       }

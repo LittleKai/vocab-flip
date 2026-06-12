@@ -414,7 +414,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   }
 
   Future<void> _pickImage() async {
-    final path = await _imageService.pickAndSaveImage(maxWidth: 1000);
+    final path = await _imageService.pickAndSaveImage(maxWidth: 1000, useB2: false);
     if (path != null) {
       setState(() => _imagePath = path);
     }

@@ -272,9 +272,14 @@ class _DeckCard extends StatelessWidget {
         : deck.isLinked
             ? AppColors.secondary
             : AppColors.primary;
-    final cardTint = Theme.of(context).brightness == Brightness.dark
-        ? accentColor.withValues(alpha: hasDue ? 0.13 : 0.07)
-        : accentColor.withValues(alpha: hasDue ? 0.08 : 0.035);
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+    final cardTint = Color.lerp(
+      surfaceColor,
+      accentColor,
+      Theme.of(context).brightness == Brightness.dark
+          ? (hasDue ? 0.13 : 0.07)
+          : (hasDue ? 0.08 : 0.04),
+    )!;
     final borderRadius = BorderRadius.circular(18);
 
     return Card(

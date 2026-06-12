@@ -53,7 +53,7 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<String?> pickAvatarImage() async {
-    final savedPath = await _imageService.pickAndSaveImage(maxWidth: 300);
+    final savedPath = await _imageService.pickAndSaveImage(maxWidth: 300, useB2: true);
     if (savedPath != null) {
       await setCustomAvatarPath(savedPath);
     }

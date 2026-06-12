@@ -67,7 +67,7 @@ class DictionaryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> lookup(String word) async {
+  Future<void> lookup(String word, {int limit = 10}) async {
     if (word.trim().isEmpty) {
       _error = 'Please enter a word';
       notifyListeners();
@@ -87,8 +87,23 @@ class DictionaryProvider extends ChangeNotifier {
         _selectedLanguage,
         fallbackToEnglish: _fallbackToEnglish,
         fetchMode: _fetchMode,
+        limit: limit,
+        onResult: (result) {
+          if (!_results.any((r) => r.dataSource == result.dataSource && r.word == result.word)) {
+            _results.add(result);
+            // Re-sort results if necessary, or just rely on appending
+            notifyListeners();
+          }
+        },
       );
-      _results = lookupResult.results;
+      
+      // Make sure we have the final set of results in case onResult missed something or duplicates were avoided
+      for (final r in lookupResult.results) {
+        if (!_results.any((ext) => ext.dataSource == r.dataSource && ext.word == r.word)) {
+          _results.add(r);
+        }
+      }
+      
       _usedFallback = lookupResult.usedFallback;
       _fallbackSource = lookupResult.fallbackSource;
       if (_results.isEmpty) {

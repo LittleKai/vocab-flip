@@ -217,7 +217,7 @@ class ImageService {
   }
 
   /// Choose how to pick and save based on alpha-studio integration
-  Future<String?> pickAndSaveImage({int? maxWidth, bool useB2 = true}) async {
+  Future<String?> pickAndSaveImage({int? maxWidth, bool useB2 = false}) async {
     final pickedPath = await pickImage();
     if (pickedPath != null) {
       if (useB2) {

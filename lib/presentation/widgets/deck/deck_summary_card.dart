@@ -39,9 +39,14 @@ class DeckSummaryCard extends StatelessWidget {
         ? Theme.of(context).textTheme.titleSmall
         : Theme.of(context).textTheme.titleMedium;
     final accentColor = hasDue ? AppColors.accent : AppColors.primary;
-    final surfaceTint = Theme.of(context).brightness == Brightness.dark
-        ? accentColor.withValues(alpha: hasDue ? 0.14 : 0.08)
-        : accentColor.withValues(alpha: hasDue ? 0.09 : 0.04);
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+    final surfaceTint = Color.lerp(
+      surfaceColor,
+      accentColor,
+      Theme.of(context).brightness == Brightness.dark
+          ? (hasDue ? 0.14 : 0.08)
+          : (hasDue ? 0.09 : 0.04),
+    )!;
 
     return Card(
       elevation: hasDue ? 2 : 0,

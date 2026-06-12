@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 
@@ -19,10 +20,23 @@ Future<T?> showStandardDialog<T>({
   final isDark = theme.brightness == Brightness.dark;
   final completer = Completer<T?>();
 
+  // Trên web, awesome_dialog không render được icon từ asset Flare/Rive,
+  // nên dùng customHeader với Material Icon thay thế.
+  final headerIcon = icon ??
+      (isDestructive ? Icons.error_rounded : Icons.info_rounded);
+  final headerColor = isDestructive ? Colors.red : theme.colorScheme.primary;
+
   AwesomeDialog(
     context: context,
-    width: 450, // Giới hạn chiều rộng tối đa trên Web/Desktop
-    dialogType: isDestructive ? DialogType.error : DialogType.info,
+    width: 520,
+    dialogType: kIsWeb ? DialogType.noHeader : (isDestructive ? DialogType.error : DialogType.info),
+    customHeader: kIsWeb
+        ? CircleAvatar(
+            radius: 32,
+            backgroundColor: headerColor.withOpacity(0.12),
+            child: Icon(headerIcon, size: 36, color: headerColor),
+          )
+        : null,
     animType: AnimType.bottomSlide,
     dialogBackgroundColor: theme.colorScheme.surface,
     title: title,
