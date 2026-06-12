@@ -1092,6 +1092,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get email => 'Email';
 
   @override
+  String get fullName => 'Họ và tên';
+
+  @override
   String get password => 'Mật khẩu';
 
   @override

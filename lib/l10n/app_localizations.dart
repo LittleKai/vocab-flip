@@ -2168,6 +2168,12 @@ abstract class AppLocalizations {
   /// **'Email'**
   String get email;
 
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
   /// No description provided for @password.
   ///
   /// In en, this message translates to:
