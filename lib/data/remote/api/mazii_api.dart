@@ -440,6 +440,7 @@ class MaziiResult {
       word: word,
       phonetic: phonetic,
       sourceLanguage: 'ja',
+      dataSource: 'Online (Mazii)',
       meanings: meanings.map((m) {
         // Include all examples
         final allExamples = m.examples.map((ex) {

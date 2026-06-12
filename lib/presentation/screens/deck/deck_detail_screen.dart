@@ -300,6 +300,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
       final continueImport = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Text(l10n.warning),
           content: Text(l10n
               .excelFromDifferentDeck(result.deckNameFromFile ?? 'Unknown')),
@@ -329,6 +330,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(l10n.importFromExcel),
         content: SingleChildScrollView(
           child: Column(
@@ -505,6 +507,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(l10n.unlinkDeck),
         content: Text(l10n.unlinkDeckMessage),
         actions: [
@@ -576,6 +579,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(l10n.deleteFlashcard),
         content: Text(l10n.deleteConfirmMessage(card.front)),
         actions: [

@@ -11,6 +11,7 @@ import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/common/responsive_grid.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
+import 'package:draggable_home/draggable_home.dart';
 import '../../widgets/stats/study_heatmap.dart';
 import '../../widgets/deck/deck_summary_card.dart';
 import '../deck/deck_list_screen.dart';
@@ -73,12 +74,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (updateProvider.hasUpdate && mounted) {
       // Show update dialog
-      showDialog(
-        context: context,
-        barrierDismissible: !updateProvider.availableUpdate!.isMandatory,
-        builder: (context) => UpdateDialog(
-          version: updateProvider.availableUpdate!,
-        ),
+      UpdateDialog.show(
+        context,
+        version: updateProvider.availableUpdate!,
+        isMandatory: updateProvider.availableUpdate!.isMandatory,
       );
     }
   }
@@ -232,39 +231,44 @@ class _HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Consumer2<DeckProvider, SettingsProvider>(
-          builder: (context, deckProvider, settingsProvider, child) {
-            return RefreshIndicator(
-              onRefresh: () async {
-                await deckProvider.loadDecks();
-                settingsProvider.refreshStats();
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeaderRow(context, settingsProvider),
-                    const SizedBox(height: 32),
-                    _buildHeroCard(context, deckProvider),
-                    const SizedBox(height: 32),
-                    _buildQuickStats(context, deckProvider, settingsProvider),
-                    const SizedBox(height: 32),
-                    StudyHeatmap(),
-                    const SizedBox(height: 40),
-                    _buildDueTodaySection(context, deckProvider),
-                    const SizedBox(height: 40),
-                    _buildRecentDecks(context, deckProvider),
-                  ],
-                ),
+    return Consumer2<DeckProvider, SettingsProvider>(
+      builder: (context, deckProvider, settingsProvider, child) {
+        return DraggableHome(
+          title: Text(AppLocalizations.of(context)!.home),
+          headerWidget: Container(
+            padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildHeaderRow(context, settingsProvider),
+                const SizedBox(height: 24),
+                _buildHeroCard(context, deckProvider),
+              ],
+            ),
+          ),
+          headerExpandedHeight: 0.4,
+          body: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildQuickStats(context, deckProvider, settingsProvider),
+                  const SizedBox(height: 32),
+                  StudyHeatmap(),
+                  const SizedBox(height: 40),
+                  _buildDueTodaySection(context, deckProvider),
+                  const SizedBox(height: 40),
+                  _buildRecentDecks(context, deckProvider),
+                  const SizedBox(height: 100), // padding for bottom nav
+                ],
               ),
-            );
-          },
-        ),
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -400,7 +404,7 @@ class _HomeTab extends StatelessWidget {
               width: double.infinity,
               height: 54,
               child: ElevatedButton(
-                onPressed: () => DeckNavigation.navigateToStudy(context, primaryDeck!.id),
+                onPressed: () => DeckNavigation.navigateToStudy(context, primaryDeck.id),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.primary,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/update_provider.dart';
+import 'standard_dialog.dart';
 
 /// Dialog showing update download and installation progress
 class UpdateProgressDialog extends StatefulWidget {
@@ -10,10 +11,11 @@ class UpdateProgressDialog extends StatefulWidget {
 
   /// Show the progress dialog and start download
   static Future<void> show(BuildContext context) async {
-    await showDialog(
+    await showStandardDialog(
       context: context,
+      title: AppLocalizations.of(context)!.updateAvailable,
       barrierDismissible: false,
-      builder: (context) => const UpdateProgressDialog(),
+      customContent: const UpdateProgressDialog(),
     );
   }
 
@@ -49,25 +51,15 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
   Future<bool> _showInstallConfirmation() async {
     final l10n = AppLocalizations.of(context)!;
 
-    return await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.installing),
-            content: Text(l10n.restartToApply),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.updateLater),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.restartNow),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+    final result = await showStandardDialog<bool>(
+      context: context,
+      title: l10n.installing,
+      content: l10n.restartToApply,
+      barrierDismissible: false,
+      primaryButtonText: l10n.restartNow,
+      secondaryButtonText: l10n.updateLater,
+    );
+    return result ?? false;
   }
 
   @override
@@ -78,27 +70,29 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
       builder: (context, provider, child) {
         return PopScope(
           canPop: provider.hasError,
-          child: AlertDialog(
-            title: Row(
-              children: [
-                if (provider.isDownloading || provider.isExtracting)
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else if (provider.hasError)
-                  const Icon(Icons.error, color: AppColors.error)
-                else
-                  const Icon(Icons.download, color: AppColors.primary),
-                const SizedBox(width: 12),
-                Text(_getTitle(provider, l10n)),
-              ],
-            ),
-            content: Column(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    if (provider.isDownloading || provider.isExtracting)
+                      const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else if (provider.hasError)
+                      const Icon(Icons.error, color: AppColors.error)
+                    else
+                      const Icon(Icons.download, color: AppColors.primary),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(_getTitle(provider, l10n))),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 if (provider.isDownloading) ...[
                   // Download progress bar
                   LinearProgressIndicator(
@@ -161,26 +155,31 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
                     ),
                   ),
                 ],
+                if (provider.hasError) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          provider.resetState();
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(l10n.cancel),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          provider.resetState();
+                          _startDownload();
+                        },
+                        child: Text(l10n.tryAgain),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
-            actions: [
-              if (provider.hasError) ...[
-                TextButton(
-                  onPressed: () {
-                    provider.resetState();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(l10n.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    provider.resetState();
-                    _startDownload();
-                  },
-                  child: Text(l10n.tryAgain),
-                ),
-              ],
-            ],
           ),
         );
       },

@@ -9,6 +9,7 @@ import '../../providers/publish_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../widgets/library/tag_input.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 
 /// Screen for publishing a deck to the public library
 class PublishDeckScreen extends StatefulWidget {
@@ -413,40 +414,32 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
     }
   }
 
-  Future<String?> _showSetDisplayNameDialog(BuildContext context, AppLocalizations l10n) {
+  Future<String?> _showSetDisplayNameDialog(BuildContext context, AppLocalizations l10n) async {
     final controller = TextEditingController();
-    return showDialog<String>(
+    await showStandardDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.setDisplayName),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.displayNameRequired),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: l10n.displayNameHint,
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (value) => Navigator.pop(dialogContext, value),
+      title: l10n.setDisplayName,
+      customContent: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(l10n.displayNameRequired),
+          const SizedBox(height: 16),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: l10n.displayNameHint,
+              border: const OutlineInputBorder(),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text),
-            child: Text(l10n.save),
+            onSubmitted: (value) => Navigator.pop(context, value),
           ),
         ],
       ),
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.save,
+      onPrimaryPressed: () => Navigator.pop(context, controller.text),
     );
+    return controller.text.isNotEmpty ? controller.text : null;
   }
 }

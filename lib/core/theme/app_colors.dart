@@ -20,19 +20,19 @@ class AppColors {
 
   // Background colors
   static const Color backgroundLight = Color(0xFFF8FAFC); // Softer Slate 50
-  static const Color backgroundDark = Color(0xFF0F172A); // Slate 900
+  static const Color backgroundDark = Color(0xFF000000); // Pure Black
   static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color surfaceDark = Color(0xFF1E293B); // Slate 800
+  static const Color surfaceDark = Color(0xFF000000); // Pure Black
 
   // Card colors
   static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color cardDark = Color(0xFF1E293B);
+  static const Color cardDark = Color(0xFF000000);
 
   // Text colors
   static const Color textPrimaryLight = Color(0xFF1E293B);
   static const Color textSecondaryLight = Color(0xFF64748B);
-  static const Color textPrimaryDark = Color(0xFFF1F5F9);
-  static const Color textSecondaryDark = Color(0xFF94A3B8);
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+  static const Color textSecondaryDark = Color(0xFFFFFFFF);
 
   // Rating colors
   static const Color ratingAgain = Color(0xFFEF4444);

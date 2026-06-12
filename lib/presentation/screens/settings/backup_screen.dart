@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../providers/backup_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/backup/backup_progress_dialog.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 
 /// Screen for managing Google Drive backups
 class BackupScreen extends StatefulWidget {
@@ -51,12 +52,12 @@ class _BackupScreenState extends State<BackupScreen> {
     final provider = context.read<BackupProvider>();
 
     // Show progress dialog
-    showDialog(
+    showStandardDialog(
       context: context,
+      title: l10n.creatingBackup,
       barrierDismissible: false,
-      builder: (context) => Consumer<BackupProvider>(
-        builder: (context, provider, _) => BackupProgressDialog(
-          title: l10n.creatingBackup,
+      customContent: Consumer<BackupProvider>(
+        builder: (context, provider, _) => BackupProgressContent(
           message: provider.statusMessage,
           progress: provider.progress,
         ),
@@ -105,12 +106,12 @@ class _BackupScreenState extends State<BackupScreen> {
     if (mode == null || !mounted) return;
 
     // Show progress dialog
-    showDialog(
+    showStandardDialog(
       context: context,
+      title: l10n.restoringBackup,
       barrierDismissible: false,
-      builder: (context) => Consumer<BackupProvider>(
-        builder: (context, provider, _) => BackupProgressDialog(
-          title: l10n.restoringBackup,
+      customContent: Consumer<BackupProvider>(
+        builder: (context, provider, _) => BackupProgressContent(
           message: provider.statusMessage,
           progress: provider.progress,
         ),
@@ -153,23 +154,13 @@ class _BackupScreenState extends State<BackupScreen> {
   Future<void> _deleteBackup(String backupId, String date) async {
     final l10n = AppLocalizations.of(context)!;
 
-    final confirm = await showDialog<bool>(
+    final confirm = await showStandardDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteBackup),
-        content: Text(l10n.deleteBackupConfirm(date)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+      title: l10n.deleteBackup,
+      content: l10n.deleteBackupConfirm(date),
+      isDestructive: true,
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.delete,
     );
 
     if (confirm != true || !mounted) return;

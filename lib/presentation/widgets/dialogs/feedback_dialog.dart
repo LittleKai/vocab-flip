@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../data/repositories/feedback_repository.dart';
 import '../../../l10n/app_localizations.dart';
+import 'standard_dialog.dart';
 
 class FeedbackDialog extends StatefulWidget {
   const FeedbackDialog({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showDialog(
+    return showStandardDialog(
       context: context,
-      builder: (context) => const FeedbackDialog(),
+      title: AppLocalizations.of(context)!.feedbackTitle,
+      customContent: const FeedbackDialog(),
     );
   }
 
@@ -72,17 +74,18 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
       'other': l10n.feedbackCategoryOther,
     };
 
-    return AlertDialog(
-      title: Text(l10n.feedbackTitle),
-      content: SizedBox(
-        width: 320,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 320,
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
                   value: _selectedCategory,
                   decoration: InputDecoration(
                     labelText: l10n.feedbackCategoryLabel,
@@ -131,21 +134,27 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
             ),
           ),
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
-          child: Text(l10n.cancel),
         ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _submit,
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(l10n.feedbackSubmit),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _isSubmitting ? null : _submit,
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.feedbackSubmit),
+            ),
+          ],
         ),
       ],
     );

@@ -12,6 +12,7 @@ import '../../widgets/library/public_deck_card.dart';
 import '../../widgets/library/filter_sheet.dart';
 import '../../widgets/sync/sync_badge.dart';
 import '../../widgets/common/responsive_grid.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 import 'public_deck_detail_screen.dart';
 
 /// Main library browse screen
@@ -347,50 +348,40 @@ class _BrowseTabState extends State<_BrowseTab> {
     final idController = TextEditingController();
     final navigator = Navigator.of(context);
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.importById),
-        content: TextField(
-          controller: idController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.enterDeckId,
-            border: const OutlineInputBorder(),
-          ),
-          onSubmitted: (value) {
-            final id = value.trim();
-            if (id.isNotEmpty) {
-              Navigator.pop(dialogContext);
-              navigator.push(
-                MaterialPageRoute(
-                  builder: (_) => PublicDeckDetailScreen(deckId: id),
-                ),
-              );
-            }
-          },
+      title: l10n.importById,
+      customContent: TextField(
+        controller: idController,
+        autofocus: true,
+        decoration: InputDecoration(
+          hintText: l10n.enterDeckId,
+          border: const OutlineInputBorder(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final id = idController.text.trim();
-              if (id.isNotEmpty) {
-                Navigator.pop(dialogContext);
-                navigator.push(
-                  MaterialPageRoute(
-                    builder: (_) => PublicDeckDetailScreen(deckId: id),
-                  ),
-                );
-              }
-            },
-            child: Text(l10n.go),
-          ),
-        ],
+        onSubmitted: (value) {
+          final id = value.trim();
+          if (id.isNotEmpty) {
+            Navigator.of(context, rootNavigator: true).pop();
+            navigator.push(
+              MaterialPageRoute(
+                builder: (_) => PublicDeckDetailScreen(deckId: id),
+              ),
+            );
+          }
+        },
       ),
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.go,
+      onPrimaryPressed: () {
+        final id = idController.text.trim();
+        if (id.isNotEmpty) {
+          navigator.push(
+            MaterialPageRoute(
+              builder: (_) => PublicDeckDetailScreen(deckId: id),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -735,34 +726,24 @@ class _MyDecksTabState extends State<_MyDecksTab> {
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) {
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.unpublishConfirm),
-        content: Text(l10n.unpublishDescription),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l10n.cancel),
+      title: l10n.unpublishConfirm,
+      content: l10n.unpublishDescription,
+      isDestructive: true,
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.unpublish,
+      onPrimaryPressed: () async {
+        final success =
+            await publishProvider.unpublishByPublicId(publicDeckId);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(success
+                ? l10n.deckUnpublished
+                : publishProvider.error ?? 'Failed to unpublish'),
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(dialogContext);
-              final success =
-                  await publishProvider.unpublishByPublicId(publicDeckId);
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text(success
-                      ? l10n.deckUnpublished
-                      : publishProvider.error ?? 'Failed to unpublish'),
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(l10n.unpublish),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

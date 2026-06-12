@@ -5,6 +5,7 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/feedback_item.dart';
 import '../../providers/admin_feedback_provider.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 
 class AdminFeedbackScreen extends StatefulWidget {
   const AdminFeedbackScreen({super.key});
@@ -154,77 +155,65 @@ class _FeedbackCard extends StatelessWidget {
   void _showDetails(BuildContext context) {
     final dateFormat = DateFormat.yMMMd().add_jm();
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
+      title: item.category.toUpperCase(),
+      customContent: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Text(
+                item.platform,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondaryLight,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(item.message),
+          const SizedBox(height: 16),
+          if (item.email != null && item.email!.isNotEmpty) ...[
             Text(
-              item.category.toUpperCase(),
-              style: const TextStyle(fontSize: 14),
+              'Email: ${item.email}',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondaryLight,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            'Version: ${item.appVersion}',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            dateFormat.format(item.createdAt),
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          if (item.userId != null) ...[
+            const SizedBox(height: 4),
             Text(
-              item.platform,
+              'User: ${item.userId}',
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondaryLight,
               ),
             ),
           ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(item.message),
-              const SizedBox(height: 16),
-              if (item.email != null && item.email!.isNotEmpty) ...[
-                Text(
-                  'Email: ${item.email}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondaryLight,
-                  ),
-                ),
-                const SizedBox(height: 4),
-              ],
-              Text(
-                'Version: ${item.appVersion}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondaryLight,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                dateFormat.format(item.createdAt),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondaryLight,
-                ),
-              ),
-              if (item.userId != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'User: ${item.userId}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondaryLight,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
         ],
       ),
+      primaryButtonText: 'OK',
     );
   }
 }

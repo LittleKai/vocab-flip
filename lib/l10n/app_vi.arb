@@ -341,6 +341,7 @@
   "signInWithEmail": "Đăng nhập bằng Email",
   "createAccount": "Tạo tài khoản",
   "email": "Email",
+  "fullName": "Họ và tên",
   "password": "Mật khẩu",
   "confirmPassword": "Xác nhận mật khẩu",
   "forgotPassword": "Quên mật khẩu?",

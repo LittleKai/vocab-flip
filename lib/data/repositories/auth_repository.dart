@@ -7,12 +7,14 @@ class AppUser {
   final String id;
   final String email;
   final String? displayName;
+  final String? avatar;
   final int balance;
 
   AppUser({
     required this.id,
     required this.email,
     this.displayName,
+    this.avatar,
     this.balance = 0,
   });
 
@@ -27,6 +29,7 @@ class AppUser {
           .toString(),
       email: (json['email'] ?? '').toString(),
       displayName: (json['name'] ?? json['displayName'])?.toString(),
+      avatar: (json['avatar'] ?? json['photoUrl'] ?? json['photo'])?.toString(),
       balance: json['balance'] ?? 0,
     );
   }
@@ -74,9 +77,15 @@ class AuthRepository {
         'success': false,
         'message': response.data?['message'] ?? 'Login failed'
       };
+    } on DioException catch (e) {
+      debugPrint('AuthRepository.login DioException: $e');
+      final message = e.response?.data is Map 
+          ? (e.response?.data['message'] ?? e.response?.data['error'] ?? 'Sai email hoặc mật khẩu')
+          : 'Đăng nhập thất bại';
+      return {'success': false, 'message': message};
     } catch (e) {
       debugPrint('AuthRepository.login error: $e');
-      return {'success': false, 'message': e.toString()};
+      return {'success': false, 'message': 'Đã có lỗi xảy ra. Vui lòng thử lại.'};
     }
   }
 
@@ -102,9 +111,15 @@ class AuthRepository {
         'success': false,
         'message': response.data?['message'] ?? 'Registration failed'
       };
+    } on DioException catch (e) {
+      debugPrint('AuthRepository.register DioException: $e');
+      final message = e.response?.data is Map 
+          ? (e.response?.data['message'] ?? e.response?.data['error'] ?? 'Đăng ký thất bại')
+          : 'Đăng ký thất bại';
+      return {'success': false, 'message': message};
     } catch (e) {
       debugPrint('AuthRepository.register error: $e');
-      return {'success': false, 'message': e.toString()};
+      return {'success': false, 'message': 'Đã có lỗi xảy ra. Vui lòng thử lại.'};
     }
   }
 

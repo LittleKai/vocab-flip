@@ -17,6 +17,7 @@ import '../../providers/profile_provider.dart';
 import '../../providers/public_library_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/library/rating_widget.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 import '../flashcard/flashcard_viewer_screen.dart';
 
 /// Screen showing public deck details with preview and import option
@@ -844,9 +845,10 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   void _showRatingDialog(BuildContext context, PublicLibraryProvider provider) {
     final nickname = context.read<ProfileProvider>().nickname
         ?? context.read<AuthProvider>().displayName;
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => RatingDialog(
+      title: AppLocalizations.of(context)!.rateThisDeck,
+      customContent: RatingDialog(
         initialRating: provider.userRating?.rating.toDouble(),
         initialReview: provider.userRating?.review,
         onSubmit: (result) {
@@ -861,11 +863,13 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   }
 
   void _showReviewsDialog(BuildContext context, PublicLibraryProvider provider) {
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => _ReviewsDialog(
+      title: AppLocalizations.of(context)!.ratingsReviews,
+      customContent: _ReviewsDialog(
         ratings: provider.deckRatings,
       ),
+      secondaryButtonText: AppLocalizations.of(context)!.close,
     );
   }
 
@@ -942,31 +946,11 @@ class _ReviewsDialogState extends State<_ReviewsDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 500),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 8, 0),
-            child: Row(
-              children: [
-                Text(
-                  l10n.ratingsReviews,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-          ),
-
           // Filter chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,

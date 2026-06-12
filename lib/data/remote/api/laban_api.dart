@@ -82,6 +82,7 @@ class LabanApi {
       phonetic: phonetic,
       meanings: meanings,
       sourceLanguage: 'en',
+      dataSource: 'Online (Laban)',
     );
   }
 

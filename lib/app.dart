@@ -164,10 +164,14 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
           builder: (_) => const AdminFeedbackScreen(),
         );
       case '/login':
-        return PageRouteBuilder(
-          opaque: false,
-          barrierColor: Colors.black54,
-          pageBuilder: (_, __, ___) => const LoginDialog(),
+        return MaterialPageRoute(
+          builder: (context) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pop(context); // pop the dummy route
+              LoginDialog.show(context);
+            });
+            return const Scaffold(backgroundColor: Colors.transparent);
+          },
         );
       default:
         return null;

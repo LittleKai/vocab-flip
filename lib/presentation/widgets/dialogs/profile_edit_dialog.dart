@@ -6,6 +6,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_profile.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/auth_provider.dart';
+import 'standard_dialog.dart';
 
 /// Dialog for editing user profile
 class ProfileEditDialog extends StatefulWidget {
@@ -13,9 +15,10 @@ class ProfileEditDialog extends StatefulWidget {
 
   /// Show the profile edit dialog
   static Future<void> show(BuildContext context) {
-    return showDialog(
+    return showStandardDialog(
       context: context,
-      builder: (context) => const ProfileEditDialog(),
+      title: AppLocalizations.of(context)!.editProfile,
+      customContent: const ProfileEditDialog(),
     );
   }
 
@@ -125,9 +128,9 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
     final l10n = AppLocalizations.of(context)!;
     final isVi = Localizations.localeOf(context).languageCode == 'vi';
 
-    return AlertDialog(
-      title: Text(l10n.editProfile),
-      content: SizedBox(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: SizedBox(
         width: 320,
         child: SingleChildScrollView(
           child: Column(
@@ -196,35 +199,43 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                 maxLines: 2,
                 maxLength: 100,
               ),
+
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+                    child: Text(l10n.cancel),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isSaving || _nicknameError != null || _isCheckingNickname
+                        ? null
+                        : _saveProfile,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(l10n.save),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: Text(l10n.cancel),
-        ),
-        ElevatedButton(
-          onPressed: _isSaving || _nicknameError != null || _isCheckingNickname
-              ? null
-              : _saveProfile,
-          child: _isSaving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(l10n.save),
-        ),
-      ],
     );
   }
 
   Widget _buildAvatarSection() {
-    return Consumer<ProfileProvider>(
-      builder: (context, provider, _) {
-        final hasCustom = provider.hasCustomAvatar;
+    return Consumer2<ProfileProvider, AuthProvider>(
+      builder: (context, provider, auth, _) {
+        final authAvatar = auth.user?.avatar;
+        final hasCustom = provider.hasCustomAvatar || (authAvatar != null && authAvatar.isNotEmpty);
+        final avatarUrl = provider.customAvatarPath ?? authAvatar;
         final l10n = AppLocalizations.of(context)!;
 
         return Center(
@@ -256,18 +267,31 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                                 ),
                               )
                             : hasCustom
-                                ? Image.file(
-                                    File(provider.customAvatarPath!),
-                                    fit: BoxFit.cover,
-                                    width: 96,
-                                    height: 96,
-                                    errorBuilder: (_, __, ___) => Center(
-                                      child: Text(
-                                        provider.avatarEmoji,
-                                        style: const TextStyle(fontSize: 40),
-                                      ),
-                                    ),
-                                  )
+                                ? (avatarUrl!.startsWith('http')
+                                    ? Image.network(
+                                        avatarUrl,
+                                        fit: BoxFit.cover,
+                                        width: 96,
+                                        height: 96,
+                                        errorBuilder: (_, __, ___) => Center(
+                                          child: Text(
+                                            provider.avatarEmoji,
+                                            style: const TextStyle(fontSize: 40),
+                                          ),
+                                        ),
+                                      )
+                                    : Image.file(
+                                        File(provider.customAvatarPath!),
+                                        fit: BoxFit.cover,
+                                        width: 96,
+                                        height: 96,
+                                        errorBuilder: (_, __, ___) => Center(
+                                          child: Text(
+                                            provider.avatarEmoji,
+                                            style: const TextStyle(fontSize: 40),
+                                          ),
+                                        ),
+                                      ))
                                 : Center(
                                     child: Text(
                                       provider.avatarEmoji,
@@ -364,9 +388,12 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProfileProvider>(
-      builder: (context, profileProvider, _) {
+    return Consumer2<ProfileProvider, AuthProvider>(
+      builder: (context, profileProvider, authProvider, _) {
         final profile = profileProvider.profile;
+        final authAvatar = authProvider.user?.avatar;
+        final hasAvatar = profile.hasCustomAvatar || (authAvatar != null && authAvatar.isNotEmpty);
+        final avatarUrl = profile.customAvatarUrl ?? authAvatar;
 
         return Card(
           child: InkWell(
@@ -385,19 +412,32 @@ class ProfileCard extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: ClipOval(
-                      child: profile.hasCustomAvatar
-                          ? Image.file(
-                              File(profile.customAvatarUrl!),
-                              fit: BoxFit.cover,
-                              width: 56,
-                              height: 56,
-                              errorBuilder: (_, __, ___) => Center(
-                                child: Text(
-                                  profile.avatarEmoji,
-                                  style: const TextStyle(fontSize: 28),
-                                ),
-                              ),
-                            )
+                      child: hasAvatar
+                          ? (avatarUrl!.startsWith('http')
+                              ? Image.network(
+                                  avatarUrl,
+                                  fit: BoxFit.cover,
+                                  width: 56,
+                                  height: 56,
+                                  errorBuilder: (_, __, ___) => Center(
+                                    child: Text(
+                                      profile.avatarEmoji,
+                                      style: const TextStyle(fontSize: 28),
+                                    ),
+                                  ),
+                                )
+                              : Image.file(
+                                  File(profile.customAvatarUrl!),
+                                  fit: BoxFit.cover,
+                                  width: 56,
+                                  height: 56,
+                                  errorBuilder: (_, __, ___) => Center(
+                                    child: Text(
+                                      profile.avatarEmoji,
+                                      style: const TextStyle(fontSize: 28),
+                                    ),
+                                  ),
+                                ))
                           : Center(
                               child: Text(
                                 profile.avatarEmoji,

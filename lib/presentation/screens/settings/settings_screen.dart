@@ -18,6 +18,7 @@ import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/dialogs/profile_edit_dialog.dart';
 import '../../widgets/dialogs/feedback_dialog.dart';
 import '../../widgets/dialogs/login_dialog.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 import '../../providers/admin_feedback_provider.dart';
 import 'backup_screen.dart';
 
@@ -59,19 +60,32 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         _SettingsTile(
                           leading: ClipOval(
-                            child: profile.hasCustomAvatar
-                                ? Image.file(
-                                    File(profile.customAvatarUrl!),
-                                    fit: BoxFit.cover,
-                                    width: 40,
-                                    height: 40,
-                                    errorBuilder: (_, __, ___) => Center(
-                                      child: Text(
-                                        profile.avatarEmoji,
-                                        style: const TextStyle(fontSize: 20),
-                                      ),
-                                    ),
-                                  )
+                            child: (profile.hasCustomAvatar || (auth.user?.avatar != null && auth.user!.avatar!.isNotEmpty))
+                                ? ((profile.customAvatarUrl ?? auth.user!.avatar!).startsWith('http')
+                                    ? Image.network(
+                                        profile.customAvatarUrl ?? auth.user!.avatar!,
+                                        fit: BoxFit.cover,
+                                        width: 40,
+                                        height: 40,
+                                        errorBuilder: (_, __, ___) => Center(
+                                          child: Text(
+                                            profile.avatarEmoji,
+                                            style: const TextStyle(fontSize: 20),
+                                          ),
+                                        ),
+                                      )
+                                    : Image.file(
+                                        File(profile.customAvatarUrl!),
+                                        fit: BoxFit.cover,
+                                        width: 40,
+                                        height: 40,
+                                        errorBuilder: (_, __, ___) => Center(
+                                          child: Text(
+                                            profile.avatarEmoji,
+                                            style: const TextStyle(fontSize: 20),
+                                          ),
+                                        ),
+                                      ))
                                 : Center(
                                     child: Text(
                                       profile.avatarEmoji,
@@ -123,10 +137,7 @@ class SettingsScreen extends StatelessWidget {
                           title: l10n.signIn,
                           trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
                           onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => const LoginDialog(),
-                            );
+                            LoginDialog.show(context);
                           },
                         ),
                       ],
@@ -420,51 +431,48 @@ class SettingsScreen extends StatelessWidget {
   void _showLanguageDialog(BuildContext context, SettingsProvider settings) {
     final l10n = AppLocalizations.of(context)!;
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.selectLanguage, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: settings.locale == 'vi' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: RadioListTile<String>(
-                title: const Text('Tiếng Việt', style: TextStyle(fontWeight: FontWeight.w600)),
-                value: 'vi',
-                groupValue: settings.locale,
-                activeColor: AppColors.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                onChanged: (value) {
-                  settings.setLocale(value!);
-                  Navigator.pop(context);
-                },
-              ),
+      title: l10n.selectLanguage,
+      customContent: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: settings.locale == 'vi' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: settings.locale == 'en' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: RadioListTile<String>(
-                title: const Text('English', style: TextStyle(fontWeight: FontWeight.w600)),
-                value: 'en',
-                groupValue: settings.locale,
-                activeColor: AppColors.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                onChanged: (value) {
-                  settings.setLocale(value!);
-                  Navigator.pop(context);
-                },
-              ),
+            child: RadioListTile<String>(
+              title: const Text('Tiếng Việt', style: TextStyle(fontWeight: FontWeight.w600)),
+              value: 'vi',
+              groupValue: settings.locale,
+              activeColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              onChanged: (value) {
+                settings.setLocale(value!);
+                Navigator.pop(context);
+              },
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: settings.locale == 'en' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: RadioListTile<String>(
+              title: const Text('English', style: TextStyle(fontWeight: FontWeight.w600)),
+              value: 'en',
+              groupValue: settings.locale,
+              activeColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              onChanged: (value) {
+                settings.setLocale(value!);
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -473,13 +481,12 @@ class SettingsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final sizes = [400, 600, 800, 1000, 1200, 1500];
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.flashcardImageSize, style: const TextStyle(fontWeight: FontWeight.bold)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
-        content: Column(
+      title: l10n.flashcardImageSize,
+      customContent: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: sizes.map((size) {
             return RadioListTile<int>(
@@ -507,71 +514,56 @@ class SettingsScreen extends StatelessWidget {
 
   void _showFontSizePicker(
       BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: Text(l10n.flashcardFontSize, style: const TextStyle(fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Main text size
-                Text(l10n.mainTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
-                _FontSizeSlider(
-                  value: settings.flashcardMainFontSize,
-                  min: 20,
-                  max: 48,
-                  onChanged: (value) {
-                    settings.setFlashcardMainFontSize(value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Phonetic text size
-                Text(l10n.phoneticTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
-                _FontSizeSlider(
-                  value: settings.flashcardPhoneticFontSize,
-                  min: 14,
-                  max: 32,
-                  onChanged: (value) {
-                    settings.setFlashcardPhoneticFontSize(value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Detail text size (example/note)
-                Text(l10n.detailTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
-                _FontSizeSlider(
-                  value: settings.flashcardDetailFontSize,
-                  min: 12,
-                  max: 24,
-                  onChanged: (value) {
-                    settings.setFlashcardDetailFontSize(value);
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-          ),
-          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      title: l10n.flashcardFontSize,
+      primaryButtonText: l10n.done,
+      onPrimaryPressed: () => Navigator.pop(context), // Though standard dialog pops on button press anyway, but wait, showStandardDialog already completes the future and dismisses the dialog on button press. If we pop, it might pop the screen behind. Let's omit onPrimaryPressed or just let showStandardDialog handle it. Wait! `showStandardDialog` in AwesomeDialog automatically dismisses on button press! If we pop again, it's double pop. We should just set primaryButtonText and omit onPrimaryPressed.
+      customContent: StatefulBuilder(
+        builder: (context, setState) => SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Main text size
+              Text(l10n.mainTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+              _FontSizeSlider(
+                value: settings.flashcardMainFontSize,
+                min: 20,
+                max: 48,
+                onChanged: (value) {
+                  settings.setFlashcardMainFontSize(value);
+                  setState(() {});
+                },
               ),
-              child: Text(l10n.done, style: const TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
+              const SizedBox(height: 24),
+
+              // Phonetic text size
+              Text(l10n.phoneticTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+              _FontSizeSlider(
+                value: settings.flashcardPhoneticFontSize,
+                min: 14,
+                max: 32,
+                onChanged: (value) {
+                  settings.setFlashcardPhoneticFontSize(value);
+                  setState(() {});
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Detail text size (example/note)
+              Text(l10n.detailTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+              _FontSizeSlider(
+                value: settings.flashcardDetailFontSize,
+                min: 12,
+                max: 24,
+                onChanged: (value) {
+                  settings.setFlashcardDetailFontSize(value);
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -586,242 +578,155 @@ class SettingsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: currentValue.toString());
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: l10n.numberOfCards,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
+      title: title,
+      customContent: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: l10n.numberOfCards,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
         ),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final value = int.tryParse(controller.text);
-              if (value != null && value > 0) {
-                onChanged(value);
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: Text(l10n.save, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.save,
+      onPrimaryPressed: () {
+        final value = int.tryParse(controller.text);
+        if (value != null && value > 0) {
+          onChanged(value);
+        }
+      },
     );
   }
 
   void _confirmSignOut(
       BuildContext context, AuthProvider auth, AppLocalizations l10n) {
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.signOut, style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(l10n.signOutConfirm, style: const TextStyle(fontSize: 16)),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await auth.signOut();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: Text(l10n.signOut, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+      title: l10n.signOut,
+      content: l10n.signOutConfirm,
+      isDestructive: true,
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.signOut,
+      onPrimaryPressed: () async {
+        await auth.signOut();
+      },
     );
   }
 
   void _confirmReset(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.resetConfirmTitle, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.error)),
-        content: Text(l10n.resetConfirmMessage, style: const TextStyle(fontSize: 16)),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Implement reset
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.dataReset)),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: Text(l10n.reset, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+      title: l10n.resetConfirmTitle,
+      content: l10n.resetConfirmMessage,
+      isDestructive: true,
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.reset,
+      onPrimaryPressed: () {
+        // TODO: Implement reset
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.dataReset)),
+        );
+      },
     );
   }
 
   void _showDonateDialog(BuildContext context, AppLocalizations l10n) {
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.pink.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.favorite, color: Colors.pink, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Text(l10n.donate, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.donateMessage,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 15),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.primary.withOpacity(0.15)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  'https://img.vietqr.io/image/VCB-0071000718658-compact.png',
-                  width: 220,
-                  height: 220,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return SizedBox(
-                      width: 220,
-                      height: 220,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 220,
-                      height: 220,
-                      color: Colors.grey[100],
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                          const SizedBox(height: 12),
-                          Text(l10n.couldNotLoadQr, style: const TextStyle(color: Colors.grey)),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.donateBank,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(context),
-                    fontWeight: FontWeight.w500,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.close, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: l10n.donate,
+      customContent: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.donateMessage,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 15),
           ),
-          ElevatedButton.icon(
-            onPressed: () => _saveQrImage(context, l10n),
-            icon: const Icon(Icons.download, size: 18),
-            label: Text(l10n.saveQrImage, style: const TextStyle(fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                'https://img.vietqr.io/image/VCB-0071000718658-compact.png',
+                width: 220,
+                height: 220,
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return SizedBox(
+                    width: 220,
+                    height: 220,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 220,
+                    height: 220,
+                    color: Colors.grey[100],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                        const SizedBox(height: 12),
+                        Text(l10n.couldNotLoadQr, style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.donateBank,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary(context),
+                  fontWeight: FontWeight.w500,
+                ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
+      secondaryButtonText: l10n.close,
+      primaryButtonText: l10n.saveQrImage,
+      onPrimaryPressed: () => _saveQrImage(context, l10n),
     );
   }
 

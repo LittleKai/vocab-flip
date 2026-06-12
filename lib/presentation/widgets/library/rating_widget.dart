@@ -188,50 +188,52 @@ class _RatingDialogState extends State<RatingDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      title: Text(l10n.rateThisDeck),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          RatingWidget(
-            rating: _rating,
-            readOnly: false,
-            size: 36,
-            onRatingChanged: (value) {
-              setState(() => _rating = value);
-            },
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _reviewController,
-            decoration: InputDecoration(
-              labelText: l10n.reviewOptional,
-              hintText: l10n.shareThoughts,
-              border: const OutlineInputBorder(),
-            ),
-            maxLines: 3,
-            maxLength: 500,
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.cancel),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RatingWidget(
+          rating: _rating,
+          readOnly: false,
+          size: 36,
+          onRatingChanged: (value) {
+            setState(() => _rating = value);
+          },
         ),
-        ElevatedButton(
-          onPressed: _rating > 0
-              ? () {
-                  widget.onSubmit((
-                    rating: _rating.round(),
-                    review: _reviewController.text.isNotEmpty
-                        ? _reviewController.text
-                        : null,
-                  ));
-                  Navigator.pop(context);
-                }
-              : null,
-          child: Text(l10n.submit),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _reviewController,
+          decoration: InputDecoration(
+            labelText: l10n.reviewOptional,
+            hintText: l10n.shareThoughts,
+            border: const OutlineInputBorder(),
+          ),
+          maxLines: 3,
+          maxLength: 500,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _rating > 0
+                  ? () {
+                      widget.onSubmit((
+                        rating: _rating.round(),
+                        review: _reviewController.text.isNotEmpty
+                            ? _reviewController.text
+                            : null,
+                      ));
+                      Navigator.pop(context);
+                    }
+                  : null,
+              child: Text(l10n.submit),
+            ),
+          ],
         ),
       ],
     );

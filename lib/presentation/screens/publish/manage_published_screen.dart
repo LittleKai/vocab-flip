@@ -4,6 +4,7 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/publish_provider.dart';
 import '../../widgets/library/rating_widget.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 
 /// Screen for managing user's published decks
 class ManagePublishedScreen extends StatefulWidget {
@@ -269,29 +270,19 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
   void _confirmUnpublish(BuildContext context, String publicDeckId) {
     final l10n = AppLocalizations.of(context)!;
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.unpublishConfirm),
-        content: Text(l10n.unpublishDescription),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement unpublish with local deck ID
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.deckUnpublished)),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(l10n.unpublish),
-          ),
-        ],
-      ),
+      title: l10n.unpublishConfirm,
+      content: l10n.unpublishDescription,
+      isDestructive: true,
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.unpublish,
+      onPrimaryPressed: () {
+        // TODO: Implement unpublish with local deck ID
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.deckUnpublished)),
+        );
+      },
     );
   }
 }

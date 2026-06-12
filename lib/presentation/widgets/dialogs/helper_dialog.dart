@@ -5,15 +5,20 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/local/preferences/app_preferences.dart';
 import 'tts_help_dialog.dart';
+import 'standard_dialog.dart';
 
 /// Helper dialog that contains various help options
 class HelperDialog extends StatelessWidget {
   const HelperDialog({super.key});
 
   static Future<void> show(BuildContext context) async {
-    await showDialog(
+    final l10n = AppLocalizations.of(context)!;
+    await showStandardDialog(
       context: context,
-      builder: (context) => const HelperDialog(),
+      title: l10n.helper,
+      icon: Icons.help_outline,
+      customContent: const HelperDialog(),
+      secondaryButtonText: l10n.close,
     );
   }
 
@@ -21,20 +26,12 @@ class HelperDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return AlertDialog(
-      title: Row(
+    return SizedBox(
+      width: 400,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.help_outline, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Text(l10n.helper),
-        ],
-      ),
-      content: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // TTS Help
+          // TTS Help
             _HelperItem(
               icon: Icons.record_voice_over,
               title: l10n.ttsSettings,
@@ -76,13 +73,6 @@ class HelperDialog extends StatelessWidget {
             // ),
           ],
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.close),
-        ),
-      ],
     );
   }
 }

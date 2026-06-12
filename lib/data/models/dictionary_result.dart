@@ -5,6 +5,7 @@ class DictionaryResult {
   final String? audioUrl;
   final List<DictionaryMeaning> meanings;
   final String? sourceLanguage;
+  final String? dataSource; // Represents if it's from Offline DB, Online API, Laban, etc.
 
   DictionaryResult({
     required this.word,
@@ -12,6 +13,7 @@ class DictionaryResult {
     this.audioUrl,
     this.meanings = const [],
     this.sourceLanguage,
+    this.dataSource,
   });
 
   /// Get primary definition
@@ -101,6 +103,7 @@ class JishoResult {
       word: word,
       phonetic: reading,
       sourceLanguage: 'ja',
+      dataSource: 'Online (Jisho)',
       meanings: meanings.map((m) => DictionaryMeaning(
         partOfSpeech: m.partsOfSpeech.join(', '),
         definitions: m.englishDefinitions.map((d) => DictionaryDefinition(

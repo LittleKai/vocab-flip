@@ -81,8 +81,8 @@ class FreeDictionaryApi {
       word: word,
       phonetic: phonetic,
       audioUrl: audioUrl,
-      meanings: meanings,
       sourceLanguage: 'en',
+      dataSource: 'Online (FreeDictionary)',
     );
   }
 

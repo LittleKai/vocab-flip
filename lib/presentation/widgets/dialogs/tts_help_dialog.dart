@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/services/tts_service.dart';
 import '../../../data/local/preferences/app_preferences.dart';
+import 'standard_dialog.dart';
 
 /// Shows TTS installation help dialog
 class TtsHelpDialog extends StatelessWidget {
@@ -26,14 +27,18 @@ class TtsHelpDialog extends StatelessWidget {
     bool showDontShowAgain = false,
   }) async {
     bool dontShowAgain = false;
+    final l10n = AppLocalizations.of(context)!;
+    final isWarning = missingLanguages.isNotEmpty;
 
-    await showDialog(
+    await showStandardDialog(
       context: context,
-      builder: (dialogContext) => _TtsHelpDialogContent(
+      title: isWarning ? l10n.ttsLanguagesMissing : l10n.ttsHelp,
+      customContent: _TtsHelpDialogContent(
         missingLanguages: missingLanguages,
         showDontShowAgain: showDontShowAgain,
         onDontShowAgainChanged: (value) => dontShowAgain = value,
       ),
+      primaryButtonText: l10n.done,
     );
 
     if (dontShowAgain) {
@@ -107,90 +112,68 @@ class _TtsHelpDialogContentState extends State<_TtsHelpDialogContent> {
     final l10n = AppLocalizations.of(context)!;
     final isWarning = widget.missingLanguages.isNotEmpty;
 
-    return AlertDialog(
-      title: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            isWarning ? Icons.warning_amber_rounded : Icons.help_outline,
-            color: isWarning ? AppColors.warning : AppColors.primary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              isWarning ? l10n.ttsLanguagesMissing : l10n.ttsHelp,
-              style: const TextStyle(fontSize: 18),
+          if (isWarning) ...[
+            Text(
+              l10n.ttsLanguagesMissingDesc,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            ...widget.missingLanguages.map((lang) => Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 4),
+              child: Row(
+                children: [
+                  Text(lang.flag, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(width: 8),
+                  Text(lang.nameEn),
+                ],
+              ),
+            )),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+          ],
+
+          Text(
+            l10n.ttsInstallInstructions,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
             ),
           ),
+          const SizedBox(height: 12),
+
+          if (!kIsWeb && Platform.isWindows) ...[
+            _buildStep('1', l10n.ttsStepOpenSettings),
+            _buildStep('2', l10n.ttsStepTimeLanguage),
+            _buildStep('3', l10n.ttsStepAddLanguage),
+            _buildStep('4', l10n.ttsStepSelectLanguage),
+            _buildStep('5', l10n.ttsStepDownloadSpeech),
+            _buildStep('6', l10n.ttsStepRestartApp),
+          ] else ...[
+            Text(l10n.ttsGenericInstructions),
+          ],
+
+          if (widget.showDontShowAgain) ...[
+            const SizedBox(height: 16),
+            CheckboxListTile(
+              value: _dontShowAgain,
+              onChanged: (value) {
+                setState(() => _dontShowAgain = value ?? false);
+                widget.onDontShowAgainChanged?.call(_dontShowAgain);
+              },
+              title: Text(l10n.dontShowAgain),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ],
         ],
       ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isWarning) ...[
-              Text(
-                l10n.ttsLanguagesMissingDesc,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              ...widget.missingLanguages.map((lang) => Padding(
-                padding: const EdgeInsets.only(left: 16, bottom: 4),
-                child: Row(
-                  children: [
-                    Text(lang.flag, style: const TextStyle(fontSize: 16)),
-                    const SizedBox(width: 8),
-                    Text(lang.nameEn),
-                  ],
-                ),
-              )),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-            ],
-
-            Text(
-              l10n.ttsInstallInstructions,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            if (!kIsWeb && Platform.isWindows) ...[
-              _buildStep('1', l10n.ttsStepOpenSettings),
-              _buildStep('2', l10n.ttsStepTimeLanguage),
-              _buildStep('3', l10n.ttsStepAddLanguage),
-              _buildStep('4', l10n.ttsStepSelectLanguage),
-              _buildStep('5', l10n.ttsStepDownloadSpeech),
-              _buildStep('6', l10n.ttsStepRestartApp),
-            ] else ...[
-              Text(l10n.ttsGenericInstructions),
-            ],
-
-            if (widget.showDontShowAgain) ...[
-              const SizedBox(height: 16),
-              CheckboxListTile(
-                value: _dontShowAgain,
-                onChanged: (value) {
-                  setState(() => _dontShowAgain = value ?? false);
-                  widget.onDontShowAgainChanged?.call(_dontShowAgain);
-                },
-                title: Text(l10n.dontShowAgain),
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ],
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.done),
-        ),
-      ],
     );
   }
 

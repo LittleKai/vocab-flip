@@ -498,6 +498,7 @@
   "signInWithEmail": "Sign in with Email",
   "createAccount": "Create Account",
   "email": "Email",
+  "fullName": "Full Name",
   "password": "Password",
   "confirmPassword": "Confirm Password",
   "forgotPassword": "Forgot Password?",

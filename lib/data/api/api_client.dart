@@ -58,12 +58,14 @@ class ApiClient {
         debugPrint('ApiClient [ERR] $status on ${error.requestOptions.method} $path');
         if (status == 401) {
           final hasToken = error.requestOptions.headers.containsKey('Authorization');
-          if (!path.contains('/auth/me') || hasToken) {
+          final isAuthEndpoint = path.contains('/auth/login') || path.contains('/auth/register');
+          
+          if (!isAuthEndpoint && (!path.contains('/auth/me') || hasToken)) {
             debugPrint('ApiClient [ERR] 401 on $path — clearing token and notifying listeners');
             await clearToken();
             onUnauthorized?.call();
           } else {
-            debugPrint('ApiClient [ERR] 401 on /auth/me without token — ignoring');
+            debugPrint('ApiClient [ERR] 401 on $path — ignoring global unauthorized');
           }
         }
         return handler.next(error);

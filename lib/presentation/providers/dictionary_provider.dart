@@ -13,6 +13,7 @@ class DictionaryProvider extends ChangeNotifier {
   String? _error;
   SupportedLanguage _selectedLanguage = SupportedLanguage.english;
   String _filterMode = 'exact_first';
+  String _fetchMode = 'both';
   bool _fallbackToEnglish = true;
   bool _usedFallback = false;
   String? _fallbackSource;
@@ -28,6 +29,7 @@ class DictionaryProvider extends ChangeNotifier {
   void _loadSavedSettings() {
     _selectedLanguage = SupportedLanguage.fromCode(_prefs.dictionarySourceLanguage);
     _filterMode = _prefs.dictionaryFilterMode;
+    _fetchMode = _prefs.dictionaryFetchMode;
     _fallbackToEnglish = _prefs.dictionaryFallbackToEnglish;
   }
 
@@ -36,6 +38,7 @@ class DictionaryProvider extends ChangeNotifier {
   String? get error => _error;
   SupportedLanguage get selectedLanguage => _selectedLanguage;
   String get filterMode => _filterMode;
+  String get fetchMode => _fetchMode;
   bool get fallbackToEnglish => _fallbackToEnglish;
   bool get usedFallback => _usedFallback;
   String? get fallbackSource => _fallbackSource;
@@ -49,6 +52,12 @@ class DictionaryProvider extends ChangeNotifier {
   void setFilterMode(String mode) {
     _filterMode = mode;
     _prefs.setDictionaryFilterMode(mode);
+    notifyListeners();
+  }
+
+  void setFetchMode(String mode) {
+    _fetchMode = mode;
+    _prefs.setDictionaryFetchMode(mode);
     notifyListeners();
   }
 
@@ -77,6 +86,7 @@ class DictionaryProvider extends ChangeNotifier {
         word.trim(),
         _selectedLanguage,
         fallbackToEnglish: _fallbackToEnglish,
+        fetchMode: _fetchMode,
       );
       _results = lookupResult.results;
       _usedFallback = lookupResult.usedFallback;
@@ -97,6 +107,7 @@ class DictionaryProvider extends ChangeNotifier {
     _error = null;
     _usedFallback = false;
     _fallbackSource = null;
+    _isLoading = false;
     notifyListeners();
   }
 

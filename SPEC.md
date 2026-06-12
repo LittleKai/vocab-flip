@@ -58,3 +58,6 @@ Tuỳ thuộc vào việc bạn có bao nhiêu Agent/Builder:
 - File `SPEC.md` đã được update và archive bản cũ.
 - Các Phase 1, 2, 3 đã được hoàn thiện trong thực tế.
 - Tầng Database (SQLite/Mongo) và SchedulerEngine abstraction đã có sẵn, đảm bảo không bị conflict khi code các phase tiếp theo.
+## UI Refactoring
+
+- **UI Dialogs Refactor**: See `SPEC-ui-dialogs.md` for the plan to replace all legacy dialogs with `showStandardDialog`.

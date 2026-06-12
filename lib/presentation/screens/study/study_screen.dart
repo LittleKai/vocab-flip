@@ -10,6 +10,7 @@ import '../../providers/deck_provider.dart';
 import '../../widgets/flashcard/flip_card.dart';
 import '../../widgets/flashcard/multiple_choice_card.dart';
 import '../../widgets/flashcard/type_answer_card.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 
 enum StudyMode {
   classic,
@@ -359,25 +360,15 @@ class _StudyScreenState extends State<StudyScreen> {
     if (provider.isFatigued) {
       provider.resetFatigue();
       final l10n = AppLocalizations.of(context)!;
-      showDialog(
+      showStandardDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(l10n.brainFatigueDetected),
-          content: Text(l10n.brainFatigueDesc),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.keepGoing),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop(); // Go back to deck list or previous screen
-              },
-              child: Text(l10n.takeABreak),
-            ),
-          ],
-        ),
+        title: l10n.brainFatigueDetected,
+        content: l10n.brainFatigueDesc,
+        secondaryButtonText: l10n.keepGoing,
+        primaryButtonText: l10n.takeABreak,
+        onPrimaryPressed: () {
+          Navigator.of(context).pop(); // Go back to deck list or previous screen
+        },
       );
     }
   }
@@ -482,28 +473,18 @@ class _StudyScreenState extends State<StudyScreen> {
       return;
     }
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.endSession),
-        content: Text(l10n.progressSaved),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.continueSession),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await provider.saveAndCompleteSession();
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
-            },
-            child: Text(l10n.endSession),
-          ),
-        ],
-      ),
+      title: l10n.endSession,
+      content: l10n.progressSaved,
+      secondaryButtonText: l10n.continueSession,
+      primaryButtonText: l10n.endSession,
+      onPrimaryPressed: () async {
+        await provider.saveAndCompleteSession();
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      },
     );
   }
 }

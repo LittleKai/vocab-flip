@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
@@ -64,32 +65,47 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                     ],
                   ),
                   child: Column(
-                    children: [
-                      // Language selector + conversion buttons + settings
-                      Row(
-                        children: [
-                          // Language dropdown
-                          DropdownButton<SupportedLanguage>(
-                            value: provider.selectedLanguage,
-                            underline: const SizedBox(),
-                            isDense: true,
-                            items: [
-                              SupportedLanguage.english,
-                              SupportedLanguage.japanese,
-                              SupportedLanguage.chinese,
-                            ].map((lang) {
-                              return DropdownMenuItem(
-                                value: lang,
-                                child: Text(lang.nameEn,
-                                    style: const TextStyle(fontSize: 14)),
-                              );
-                            }).toList(),
-                            onChanged: (lang) {
-                              if (lang != null) {
-                                provider.setLanguage(lang);
-                              }
-                            },
-                          ),
+                      children: [
+                        // Language selector + conversion buttons + settings
+                        Row(
+                          children: [
+                            Text('${l10n.dictionary}: ', 
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500, 
+                                  color: AppColors.textSecondaryLight
+                                )
+                            ),
+                            const SizedBox(width: 4),
+                            // Language dropdown
+                            DropdownButton<SupportedLanguage>(
+                              value: provider.selectedLanguage,
+                              underline: const SizedBox(),
+                              isDense: true,
+                              items: [
+                                SupportedLanguage.english,
+                                SupportedLanguage.japanese,
+                                SupportedLanguage.chinese,
+                              ].map((lang) {
+                                String getLangName(SupportedLanguage l) {
+                                  switch (l) {
+                                    case SupportedLanguage.english: return l10n.english;
+                                    case SupportedLanguage.japanese: return l10n.japanese;
+                                    case SupportedLanguage.chinese: return l10n.chinese;
+                                    case SupportedLanguage.vietnamese: return l10n.vietnamese;
+                                  }
+                                }
+                                return DropdownMenuItem(
+                                  value: lang,
+                                  child: Text(getLangName(lang),
+                                      style: const TextStyle(fontSize: 14)),
+                                );
+                              }).toList(),
+                              onChanged: (lang) {
+                                if (lang != null) {
+                                  provider.setLanguage(lang);
+                                }
+                              },
+                            ),
 
                           // Conversion buttons for Japanese
                           if (provider.selectedLanguage ==
@@ -227,24 +243,41 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
               // Search button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed:
-                        provider.isLoading ? null : () => _search(provider),
-                    icon: provider.isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.search),
-                    label: Text(l10n.lookUp),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed:
+                            provider.isLoading ? null : () => _search(provider),
+                        icon: provider.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.search),
+                        label: Text(l10n.lookUp),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
-                  ),
+                    if (provider.isLoading) ...[
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          provider.clearResults();
+                        },
+                        icon: const Icon(Icons.cancel),
+                        label: Text(l10n.cancel),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -316,18 +349,17 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.read<DictionaryProvider>();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        int tempLimit = _resultLimit;
-        String tempFilterMode = provider.filterMode;
-        bool tempFallback = provider.fallbackToEnglish;
+    int tempLimit = _resultLimit;
+    String tempFilterMode = provider.filterMode;
+    bool tempFallback = provider.fallbackToEnglish;
+    String tempFetchMode = provider.fetchMode;
 
-        return AlertDialog(
-          title: Text(l10n.dictionarySettings),
-          content: StatefulBuilder(
-            builder: (context, setDialogState) {
-              return SingleChildScrollView(
+    showStandardDialog(
+      context: context,
+      title: l10n.dictionarySettings,
+      customContent: StatefulBuilder(
+        builder: (context, setDialogState) {
+          return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,6 +425,37 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
 
                     const Divider(height: 24),
 
+                    // Fetch mode
+                    const Text('Nguồn dữ liệu',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    _FilterOption(
+                      title: 'Kết hợp cả 2',
+                      subtitle: 'Sử dụng cả offline database và online API',
+                      value: 'both',
+                      groupValue: tempFetchMode,
+                      onChanged: (v) =>
+                          setDialogState(() => tempFetchMode = v!),
+                    ),
+                    _FilterOption(
+                      title: 'Chỉ Offline',
+                      subtitle: 'Chỉ tìm trong máy, không cần internet',
+                      value: 'offline',
+                      groupValue: tempFetchMode,
+                      onChanged: (v) =>
+                          setDialogState(() => tempFetchMode = v!),
+                    ),
+                    _FilterOption(
+                      title: 'Chỉ Online',
+                      subtitle: 'Chỉ tìm trên máy chủ',
+                      value: 'online',
+                      groupValue: tempFetchMode,
+                      onChanged: (v) =>
+                          setDialogState(() => tempFetchMode = v!),
+                    ),
+
+                    const Divider(height: 24),
+
                     // Fallback to English
                     SwitchListTile(
                       title: Text(l10n.fallbackToEnglish),
@@ -406,24 +469,16 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
               );
             },
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                setState(() {
-                  _resultLimit = tempLimit;
-                });
-                provider.setFilterMode(tempFilterMode);
-                provider.setFallbackToEnglish(tempFallback);
-                Navigator.pop(context);
-              },
-              child: Text(l10n.save),
-            ),
-          ],
-        );
+      secondaryButtonText: l10n.cancel,
+      onSecondaryPressed: () {},
+      primaryButtonText: l10n.save,
+      onPrimaryPressed: () {
+        setState(() {
+          _resultLimit = tempLimit;
+        });
+        provider.setFilterMode(tempFilterMode);
+        provider.setFetchMode(tempFetchMode);
+        provider.setFallbackToEnglish(tempFallback);
       },
     );
   }
@@ -578,6 +633,11 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              backgroundColor: Theme.of(context).colorScheme.surface,
               title: Row(
                 children: [
                   const Icon(Icons.add_card, color: AppColors.primary),
@@ -874,6 +934,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
               ),
               actions: [
                 TextButton(
+                style: TextButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                
                   onPressed: () {
                     phoneticController.dispose();
                     backController.dispose();
@@ -993,30 +1055,73 @@ class _DictionaryResultCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Result number badge
-                      if (totalResults > 1)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          margin: const EdgeInsets.only(bottom: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.textSecondaryLight
-                                .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '$resultIndex / $totalResults',
-                            style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondaryLight),
-                          ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Result number badge & Data Source badge
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            if (totalResults > 1)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                margin: const EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.textSecondaryLight
+                                      .withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '$resultIndex / $totalResults',
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondaryLight),
+                                ),
+                              ),
+                            if (result.dataSource != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                margin: const EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: result.dataSource!.toLowerCase().contains('offline') 
+                                      ? Colors.blueGrey.withValues(alpha: 0.2)
+                                      : Colors.green.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      result.dataSource!.toLowerCase().contains('offline')
+                                          ? Icons.sd_storage
+                                          : Icons.cloud_done,
+                                      size: 12,
+                                      color: result.dataSource!.toLowerCase().contains('offline')
+                                          ? Colors.blueGrey
+                                          : Colors.green,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      result.dataSource!,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: result.dataSource!.toLowerCase().contains('offline')
+                                            ? Colors.blueGrey
+                                            : Colors.green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
-                      Text(
-                        result.word,
+                        Text(
+                          result.word,
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -1358,3 +1463,4 @@ class _FilterOption extends StatelessWidget {
     );
   }
 }
+

@@ -18,6 +18,7 @@ class AppPreferences {
   static const String _keyFlashcardImageMaxWidth = 'flashcard_image_max_width';
   static const String _keyDictionarySourceLanguage = 'dictionary_source_language';
   static const String _keyDictionaryFilterMode = 'dictionary_filter_mode';
+  static const String _keyDictionaryFetchMode = 'dictionary_fetch_mode';
   static const String _keyDictionaryFallbackToEnglish = 'dictionary_fallback_to_english';
   static const String _keyFlashcardMainFontSize = 'flashcard_main_font_size';
   static const String _keyFlashcardPhoneticFontSize = 'flashcard_phonetic_font_size';
@@ -147,6 +148,13 @@ class AppPreferences {
       _prefs.getString(_keyDictionaryFilterMode) ?? 'exact_first';
   Future<bool> setDictionaryFilterMode(String value) =>
       _prefs.setString(_keyDictionaryFilterMode, value);
+
+  // Dictionary fetch mode: 'offline', 'online', 'both'
+  // 1 = offline, 2 = both, 3 = online (or string values)
+  String get dictionaryFetchMode =>
+      _prefs.getString(_keyDictionaryFetchMode) ?? 'both';
+  Future<bool> setDictionaryFetchMode(String value) =>
+      _prefs.setString(_keyDictionaryFetchMode, value);
 
   // Whether to fallback to English dictionary if Vietnamese not found
   bool get dictionaryFallbackToEnglish =>

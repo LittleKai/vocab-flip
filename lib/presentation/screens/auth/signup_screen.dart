@@ -8,7 +8,10 @@ class SignupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Redirect to login dialog
-    return const LoginDialog();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.pop(context); // popup this screen
+      LoginDialog.show(context);
+    });
+    return const Scaffold(backgroundColor: Colors.transparent);
   }
 }
