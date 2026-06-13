@@ -45,7 +45,7 @@ class SettingsScreen extends StatelessWidget {
           // Always init to load version info (idempotent)
           updateProvider.init(settings.preferences);
           return ListView(
-            padding: const EdgeInsets.only(bottom: 40),
+            padding: const EdgeInsets.only(bottom: 100),
             children: [
               _SettingsHero(settings: settings, auth: auth),
               

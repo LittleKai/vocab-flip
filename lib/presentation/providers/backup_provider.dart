@@ -49,7 +49,7 @@ class BackupProvider extends ChangeNotifier {
   String? get userEmail => _repository.userEmail;
 
   /// Connect to Google Drive
-  Future<bool> connect() async {
+  Future<bool> connect({bool silentOnly = false}) async {
     _status = BackupStatus.connecting;
     _error = null;
     _statusMessage = 'Connecting to Google Drive...';
@@ -57,7 +57,7 @@ class BackupProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final success = await _repository.connect();
+      final success = await _repository.connect(silentOnly: silentOnly);
 
       if (success) {
         _status = BackupStatus.connected;
@@ -166,7 +166,7 @@ class BackupProvider extends ChangeNotifier {
   /// Restore from a backup
   Future<RestoreResult?> restoreBackup(
     String backupId, {
-    bool replaceExisting = false,
+    Future<RestoreMode?> Function()? onConflict,
   }) async {
     if (isBusy) return null;
 
@@ -180,7 +180,7 @@ class BackupProvider extends ChangeNotifier {
     try {
       final result = await _repository.restoreBackup(
         backupId,
-        replaceExisting: replaceExisting,
+        onConflict: onConflict,
         onProgress: (message, progress) {
           _statusMessage = message;
           _progress = progress;

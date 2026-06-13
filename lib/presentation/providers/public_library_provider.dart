@@ -134,14 +134,41 @@ class PublicLibraryProvider extends ChangeNotifier {
     }
   }
 
+  bool _hasMoreNewestDecks = true;
+  bool get hasMoreNewestDecks => _hasMoreNewestDecks;
+
   /// Load newest decks
-  Future<void> loadNewestDecks() async {
+  Future<void> loadNewestDecks({bool refresh = false}) async {
+    if (refresh) {
+      _newestDecks = [];
+      _hasMoreNewestDecks = true;
+    }
+
+    if (!_hasMoreNewestDecks && !refresh) return;
+
+    _isLoading = refresh || _newestDecks.isEmpty;
+    _isLoadingMore = !refresh && _newestDecks.isNotEmpty;
+    notifyListeners();
+
     try {
-      _newestDecks = await _repository.getNewestDecks();
-      _prefetchAuthorProfiles(_newestDecks);
+      final offset = refresh ? 0 : _newestDecks.length;
+      final newDecks = await _repository.getNewestDecks(limit: 10, offset: offset);
+      
+      if (refresh) {
+        _newestDecks = newDecks;
+      } else {
+        _newestDecks = [..._newestDecks, ...newDecks];
+      }
+      
+      _hasMoreNewestDecks = newDecks.length >= 10;
+      _prefetchAuthorProfiles(newDecks);
     } catch (e) {
       debugPrint('Error loading newest decks: $e');
     }
+
+    _isLoading = false;
+    _isLoadingMore = false;
+    notifyListeners();
   }
 
   /// Browse decks with current filter
@@ -159,9 +186,11 @@ class PublicLibraryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final offset = refresh ? 0 : _decks.length;
       final newDecks = await _repository.browse(
         filter: _filter,
-        limit: 20,
+        limit: 10,
+        offset: offset,
       );
 
       if (refresh) {
@@ -170,7 +199,7 @@ class PublicLibraryProvider extends ChangeNotifier {
         _decks = [..._decks, ...newDecks];
       }
 
-      _hasMoreDecks = newDecks.length >= 20;
+      _hasMoreDecks = newDecks.length >= 10;
       // Prefetch author profiles in background
       _prefetchAuthorProfiles(_decks);
     } catch (e) {

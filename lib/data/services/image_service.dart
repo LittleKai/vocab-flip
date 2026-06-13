@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:image/image.dart' as img;
-import '../api/api_client.dart';
+import '../services/cloudinary_service.dart';
 import 'package:http/http.dart' as http;
 
 /// Service for handling flashcard images
@@ -158,7 +158,7 @@ class ImageService {
     }
   }
 
-  /// Upload an image to Backblaze B2 via Alpha Studio backend
+  /// Upload an image to Cloudinary (replacing old B2 logic)
   Future<String?> uploadImageToB2(String sourcePath, {int? maxWidth}) async {
     try {
       final sourceFile = File(sourcePath);
@@ -167,51 +167,26 @@ class ImageService {
         return null;
       }
 
-      Uint8List? bytes;
+      String pathToUpload = sourcePath;
+
+      // If resize is needed, resize and save locally first
       if (maxWidth != null) {
-        bytes = await resizeImage(sourcePath, maxWidth);
-      }
-      bytes ??= await sourceFile.readAsBytes();
-
-      final extension = p.extension(sourcePath).toLowerCase();
-      final fileName = '${const Uuid().v4()}$extension';
-      String contentType = 'image/jpeg';
-      if (extension == '.png') contentType = 'image/png';
-      if (extension == '.gif') contentType = 'image/gif';
-      if (extension == '.webp') contentType = 'image/webp';
-
-      final apiClient = ApiClient();
-
-      // Request presigned URL
-      final response = await apiClient.dio.post('/upload/presign', data: {
-        'filename': fileName,
-        'folder': 'vocabflip',
-        'contentType': contentType,
-      });
-
-      if (response.data != null && response.data['success'] == true) {
-        final uploadUrl = response.data['data']['presignedUrl'];
-        final downloadUrl = response.data['data']['publicUrl'];
-
-        // PUT request to presigned URL
-        final putResponse = await http.put(
-          Uri.parse(uploadUrl),
-          headers: {'Content-Type': contentType},
-          body: bytes,
-        );
-
-        if (putResponse.statusCode == 200) {
-          debugPrint('ImageService: Successfully uploaded to B2: $downloadUrl');
-          return downloadUrl;
-        } else {
-          debugPrint('ImageService: B2 PUT failed with status: ${putResponse.statusCode}');
+        final resizedPath = await saveImageLocally(sourcePath, maxWidth: maxWidth);
+        if (resizedPath != null) {
+          pathToUpload = resizedPath;
         }
-      } else {
-        debugPrint('ImageService: Failed to get presigned URL');
       }
-      return null;
+
+      final result = await CloudinaryService().uploadImage(pathToUpload);
+      if (result.success) {
+        debugPrint('ImageService: Successfully uploaded to Cloudinary: ${result.url}');
+        return result.url;
+      } else {
+        debugPrint('ImageService: Cloudinary upload failed: ${result.error}');
+        return null;
+      }
     } catch (e) {
-      debugPrint('ImageService: Error uploading image to B2: $e');
+      debugPrint('ImageService: Error uploading image to Cloudinary: $e');
       return null;
     }
   }

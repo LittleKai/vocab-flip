@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -138,7 +140,35 @@ class _LibraryScreenState extends State<LibraryScreen>
   }
 }
 
-class _NewestTab extends StatelessWidget {
+class _NewestTab extends StatefulWidget {
+  @override
+  State<_NewestTab> createState() => _NewestTabState();
+}
+
+class _NewestTabState extends State<_NewestTab> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      final provider = context.read<PublicLibraryProvider>();
+      if (!provider.isLoading && !provider.isLoadingMore && provider.hasMoreNewestDecks) {
+        provider.loadNewestDecks();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -153,21 +183,46 @@ class _NewestTab extends StatelessWidget {
           return _buildEmptyState(context, l10n.noDecksFound);
         }
 
-        return RefreshIndicator(
-          onRefresh: () => provider.loadNewestDecks(),
-          child: ResponsiveGrid(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.newestDecks.length,
-            mainAxisExtent: 180,
-            itemBuilder: (context, index) {
-              final deck = provider.newestDecks[index];
-              return PublicDeckCard(
-                deck: deck,
-                onTap: () => _openDeckDetail(context, deck.id),
-                showDeckId: false,
-              );
-            },
-          ),
+        return Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: () => provider.loadNewestDecks(refresh: true),
+              child: ResponsiveGrid(
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                itemCount: provider.newestDecks.length,
+                mainAxisExtent: 180,
+                trailing: provider.hasMoreNewestDecks
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : null,
+                itemBuilder: (context, index) {
+                  final deck = provider.newestDecks[index];
+                  return PublicDeckCard(
+                    deck: deck,
+                    onTap: () => _openDeckDetail(context, deck.id),
+                    showDeckId: false,
+                  );
+                },
+              ),
+            ),
+            // Floating Refresh Button for Web/Desktop
+              if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)))
+                Positioned(
+                  right: 16,
+                  bottom: 88,
+                  child: FloatingActionButton.small(
+                  heroTag: 'refreshNewest',
+                  onPressed: () => provider.loadNewestDecks(refresh: true),
+                  tooltip: 'Refresh',
+                  child: const Icon(Icons.refresh),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -231,15 +286,29 @@ class _BrowseTabState extends State<_BrowseTab> {
                 ),
               ],
             ),
-            // Import by ID FAB
-            Positioned(
-              right: 16,
-              bottom: 16,
-              child: FloatingActionButton.small(
-                heroTag: 'importById',
-                onPressed: () => _showImportByIdDialog(context),
-                tooltip: l10n.importById,
-                child: const Icon(Icons.pin),
+              // Import by ID FAB
+              Positioned(
+                right: 16,
+                bottom: 88,
+                child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))) ...[
+                    FloatingActionButton.small(
+                      heroTag: 'refreshBrowse',
+                      onPressed: () => provider.browse(refresh: true),
+                      tooltip: 'Refresh',
+                      child: const Icon(Icons.refresh),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  FloatingActionButton.small(
+                    heroTag: 'importById',
+                    onPressed: () => _showImportByIdDialog(context),
+                    tooltip: l10n.importById,
+                    child: const Icon(Icons.pin),
+                  ),
+                ],
               ),
             ),
           ],
@@ -400,7 +469,7 @@ class _BrowseTabState extends State<_BrowseTab> {
       onRefresh: () => provider.browse(refresh: true),
       child: ResponsiveGrid(
         controller: _scrollController,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: provider.decks.length,
         mainAxisExtent: 180,
         trailing: provider.hasMoreDecks
@@ -457,7 +526,7 @@ class _MyDecksTabState extends State<_MyDecksTab> {
             return RefreshIndicator(
               onRefresh: () => provider.loadMyPublishedDecks(),
               child: ResponsiveGrid(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                 itemCount: provider.myPublishedDecks.length,
                 mainAxisExtent: 180,
                 itemBuilder: (context, index) {
@@ -471,15 +540,29 @@ class _MyDecksTabState extends State<_MyDecksTab> {
             );
           },
         ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: FloatingActionButton(
-            onPressed: () => _showPublishDeckPicker(context),
-            tooltip: l10n.publishToLibrary,
-            child: const Icon(Icons.cloud_upload),
+          Positioned(
+            right: 16,
+            bottom: 88,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))) ...[
+                  FloatingActionButton.small(
+                    heroTag: 'refreshPublished',
+                    onPressed: () => context.read<PublishProvider>().loadMyPublishedDecks(),
+                    tooltip: 'Refresh',
+                    child: const Icon(Icons.refresh),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                FloatingActionButton(
+                  onPressed: () => _showPublishDeckPicker(context),
+                  tooltip: l10n.publishToLibrary,
+                  child: const Icon(Icons.cloud_upload),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }

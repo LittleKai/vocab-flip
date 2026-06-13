@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
@@ -91,10 +93,27 @@ class _DeckListScreenState extends State<DeckListScreen> {
             ],
           ),
           body: _buildBody(context, provider, l10n),
-          floatingActionButton: FloatingActionButton(
-            heroTag: 'deck_list_fab',
-            onPressed: () => _navigateToCreateDeck(context),
-            child: const Icon(Icons.add),
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(bottom: 72.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))) ...[
+                  FloatingActionButton.small(
+                    heroTag: 'refreshDecks',
+                    onPressed: () => provider.loadDecks(),
+                    tooltip: 'Refresh',
+                    child: const Icon(Icons.refresh),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                FloatingActionButton(
+                  heroTag: 'deck_list_fab',
+                  onPressed: () => _navigateToCreateDeck(context),
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -122,129 +141,129 @@ class _DeckListScreenState extends State<DeckListScreen> {
 
     final filtered = provider.filteredDecks;
 
-    return RefreshIndicator(
-      onRefresh: () => provider.loadDecks(),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.14),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.14),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.folder_copy_rounded,
+                  child: const Icon(
+                    Icons.folder_copy_rounded,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.decksCount(filtered.length),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.tune_rounded),
                       color: AppColors.primary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      l10n.decksCount(filtered.length),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.tune_rounded),
-                        color: AppColors.primary,
-                        style: IconButton.styleFrom(
-                          backgroundColor: AppColors.primary.withOpacity(0.08),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.primary.withOpacity(0.08),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        onPressed: () => _showFilterSheet(context, provider),
-                        tooltip: l10n.filter,
                       ),
-                      if (provider.hasActiveFilters)
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.accent,
-                              shape: BoxShape.circle,
-                            ),
+                      onPressed: () => _showFilterSheet(context, provider),
+                      tooltip: l10n.filter,
+                    ),
+                    if (provider.hasActiveFilters)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.accent,
+                            shape: BoxShape.circle,
                           ),
                         ),
-                    ],
-                  ),
-                ],
-              ),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
+        ),
 
-          // Deck list or no results
-          Expanded(
-            child: filtered.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.search_off,
-                            size: 48, color: Colors.grey.shade400),
-                        const SizedBox(height: 16),
-                        Text(
-                          l10n.noMatchingDecks,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: AppColors.textSecondary(context),
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton.icon(
-                          onPressed: () {
-                            _searchController.clear();
-                            provider.clearDeckFilters();
-                            setState(() => _isSearching = false);
-                          },
-                          icon: const Icon(Icons.clear_all),
-                          label: Text(l10n.clearFilters),
-                        ),
-                      ],
-                    ),
-                  )
-                : ResponsiveGrid(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+        // Deck list or no results
+        Expanded(
+          child: filtered.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.search_off,
+                          size: 48, color: Colors.grey.shade400),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.noMatchingDecks,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: AppColors.textSecondary(context),
+                                ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        onPressed: () {
+                          _searchController.clear();
+                          provider.clearDeckFilters();
+                          setState(() => _isSearching = false);
+                        },
+                        icon: const Icon(Icons.clear_all),
+                        label: Text(l10n.clearFilters),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: () => provider.loadDecks(),
+                  child: ResponsiveGrid(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 100),
                     itemCount: filtered.length,
                     mainAxisExtent: 216,
                     itemBuilder: (context, index) {
                       return _DeckCard(deck: filtered[index]);
                     },
                   ),
-          ),
-        ],
-      ),
+                ),
+        ),
+      ],
     );
   }
 
@@ -267,29 +286,18 @@ class _DeckCard extends StatelessWidget {
     final visibleTags = deck.tags.take(3).toList();
     final hiddenTagCount = deck.tags.length - visibleTags.length;
     final hasDue = deck.dueCount > 0;
-    final accentColor = hasDue
-        ? AppColors.accent
-        : deck.isLinked
-            ? AppColors.secondary
-            : AppColors.primary;
+    final langColor = DeckCardHeader.getLanguageColor(deck.sourceLanguage);
     final surfaceColor = Theme.of(context).colorScheme.surface;
-    final cardTint = Color.lerp(
-      surfaceColor,
-      accentColor,
-      Theme.of(context).brightness == Brightness.dark
-          ? (hasDue ? 0.13 : 0.07)
-          : (hasDue ? 0.08 : 0.04),
-    )!;
     final borderRadius = BorderRadius.circular(18);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: hasDue ? 2 : 0,
-      color: cardTint,
+      color: surfaceColor,
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius,
         side: BorderSide(
-          color: accentColor.withValues(alpha: hasDue ? 0.32 : 0.16),
+          color: langColor.withValues(alpha: 0.16),
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -298,7 +306,7 @@ class _DeckCard extends StatelessWidget {
           Positioned.fill(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Container(width: 6, color: accentColor),
+              child: Container(width: 6, color: langColor),
             ),
           ),
           InkWell(

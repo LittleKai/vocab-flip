@@ -77,8 +77,11 @@ class DeckProvider extends ChangeNotifier {
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
       result = result.where((deck) {
-        return deck.name.toLowerCase().contains(query) ||
-            (deck.description?.toLowerCase().contains(query) ?? false);
+        final matchesName = deck.name.toLowerCase().contains(query);
+        final matchesDesc = deck.description?.toLowerCase().contains(query) ?? false;
+        final cleanQuery = query.startsWith('#') ? query.substring(1) : query;
+        final matchesTags = deck.tags.any((tag) => tag.toLowerCase().contains(cleanQuery));
+        return matchesName || matchesDesc || matchesTags;
       }).toList();
     }
 

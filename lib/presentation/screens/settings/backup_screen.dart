@@ -30,11 +30,12 @@ class _BackupScreenState extends State<BackupScreen> {
 
   Future<void> _checkConnection() async {
     final provider = context.read<BackupProvider>();
+    // Try to silently connect if not already connected
     if (!provider.isConnected) {
-      // Don't auto-connect, just show disconnected state
-      return;
+      await provider.connect(silentOnly: true);
+    } else {
+      await provider.checkConnection();
     }
-    await provider.checkConnection();
   }
 
   Future<void> _connect() async {
@@ -95,15 +96,16 @@ class _BackupScreenState extends State<BackupScreen> {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.read<BackupProvider>();
 
-    // Show confirmation dialog
-    final mode = await RestoreConfirmDialog.show(
-      context,
-      backupDate: date,
-      deckCount: deckCount,
-      cardCount: cardCount,
+    // Show initial confirmation dialog
+    final confirm = await showStandardDialog<bool>(
+      context: context,
+      title: l10n.restoreBackup,
+      content: l10n.backupInfo(date, deckCount, cardCount),
+      secondaryButtonText: l10n.cancel,
+      primaryButtonText: l10n.restore,
     );
 
-    if (mode == null || !mounted) return;
+    if (confirm != true || !mounted) return;
 
     // Show progress dialog
     showStandardDialog(
@@ -120,7 +122,36 @@ class _BackupScreenState extends State<BackupScreen> {
 
     final result = await provider.restoreBackup(
       backupId,
-      replaceExisting: mode == RestoreMode.replace,
+      onConflict: () async {
+        // Hide progress dialog temporarily to show conflict resolution
+        Navigator.of(context).pop();
+
+        final mode = await RestoreConfirmDialog.show(
+          context,
+          backupDate: date,
+          deckCount: deckCount,
+          cardCount: cardCount,
+        );
+
+        if (!mounted) return null;
+
+        // Show progress dialog again if they didn't cancel
+        if (mode != null) {
+          showStandardDialog(
+            context: context,
+            title: l10n.restoringBackup,
+            barrierDismissible: false,
+            customContent: Consumer<BackupProvider>(
+              builder: (context, provider, _) => BackupProgressContent(
+                message: provider.statusMessage,
+                progress: provider.progress,
+              ),
+            ),
+          );
+        }
+
+        return mode;
+      },
     );
 
     if (!mounted) return;

@@ -54,7 +54,7 @@ class MongoRatingService {
       final doc = unwrapApiMap(response.data);
       return doc == null ? null : DeckRating.fromMap(doc);
     } on DioException catch (e) {
-      if (e.response?.statusCode != 404) {
+      if (e.response?.statusCode != 404 && e.response?.statusCode != 401) {
         logVocabApiError('getUserRating', e);
       }
       return null;

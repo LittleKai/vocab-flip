@@ -702,6 +702,8 @@
   "restoreModeMergeDesc": "Keep existing decks, add new ones",
   "restoreModeReplace": "Replace existing",
   "restoreModeReplaceDesc": "Delete and replace matching decks",
+  "restoreModeRename": "Rename if duplicate",
+  "restoreModeRenameDesc": "Automatically append time to duplicate deck names",
   "deleteBackup": "Delete Backup",
   "deleteBackupConfirm": "Are you sure you want to delete the backup from {date}?",
   "@deleteBackupConfirm": {
@@ -873,5 +875,14 @@
   "reviewOptional": "Review (optional)",
   "shareThoughts": "Share your thoughts about this deck...",
   "couldNotLoadQr": "Could not load QR code",
-  "submit": "Submit"
+  "submit": "Submit",
+  "writingPractice": "Writing Practice",
+  "replayStroke": "Replay",
+  "showHint": "Hint",
+  "resetStroke": "Reset",
+  "correctStroke": "Correct!",
+  "wrongDirection": "Wrong direction",
+  "wrongOrder": "Wrong stroke order",
+  "tryAgain": "Try again",
+  "strokeDataUnavailable": "Stroke data is not available for this character."
 }

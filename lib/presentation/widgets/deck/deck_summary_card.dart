@@ -38,15 +38,8 @@ class DeckSummaryCard extends StatelessWidget {
     final titleStyle = compact
         ? Theme.of(context).textTheme.titleSmall
         : Theme.of(context).textTheme.titleMedium;
-    final accentColor = hasDue ? AppColors.accent : AppColors.primary;
+    final langColor = DeckCardHeader.getLanguageColor(deck.sourceLanguage);
     final surfaceColor = Theme.of(context).colorScheme.surface;
-    final surfaceTint = Color.lerp(
-      surfaceColor,
-      accentColor,
-      Theme.of(context).brightness == Brightness.dark
-          ? (hasDue ? 0.14 : 0.08)
-          : (hasDue ? 0.09 : 0.04),
-    )!;
 
     return Card(
       elevation: hasDue ? 2 : 0,
@@ -55,14 +48,14 @@ class DeckSummaryCard extends StatelessWidget {
         onTap: onTap,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: surfaceTint,
+            color: surfaceColor,
           ),
           child: Row(
             children: [
               Container(
                 width: 5,
                 height: compact ? 108 : 124,
-                color: accentColor,
+                color: langColor,
               ),
               Expanded(
                 child: Padding(
@@ -74,7 +67,7 @@ class DeckSummaryCard extends StatelessWidget {
                     children: [
                       DecoratedBox(
                         decoration: BoxDecoration(
-                          color: accentColor.withValues(alpha: 0.12),
+                          color: langColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Padding(
@@ -138,9 +131,9 @@ class DeckSummaryCard extends StatelessWidget {
                                   value: progress,
                                   minHeight: 5,
                                   backgroundColor:
-                                      accentColor.withValues(alpha: 0.16),
+                                      langColor.withValues(alpha: 0.16),
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    accentColor,
+                                    langColor,
                                   ),
                                 ),
                               ),

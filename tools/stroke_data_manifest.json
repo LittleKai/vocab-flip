@@ -1,0 +1,10 @@
+{
+  "smoke_characters": [
+    {"character": "一", "locale": "ja"},
+    {"character": "日", "locale": "ja"},
+    {"character": "あ", "locale": "ja-kana"},
+    {"character": "一", "locale": "zh-Hans"},
+    {"character": "中", "locale": "zh-Hans"},
+    {"character": "一", "locale": "zh-Hant"}
+  ]
+}

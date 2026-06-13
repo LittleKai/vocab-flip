@@ -45,12 +45,13 @@ class PublicLibraryRepository {
   /// Browse public decks with filters
   Future<List<PublicDeck>> browse({
     LibraryFilter? filter,
-    int limit = 20,
-  }) => _libraryService.browse(filter: filter, limit: limit);
+    int limit = 10,
+    int offset = 0,
+  }) => _libraryService.browse(filter: filter, limit: limit, offset: offset);
 
   /// Search public decks
-  Future<List<PublicDeck>> search(String query, {int limit = 20}) =>
-      _libraryService.search(query, limit: limit);
+  Future<List<PublicDeck>> search(String query, {int limit = 10, int offset = 0}) =>
+      _libraryService.search(query, limit: limit, offset: offset);
 
   /// Get a single public deck
   Future<PublicDeck?> getPublicDeck(String deckId) =>
@@ -69,8 +70,8 @@ class PublicLibraryRepository {
       _libraryService.getTopRatedDecks(limit: limit);
 
   /// Get newest decks
-  Future<List<PublicDeck>> getNewestDecks({int limit = 10}) =>
-      _libraryService.getNewestDecks(limit: limit);
+  Future<List<PublicDeck>> getNewestDecks({int limit = 10, int offset = 0}) =>
+      _libraryService.getNewestDecks(limit: limit, offset: offset);
 
   // ===== Author Profiles =====
 
@@ -333,14 +334,14 @@ class PublicLibraryRepository {
       }
     }
 
-    // Upload images to Backblaze B2 if any.
-    Map<String, String?> uploadedUrls = {};
-    if (localImagePaths.isNotEmpty) {
-      uploadedUrls = await _uploadImagesToB2(
-        localImagePaths.toList(),
-        onProgress: onImageProgress,
-      );
-    }
+  // Upload images to Cloudinary if any.
+  Map<String, String?> uploadedUrls = {};
+  if (localImagePaths.isNotEmpty) {
+    uploadedUrls = await _uploadImagesToCloudinary(
+      localImagePaths.toList(),
+      onProgress: onImageProgress,
+    );
+  }
 
     // Helper to resolve image path to URL
     String? resolveImageUrl(String? path) {
@@ -369,7 +370,7 @@ class PublicLibraryRepository {
       if (CloudinaryService.isUrl(deck.imagePath!)) {
         deckImageUrl = deck.imagePath;
       } else if (CloudinaryService.isLocalPath(deck.imagePath!)) {
-        final uploaded = await _uploadImagesToB2(
+        final uploaded = await _uploadImagesToCloudinary(
           [deck.imagePath!],
         );
         deckImageUrl = uploaded[deck.imagePath!];
@@ -442,7 +443,7 @@ class PublicLibraryRepository {
       // Upload images to Backblaze B2.
       Map<String, String?> uploadedUrls = {};
       if (localImagePaths.isNotEmpty) {
-        uploadedUrls = await _uploadImagesToB2(
+        uploadedUrls = await _uploadImagesToCloudinary(
           localImagePaths.toList(),
           onProgress: onImageProgress,
         );
@@ -473,7 +474,7 @@ class PublicLibraryRepository {
       if (CloudinaryService.isUrl(deck.imagePath!)) {
         deckImageUrl = deck.imagePath;
       } else if (CloudinaryService.isLocalPath(deck.imagePath!)) {
-        final uploaded = await _uploadImagesToB2(
+        final uploaded = await _uploadImagesToCloudinary(
           [deck.imagePath!],
         );
         deckImageUrl = uploaded[deck.imagePath!];
@@ -578,7 +579,7 @@ class PublicLibraryRepository {
   Future<void> markAllNotificationsRead() =>
       _syncService.markAllNotificationsRead();
 
-  Future<Map<String, String?>> _uploadImagesToB2(
+  Future<Map<String, String?>> _uploadImagesToCloudinary(
     List<String> paths, {
     ImageProgressCallback? onProgress,
   }) async {
@@ -587,7 +588,8 @@ class PublicLibraryRepository {
     var failed = 0;
 
     for (final path in paths) {
-      final url = await _imageService.uploadImageToB2(path, maxWidth: 1600);
+      final uploadResult = await _cloudinaryService.uploadImage(path);
+      final url = uploadResult.success ? uploadResult.url : null;
       result[path] = url;
       completed++;
       if (url == null) failed++;

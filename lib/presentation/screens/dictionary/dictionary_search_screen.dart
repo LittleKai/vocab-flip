@@ -557,7 +557,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     final itemCount = baseItemCount + (showLoadingAtBottom ? 1 : 0);
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: itemCount,
       itemBuilder: (context, index) {
           // Loading indicator at the bottom

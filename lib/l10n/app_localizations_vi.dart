@@ -1501,6 +1501,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get restoreModeReplaceDesc => 'Xóa và thay thế bộ thẻ trùng lặp';
 
   @override
+  String get restoreModeRename => 'Tự động đổi tên';
+
+  @override
+  String get restoreModeRenameDesc =>
+      'Thêm thời gian vào tên nếu bộ thẻ đã tồn tại';
+
+  @override
   String get deleteBackup => 'Xóa bản sao lưu';
 
   @override
@@ -1830,4 +1837,28 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get submit => 'Gửi';
+
+  @override
+  String get writingPractice => 'Luyện viết';
+
+  @override
+  String get replayStroke => 'Phát lại';
+
+  @override
+  String get showHint => 'Gợi ý';
+
+  @override
+  String get resetStroke => 'Làm lại';
+
+  @override
+  String get correctStroke => 'Chính xác!';
+
+  @override
+  String get wrongDirection => 'Sai hướng nét';
+
+  @override
+  String get wrongOrder => 'Sai thứ tự nét';
+
+  @override
+  String get strokeDataUnavailable => 'Không có dữ liệu nét chữ cho ký tự này.';
 }

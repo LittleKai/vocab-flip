@@ -59,12 +59,12 @@ class GoogleDriveService {
   }
 
   /// Connect to Google Drive (sign in if necessary)
-  Future<bool> connect() async {
+  Future<bool> connect({bool silentOnly = false}) async {
     try {
       if (_useDesktopAuth) {
         return await _connectDesktop();
       } else {
-        return await _connectMobile();
+        return await _connectMobile(silentOnly: silentOnly);
       }
     } catch (e) {
       debugPrint('Failed to connect to Google Drive: $e');
@@ -74,14 +74,16 @@ class GoogleDriveService {
   }
 
   /// Connect using mobile OAuth (google_sign_in)
-  Future<bool> _connectMobile() async {
+  Future<bool> _connectMobile({bool silentOnly = false}) async {
     _googleSignIn ??= GoogleSignIn(scopes: _scopes);
 
     // Try silent sign in first
     GoogleSignInAccount? account = await _googleSignIn!.signInSilently();
 
     // If silent sign in fails, prompt user
-    account ??= await _googleSignIn!.signIn();
+    if (!silentOnly) {
+      account ??= await _googleSignIn!.signIn();
+    }
 
     if (account == null) {
       debugPrint('Google Sign-In cancelled by user');

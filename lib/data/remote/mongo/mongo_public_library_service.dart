@@ -77,12 +77,13 @@ class MongoPublicLibraryService {
 
   Future<List<PublicDeck>> browse({
     LibraryFilter? filter,
-    int limit = 20,
+    int limit = 10,
+    int offset = 0,
   }) async {
     try {
       final response = await _apiClient.dio.get(
         '/vocab/public-decks',
-        queryParameters: _filterParams(filter, limit),
+        queryParameters: _filterParams(filter, limit, offset),
       );
       return unwrapApiList(response.data).map(PublicDeck.fromMap).toList();
     } catch (e) {
@@ -91,10 +92,11 @@ class MongoPublicLibraryService {
     }
   }
 
-  Future<List<PublicDeck>> search(String query, {int limit = 20}) {
+  Future<List<PublicDeck>> search(String query, {int limit = 10, int offset = 0}) {
     return browse(
       filter: LibraryFilter(searchQuery: query),
       limit: limit,
+      offset: offset,
     );
   }
 
@@ -268,10 +270,11 @@ class MongoPublicLibraryService {
     );
   }
 
-  Future<List<PublicDeck>> getNewestDecks({int limit = 10}) {
+  Future<List<PublicDeck>> getNewestDecks({int limit = 10, int offset = 0}) {
     return browse(
       filter: const LibraryFilter(sortBy: LibrarySortBy.newest),
       limit: limit,
+      offset: offset,
     );
   }
 
@@ -291,9 +294,10 @@ class MongoPublicLibraryService {
     }
   }
 
-  Map<String, dynamic> _filterParams(LibraryFilter? filter, int limit) {
+  Map<String, dynamic> _filterParams(LibraryFilter? filter, int limit, int offset) {
     final params = <String, dynamic>{
       'limit': limit,
+      'skip': offset,
       'sort_by': (filter?.sortBy ?? LibrarySortBy.popular).name,
       'descending': filter?.descending ?? true,
     };

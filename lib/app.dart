@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +19,10 @@ import 'presentation/providers/backup_provider.dart';
 import 'presentation/providers/profile_provider.dart';
 import 'presentation/providers/admin_feedback_provider.dart';
 import 'presentation/providers/ai_provider.dart';
+import 'presentation/providers/stroke_practice_provider.dart';
+import 'data/local/database/stroke_data_dao.dart';
+import 'data/repositories/stroke_data_repository.dart';
+import 'data/services/stroke_validation_service.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/deck/deck_detail_screen.dart';
 import 'presentation/screens/deck/create_deck_screen.dart';
@@ -55,8 +60,15 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
         }
       };
 
+    // Note: StrokeDataDao initializes asynchronously when first used.
+    _strokeDataDao = StrokeDataDao();
+    _strokeDataRepository = StrokeDataRepository(_strokeDataDao);
+
     _initWebSso();
   }
+
+  late StrokeDataDao _strokeDataDao;
+  late StrokeDataRepository _strokeDataRepository;
 
   void _initWebSso() {
     setupWebSsoListener(onTokenReceived: (token) async {
@@ -96,6 +108,12 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
         ChangeNotifierProvider(
           create: (_) => AdminFeedbackProvider(preferences: widget.preferences),
         ),
+        ChangeNotifierProvider(
+          create: (_) => StrokePracticeProvider(
+            repository: _strokeDataRepository,
+            validationService: StrokeValidationService(),
+          ),
+        ),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, child) {
@@ -105,6 +123,13 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            scrollBehavior: const MaterialScrollBehavior().copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+              },
+            ),
             // Localization setup
             locale: Locale(settings.locale),
             supportedLocales: const [

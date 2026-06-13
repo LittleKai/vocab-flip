@@ -24,8 +24,8 @@ class BackupRepository {
   String? get userEmail => _driveService.userEmail;
 
   /// Connect to Google Drive
-  Future<bool> connect() async {
-    return await _driveService.connect();
+  Future<bool> connect({bool silentOnly = false}) async {
+    return await _driveService.connect(silentOnly: silentOnly);
   }
 
   /// Disconnect from Google Drive
@@ -155,10 +155,10 @@ class BackupRepository {
     return backups;
   }
 
-  /// Restore from a backup (merge mode - keeps existing decks)
+  /// Restore from a backup
   Future<RestoreResult> restoreBackup(
     String backupId, {
-    bool replaceExisting = false,
+    Future<RestoreMode?> Function()? onConflict,
     void Function(String status, double progress)? onProgress,
   }) async {
     if (!_driveService.isConnected) {
@@ -191,6 +191,33 @@ class BackupRepository {
       );
     }
 
+    onProgress?.call('Checking for conflicts...', 0.25);
+    bool hasConflicts = false;
+    for (int i = 0; i < decksList.length; i++) {
+      final deckData = decksList[i] as Map<String, dynamic>;
+      final deckId = deckData['id'] as String?;
+      if (deckId != null && await _deckRepository.deckExists(deckId)) {
+        hasConflicts = true;
+        break;
+      }
+    }
+
+    RestoreMode mode = RestoreMode.merge;
+    if (hasConflicts && onConflict != null) {
+      final selectedMode = await onConflict();
+      if (selectedMode == null) {
+        // User cancelled the restore
+        return const RestoreResult(
+          success: false,
+          decksRestored: 0,
+          cardsRestored: 0,
+          decksSkipped: 0,
+          error: 'Restore cancelled by user',
+        );
+      }
+      mode = selectedMode;
+    }
+
     onProgress?.call('Restoring decks...', 0.3);
 
     int decksRestored = 0;
@@ -212,12 +239,30 @@ class BackupRepository {
           exists = await _deckRepository.deckExists(deckId);
         }
 
-        if (exists && !replaceExisting) {
+        if (exists && mode == RestoreMode.merge) {
           decksSkipped++;
           debugPrint('Skipping existing deck: $deckId');
         } else {
-          // Delete existing if replacing
-          if (exists && replaceExisting && deckId != null) {
+          // Rename if mode is rename
+          if (exists && mode == RestoreMode.rename) {
+            final baseName = deckData['name'] as String? ?? 'Restored Deck';
+            // We need a loop to find an available name (we'll just append timestamp or number)
+            // The simplest approach without querying all decks is to append the current timestamp
+            deckData['name'] = '$baseName (${DateTime.now().millisecondsSinceEpoch.toString().substring(8)})';
+            // Also need to clear the ID so it's created as a new deck
+            deckData.remove('id');
+            // Remove deck ID from cards as well so they are inserted as new
+            final cards = deckData['cards'] as List<dynamic>?;
+            if (cards != null) {
+              for (var card in cards) {
+                if (card is Map<String, dynamic>) {
+                  card.remove('deckId');
+                  card.remove('id');
+                }
+              }
+            }
+          } else if (exists && mode == RestoreMode.replace && deckId != null) {
+            // Delete existing if replacing
             await _deckRepository.deleteDeck(deckId);
           }
 
@@ -268,6 +313,12 @@ class BackupRepository {
 
     return BackupMetadata.fromJson(metadata, fileId: backupId);
   }
+}
+
+enum RestoreMode {
+  merge,
+  replace,
+  rename,
 }
 
 /// Result of a restore operation

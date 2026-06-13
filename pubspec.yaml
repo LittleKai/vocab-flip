@@ -64,6 +64,8 @@ dependencies:
   curved_labeled_navigation_bar: ^2.0.6
   awesome_dialog: ^3.3.0
   draggable_home: ^1.0.5
+  cached_network_image: ^3.4.1
+  path_drawing: ^1.0.1
 
 dev_dependencies:
   flutter_test:
@@ -84,4 +86,5 @@ flutter:
     - assets/en_vi_dict.db
     - assets/zh_vi_dict.db
     - assets/ja_vi_dict.db
+    - assets/stroke_data.db
     - .env

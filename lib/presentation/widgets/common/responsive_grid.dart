@@ -11,6 +11,7 @@ class ResponsiveGrid extends StatelessWidget {
   final Widget Function(BuildContext, int) itemBuilder;
   final EdgeInsetsGeometry? padding;
   final ScrollController? controller;
+  final ScrollPhysics? physics;
 
   /// Fixed height for each item in grid mode (2+ columns).
   final double mainAxisExtent;
@@ -33,6 +34,7 @@ class ResponsiveGrid extends StatelessWidget {
     this.minCardWidth = 500,
     this.padding,
     this.controller,
+    this.physics = const AlwaysScrollableScrollPhysics(),
     this.spacing = 12,
     this.trailing,
   });
@@ -53,6 +55,7 @@ class ResponsiveGrid extends StatelessWidget {
           final totalCount = itemCount + (trailing != null ? 1 : 0);
           return ListView.builder(
             controller: controller,
+            physics: physics,
             padding: padding,
             itemCount: totalCount,
             itemBuilder: (context, index) {
@@ -66,6 +69,7 @@ class ResponsiveGrid extends StatelessWidget {
         final totalCount = itemCount + (trailing != null ? 1 : 0);
         return GridView.builder(
           controller: controller,
+          physics: physics,
           padding: padding,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,

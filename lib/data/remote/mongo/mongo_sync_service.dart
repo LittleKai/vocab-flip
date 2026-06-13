@@ -67,6 +67,9 @@ class MongoSyncService {
   }
 
   Future<ImportedDeckLink?> getImportLinkByPublicDeck(String publicDeckId) async {
+    final userId = _authSession.userId;
+    if (userId == null) return null;
+
     final local = await _getLocalLinkByPublicDeck(publicDeckId);
     if (local != null) return local;
 
@@ -75,7 +78,7 @@ class MongoSyncService {
       final doc = unwrapApiMap(response.data);
       return doc == null ? null : ImportedDeckLink.fromMap(doc);
     } on DioException catch (e) {
-      if (e.response?.statusCode != 404) {
+      if (e.response?.statusCode != 404 && e.response?.statusCode != 401) {
         logVocabApiError('getImportLinkByPublicDeck', e);
       }
       return null;

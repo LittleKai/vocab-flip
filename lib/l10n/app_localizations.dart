@@ -809,7 +809,7 @@ abstract class AppLocalizations {
   /// No description provided for @tryAgain.
   ///
   /// In en, this message translates to:
-  /// **'Try Again'**
+  /// **'Try again'**
   String get tryAgain;
 
   /// No description provided for @anError.
@@ -2924,6 +2924,18 @@ abstract class AppLocalizations {
   /// **'Delete and replace matching decks'**
   String get restoreModeReplaceDesc;
 
+  /// No description provided for @restoreModeRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename if duplicate'**
+  String get restoreModeRename;
+
+  /// No description provided for @restoreModeRenameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically append time to duplicate deck names'**
+  String get restoreModeRenameDesc;
+
   /// No description provided for @deleteBackup.
   ///
   /// In en, this message translates to:
@@ -3547,6 +3559,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Submit'**
   String get submit;
+
+  /// No description provided for @writingPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing Practice'**
+  String get writingPractice;
+
+  /// No description provided for @replayStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get replayStroke;
+
+  /// No description provided for @showHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint'**
+  String get showHint;
+
+  /// No description provided for @resetStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get resetStroke;
+
+  /// No description provided for @correctStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct!'**
+  String get correctStroke;
+
+  /// No description provided for @wrongDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong direction'**
+  String get wrongDirection;
+
+  /// No description provided for @wrongOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong stroke order'**
+  String get wrongOrder;
+
+  /// No description provided for @strokeDataUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke data is not available for this character.'**
+  String get strokeDataUnavailable;
 }
 
 class _AppLocalizationsDelegate

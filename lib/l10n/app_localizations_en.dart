@@ -374,7 +374,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shuffle => 'Shuffle';
 
   @override
-  String get tryAgain => 'Try Again';
+  String get tryAgain => 'Try again';
 
   @override
   String get anError => 'An error occurred';
@@ -1508,6 +1508,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreModeReplaceDesc => 'Delete and replace matching decks';
 
   @override
+  String get restoreModeRename => 'Rename if duplicate';
+
+  @override
+  String get restoreModeRenameDesc =>
+      'Automatically append time to duplicate deck names';
+
+  @override
   String get deleteBackup => 'Delete Backup';
 
   @override
@@ -1837,4 +1844,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get submit => 'Submit';
+
+  @override
+  String get writingPractice => 'Writing Practice';
+
+  @override
+  String get replayStroke => 'Replay';
+
+  @override
+  String get showHint => 'Hint';
+
+  @override
+  String get resetStroke => 'Reset';
+
+  @override
+  String get correctStroke => 'Correct!';
+
+  @override
+  String get wrongDirection => 'Wrong direction';
+
+  @override
+  String get wrongOrder => 'Wrong stroke order';
+
+  @override
+  String get strokeDataUnavailable =>
+      'Stroke data is not available for this character.';
 }

@@ -35,6 +35,7 @@ class PublicDeckDetailScreen extends StatefulWidget {
 
 class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   bool _isImported = false;
+  bool? _wasAuthenticated;
 
   @override
   void initState() {
@@ -56,6 +57,18 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    if (_wasAuthenticated != null && _wasAuthenticated == false && auth.isAuthenticated) {
+      // User just logged in, refresh auth-dependent data
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<PublicLibraryProvider>().selectDeck(widget.deckId);
+          _checkImportStatus();
+        }
+      });
+    }
+    _wasAuthenticated = auth.isAuthenticated;
+
     final l10n = AppLocalizations.of(context)!;
 
     return Consumer<PublicLibraryProvider>(

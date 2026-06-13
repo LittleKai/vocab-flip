@@ -10,12 +10,15 @@ import '../../providers/deck_provider.dart';
 import '../../widgets/flashcard/flip_card.dart';
 import '../../widgets/flashcard/multiple_choice_card.dart';
 import '../../widgets/flashcard/type_answer_card.dart';
+import '../../widgets/flashcard/writing_practice_card.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
+import '../../providers/stroke_practice_provider.dart';
 
 enum StudyMode {
   classic,
   multipleChoice,
   typeAnswer,
+  writingPractice,
 }
 
 class StudyScreen extends StatefulWidget {
@@ -37,7 +40,19 @@ class _StudyScreenState extends State<StudyScreen> {
     super.initState();
     _ttsService.init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StudyProvider>().startStudySession(widget.deckId);
+      context.read<StudyProvider>().startStudySession(widget.deckId).then((_) {
+        // Just in case we started in writing practice mode somehow, load the first card
+        if (_currentMode == StudyMode.writingPractice && mounted) {
+          final deck = context.read<DeckProvider>().selectedDeck;
+          final card = context.read<StudyProvider>().currentCard;
+          if (card != null) {
+            context.read<StrokePracticeProvider>().loadForCard(
+                  text: card.front,
+                  sourceLanguage: deck?.sourceLanguage ?? '',
+                );
+          }
+        }
+      });
       context.read<DeckProvider>().selectDeck(widget.deckId);
     });
   }
@@ -52,8 +67,8 @@ class _StudyScreenState extends State<StudyScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Consumer2<StudyProvider, DeckProvider>(
-      builder: (context, studyProvider, deckProvider, child) {
+    return Consumer3<StudyProvider, DeckProvider, StrokePracticeProvider>(
+      builder: (context, studyProvider, deckProvider, strokeProvider, child) {
         final deck = deckProvider.selectedDeck;
 
         return PopScope(
@@ -65,51 +80,83 @@ class _StudyScreenState extends State<StudyScreen> {
           },
           child: Scaffold(
             appBar: AppBar(
-            title: Text(deck?.name ?? l10n.study),
-            leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => _confirmExit(context, studyProvider),
-            ),
-            actions: [
-              if (studyProvider.state == StudyState.studying ||
-                  studyProvider.state == StudyState.showingAnswer) ...[
-                PopupMenuButton<StudyMode>(
-                  icon: const Icon(Icons.tune),
-                  tooltip: l10n.studyMode,
-                  onSelected: (StudyMode mode) {
-                    setState(() {
-                      _currentMode = mode;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<StudyMode>>[
-                    PopupMenuItem<StudyMode>(
-                      value: StudyMode.classic,
-                      child: Text(l10n.classicFlip),
-                    ),
-                    PopupMenuItem<StudyMode>(
-                      value: StudyMode.multipleChoice,
-                      child: Text(l10n.multipleChoice),
-                    ),
-                    PopupMenuItem<StudyMode>(
-                      value: StudyMode.typeAnswer,
-                      child: Text(l10n.typeAnswer),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: const Icon(Icons.shuffle),
-                  onPressed: () => studyProvider.shuffleCards(),
-                  tooltip: l10n.shuffle,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.skip_next),
-                  onPressed: () => studyProvider.skipCard(),
-                  tooltip: l10n.skip,
-                ),
+              title: Text(deck?.name ?? l10n.study),
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => _confirmExit(context, studyProvider),
+              ),
+              actions: [
+                if (studyProvider.state == StudyState.studying ||
+                    studyProvider.state == StudyState.showingAnswer) ...[
+                  PopupMenuButton<StudyMode>(
+                    icon: const Icon(Icons.tune),
+                    tooltip: l10n.studyMode,
+                    onSelected: (StudyMode mode) {
+                      setState(() {
+                        _currentMode = mode;
+                      });
+                      if (mode == StudyMode.writingPractice &&
+                          studyProvider.currentCard != null) {
+                        strokeProvider.loadForCard(
+                          text: studyProvider.currentCard!.front,
+                          sourceLanguage: deck?.sourceLanguage ?? '',
+                        );
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<StudyMode>>[
+                      PopupMenuItem<StudyMode>(
+                        value: StudyMode.classic,
+                        child: Text(l10n.classicFlip),
+                      ),
+                      PopupMenuItem<StudyMode>(
+                        value: StudyMode.multipleChoice,
+                        child: Text(l10n.multipleChoice),
+                      ),
+                      PopupMenuItem<StudyMode>(
+                        value: StudyMode.typeAnswer,
+                        child: Text(l10n.typeAnswer),
+                      ),
+                      if (deck?.sourceLanguage == 'ja' ||
+                          deck?.sourceLanguage == 'zh')
+                        PopupMenuItem<StudyMode>(
+                          value: StudyMode.writingPractice,
+                          child: Text(l10n.writingPractice),
+                        ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.shuffle),
+                    onPressed: () {
+                      studyProvider.shuffleCards();
+                      if (_currentMode == StudyMode.writingPractice &&
+                          studyProvider.currentCard != null) {
+                        strokeProvider.loadForCard(
+                          text: studyProvider.currentCard!.front,
+                          sourceLanguage: deck?.sourceLanguage ?? '',
+                        );
+                      }
+                    },
+                    tooltip: l10n.shuffle,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.skip_next),
+                    onPressed: () {
+                      studyProvider.skipCard();
+                      if (_currentMode == StudyMode.writingPractice &&
+                          studyProvider.currentCard != null) {
+                        strokeProvider.loadForCard(
+                          text: studyProvider.currentCard!.front,
+                          sourceLanguage: deck?.sourceLanguage ?? '',
+                        );
+                      }
+                    },
+                    tooltip: l10n.skip,
+                  ),
+                ],
               ],
-            ],
-          ),
-          body: _buildBody(context, studyProvider, deck),
+            ),
+            body: _buildBody(context, studyProvider, deck),
           ),
         );
       },
@@ -235,7 +282,8 @@ class _StudyScreenState extends State<StudyScreen> {
                         ),
                       )
                     : _buildRatingButtons(context, provider))
-                : const SizedBox.shrink(), // Multiple choice and Type Answer have their own logic
+                : const SizedBox
+                    .shrink(), // Multiple choice and Type Answer have their own logic
           ),
         ),
       ],
@@ -256,18 +304,26 @@ class _StudyScreenState extends State<StudyScreen> {
           card: card,
           allCards: provider.studyQueue,
           onAnswerSelected: (isCorrect) {
-            _rateCard(provider, isCorrect ? ReviewRating.good : ReviewRating.again);
+            _rateCard(
+                provider, isCorrect ? ReviewRating.good : ReviewRating.again);
           },
         );
       case StudyMode.typeAnswer:
         return TypeAnswerCard(
           card: card,
           onAnswerSelected: (isCorrect) {
-            _rateCard(provider, isCorrect ? ReviewRating.good : ReviewRating.again);
+            _rateCard(
+                provider, isCorrect ? ReviewRating.good : ReviewRating.again);
+          },
+        );
+      case StudyMode.writingPractice:
+        return WritingPracticeCard(
+          card: card,
+          onComplete: (rating) {
+            _rateCard(provider, rating);
           },
         );
       case StudyMode.classic:
-      default:
         return FlipCard(
           controller: _flipController,
           isFlipped: provider.state == StudyState.showingAnswer,
@@ -357,6 +413,15 @@ class _StudyScreenState extends State<StudyScreen> {
 
     if (!mounted) return;
 
+    if (_currentMode == StudyMode.writingPractice &&
+        provider.currentCard != null) {
+      final deck = context.read<DeckProvider>().selectedDeck;
+      context.read<StrokePracticeProvider>().loadForCard(
+            text: provider.currentCard!.front,
+            sourceLanguage: deck?.sourceLanguage ?? '',
+          );
+    }
+
     if (provider.isFatigued) {
       provider.resetFatigue();
       final l10n = AppLocalizations.of(context)!;
@@ -367,7 +432,8 @@ class _StudyScreenState extends State<StudyScreen> {
         secondaryButtonText: l10n.keepGoing,
         primaryButtonText: l10n.takeABreak,
         onPrimaryPressed: () {
-          Navigator.of(context).pop(); // Go back to deck list or previous screen
+          Navigator.of(context)
+              .pop(); // Go back to deck list or previous screen
         },
       );
     }
@@ -387,7 +453,7 @@ class _StudyScreenState extends State<StudyScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.2),
+                color: AppColors.success.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -437,7 +503,8 @@ class _StudyScreenState extends State<StudyScreen> {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: () {
-                    provider.startStudySession(widget.deckId, forceReload: true);
+                    provider.startStudySession(widget.deckId,
+                        forceReload: true);
                   },
                   child: Text(l10n.studyAgain),
                 ),
@@ -537,7 +604,7 @@ class _RatingButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: color.withOpacity(0.15),
+        backgroundColor: color.withValues(alpha: 0.15),
         foregroundColor: color,
         elevation: 0,
         padding: const EdgeInsets.symmetric(vertical: 20),
@@ -562,7 +629,7 @@ class _RatingButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: color.withOpacity(0.7),
+              color: color.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -598,7 +665,7 @@ class _ResultCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: (color ?? AppColors.primary).withOpacity(0.1),
+        color: (color ?? AppColors.primary).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

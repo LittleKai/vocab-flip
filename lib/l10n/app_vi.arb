@@ -467,6 +467,8 @@
   "restoreModeMergeDesc": "Giữ bộ thẻ hiện có, thêm bộ thẻ mới",
   "restoreModeReplace": "Thay thế dữ liệu hiện có",
   "restoreModeReplaceDesc": "Xóa và thay thế bộ thẻ trùng lặp",
+  "restoreModeRename": "Tự động đổi tên",
+  "restoreModeRenameDesc": "Thêm thời gian vào tên nếu bộ thẻ đã tồn tại",
   "deleteBackup": "Xóa bản sao lưu",
   "deleteBackupConfirm": "Bạn có chắc muốn xóa bản sao lưu từ {date}?",
   "backupDeleted": "Đã xóa bản sao lưu",
@@ -588,5 +590,14 @@
   "reviewOptional": "Đánh giá (tùy chọn)",
   "shareThoughts": "Chia sẻ cảm nghĩ của bạn về bộ thẻ này...",
   "couldNotLoadQr": "Không thể tải mã QR",
-  "submit": "Gửi"
+  "submit": "Gửi",
+  "writingPractice": "Luyện viết",
+  "replayStroke": "Phát lại",
+  "showHint": "Gợi ý",
+  "resetStroke": "Làm lại",
+  "correctStroke": "Chính xác!",
+  "wrongDirection": "Sai hướng nét",
+  "wrongOrder": "Sai thứ tự nét",
+  "tryAgain": "Thử lại",
+  "strokeDataUnavailable": "Không có dữ liệu nét chữ cho ký tự này."
 }

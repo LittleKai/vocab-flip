@@ -9,13 +9,15 @@
 .history
 .svn/
 migrate_working_dir/
-test/
 nul
 .env
 CLAUDE.md
 /.claude
 .superpowers/
-/tools
+/tools/*
+!/tools/build_stroke_data_test.dart
+!/tools/verify_stroke_data_test.dart
+!/tools/stroke_data_manifest.json
 
 # IntelliJ related
 *.iml
