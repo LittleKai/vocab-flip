@@ -544,6 +544,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appearance => 'Appearance';
 
   @override
+  String get deckClickAction => 'Deck tap action';
+
+  @override
+  String get deckClickActionSubtitle => 'Default action when tapping a deck';
+
+  @override
+  String get deckClickActionDetail => 'View Details';
+
+  @override
+  String get deckClickActionBrowse => 'Browse Cards';
+
+  @override
   String get useDarkTheme => 'Use dark theme';
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../data/local/preferences/app_preferences.dart';
 import '../../presentation/providers/deck_provider.dart';
 import '../../presentation/providers/flashcard_provider.dart';
 import '../../presentation/screens/deck/deck_detail_screen.dart';
@@ -7,6 +8,16 @@ import '../../presentation/screens/flashcard/flashcard_viewer_screen.dart';
 
 /// Helper class for deck navigation
 class DeckNavigation {
+  /// Navigate based on user preference (detail or browse)
+  static Future<void> navigateBasedOnPreference(BuildContext context, String deckId) async {
+    final action = AppPreferences().deckClickAction;
+    if (action == 'browse') {
+      await navigateToBrowse(context, deckId);
+    } else {
+      navigateToDeckDetail(context, deckId);
+    }
+  }
+
   /// Navigate to browse flashcards if deck has cards, otherwise go to deck detail
   static Future<void> navigateToBrowse(BuildContext context, String deckId) async {
     // Capture providers and navigator before async gap

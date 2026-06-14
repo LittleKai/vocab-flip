@@ -1136,6 +1136,30 @@ abstract class AppLocalizations {
   /// **'Appearance'**
   String get appearance;
 
+  /// Deck click action setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Deck tap action'**
+  String get deckClickAction;
+
+  /// No description provided for @deckClickActionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Default action when tapping a deck'**
+  String get deckClickActionSubtitle;
+
+  /// No description provided for @deckClickActionDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get deckClickActionDetail;
+
+  /// No description provided for @deckClickActionBrowse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Cards'**
+  String get deckClickActionBrowse;
+
   /// No description provided for @useDarkTheme.
   ///
   /// In en, this message translates to:

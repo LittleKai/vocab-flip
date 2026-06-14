@@ -39,6 +39,9 @@ class AppPreferences {
   static const String _keyDeckFilterLanguage = 'deck_filter_language';
   static const String _keyDeckFilterSortBy = 'deck_filter_sort_by';
 
+  // Deck click action
+  static const String _keyDeckClickAction = 'deck_click_action';
+
   static const String _keyTtsVolume = 'tts_volume';
 
   // Library filter
@@ -254,6 +257,11 @@ class AppPreferences {
   String get deckFilterSortBy => _prefs.getString(_keyDeckFilterSortBy) ?? 'recentlyUpdated';
   Future<bool> setDeckFilterSortBy(String value) =>
       _prefs.setString(_keyDeckFilterSortBy, value);
+
+  // Deck click action
+  String get deckClickAction => _prefs.getString(_keyDeckClickAction) ?? 'detail';
+  Future<bool> setDeckClickAction(String value) =>
+      _prefs.setString(_keyDeckClickAction, value);
 
   // Library filter
   String? get libFilterCategory => _prefs.getString(_keyLibFilterCategory);

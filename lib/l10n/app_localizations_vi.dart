@@ -542,6 +542,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appearance => 'Giao diện';
 
   @override
+  String get deckClickAction => 'Hành động khi nhấn Deck';
+
+  @override
+  String get deckClickActionSubtitle =>
+      'Hành động mặc định khi chọn một bộ thẻ';
+
+  @override
+  String get deckClickActionDetail => 'Xem chi tiết';
+
+  @override
+  String get deckClickActionBrowse => 'Duyệt thẻ (Browse)';
+
+  @override
   String get useDarkTheme => 'Sử dụng giao diện tối';
 
   @override

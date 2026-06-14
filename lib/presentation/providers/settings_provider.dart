@@ -19,6 +19,7 @@ class SettingsProvider extends ChangeNotifier {
   int _flashcardPhoneticFontSize = AppPreferences.defaultPhoneticFontSize;
   int _flashcardDetailFontSize = AppPreferences.defaultDetailFontSize;
   double _ttsVolume = 1.0;
+  String _deckClickAction = 'detail';
 
   SettingsProvider({AppPreferences? preferences})
       : _preferences = preferences ?? AppPreferences();
@@ -41,6 +42,7 @@ class SettingsProvider extends ChangeNotifier {
   int get flashcardPhoneticFontSize => _flashcardPhoneticFontSize;
   int get flashcardDetailFontSize => _flashcardDetailFontSize;
   double get ttsVolume => _ttsVolume;
+  String get deckClickAction => _deckClickAction;
 
   String get formattedStudyTime {
     final hours = _totalStudyTime ~/ 3600;
@@ -69,6 +71,7 @@ class SettingsProvider extends ChangeNotifier {
     _flashcardPhoneticFontSize = _preferences.flashcardPhoneticFontSize;
     _flashcardDetailFontSize = _preferences.flashcardDetailFontSize;
     _ttsVolume = _preferences.ttsVolume;
+    _deckClickAction = _preferences.deckClickAction;
 
     notifyListeners();
   }
@@ -148,6 +151,12 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setTtsVolume(double value) async {
     _ttsVolume = value;
     await _preferences.setTtsVolume(value);
+    notifyListeners();
+  }
+
+  Future<void> setDeckClickAction(String value) async {
+    _deckClickAction = value;
+    await _preferences.setDeckClickAction(value);
     notifyListeners();
   }
 

@@ -239,11 +239,17 @@ class _AiGenerateBottomSheetState extends State<AiGenerateBottomSheet> {
                   children: [
                     Icon(Icons.auto_awesome, color: AppColors.primary, size: 24),
                     const SizedBox(width: 8),
-                    Text(
-                      l10n.aiGenerateCards,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                    Expanded(
+                      child: Text(
+                        l10n.aiGenerateCards,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
@@ -580,6 +586,7 @@ class _AiGenerateBottomSheetState extends State<AiGenerateBottomSheet> {
       includeNotes: _includeNotes,
       noteInstructions: _includeNotes ? _noteInstructionController.text.trim() : null,
       model: _model == 'pro' ? 'pro' : 'flash',
+      deckId: widget.deckId,
     );
 
     if (!mounted) return;

@@ -748,7 +748,7 @@ class _HomeTab extends StatelessWidget {
             deck: deck,
             cardCountLabel: l10n.nCards(deck.cardCount),
             dueLabel: deck.dueCount > 0 ? l10n.cardsDue(deck.dueCount) : null,
-            onTap: () => DeckNavigation.navigateToBrowse(context, deck.id),
+            onTap: () => DeckNavigation.navigateBasedOnPreference(context, deck.id),
             trailing: Icon(
               Icons.chevron_right,
               color: AppColors.textSecondary(context),

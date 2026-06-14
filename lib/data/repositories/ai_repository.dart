@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../api/api_client.dart';
 import '../models/flashcard.dart';
 
@@ -8,10 +9,16 @@ class AiRepository {
 
   Future<String> generateMnemonic(String word, String language) async {
     try {
-      final response = await _apiClient.dio.post('/ai/mnemonic', data: {
-        'word': word,
-        'meaning': '',
-      });
+      final response = await _apiClient.dio.post(
+        '/ai/mnemonic',
+        data: {
+          'word': word,
+          'meaning': '',
+        },
+        options: Options(
+          receiveTimeout: const Duration(seconds: 45),
+        ),
+      );
       final data = response.data;
       return '${data['mnemonic']}\n\nExplanation: ${data['explanation']}';
     } catch (e) {
@@ -43,17 +50,24 @@ class AiRepository {
     String model = 'flash',
   }) async {
     try {
-      final response = await _apiClient.dio.post('/ai/generate-cards', data: {
-        'prompt': prompt,
-        'sourceLanguage': sourceLanguage,
-        'targetLanguage': targetLanguage,
-        'count': count,
-        'includeExamples': includeExamples,
-        'includeNotes': includeNotes,
-        if (includeNotes && noteInstructions != null && noteInstructions.isNotEmpty)
-          'noteInstructions': noteInstructions,
-        'model': model,
-      });
+      final timeoutSeconds = ((count * 3) + 30).clamp(90, 300);
+      final response = await _apiClient.dio.post(
+        '/ai/generate-cards',
+        data: {
+          'prompt': prompt,
+          'sourceLanguage': sourceLanguage,
+          'targetLanguage': targetLanguage,
+          'count': count,
+          'includeExamples': includeExamples,
+          'includeNotes': includeNotes,
+          if (includeNotes && noteInstructions != null && noteInstructions.isNotEmpty)
+            'noteInstructions': noteInstructions,
+          'model': model,
+        },
+        options: Options(
+          receiveTimeout: Duration(seconds: timeoutSeconds),
+        ),
+      );
 
       final data = response.data;
       final List<dynamic> cardsData = data['cards'] ?? [];

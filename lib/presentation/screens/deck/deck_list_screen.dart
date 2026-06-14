@@ -309,9 +309,9 @@ class _DeckCard extends StatelessWidget {
               child: Container(width: 6, color: langColor),
             ),
           ),
-          InkWell(
-            onTap: () => _navigateToBrowse(context),
-            borderRadius: borderRadius,
+            InkWell(
+              onTap: () => _navigateBasedOnPref(context),
+              borderRadius: borderRadius,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 8, 10),
               child: Column(
@@ -547,8 +547,8 @@ class _DeckCard extends StatelessWidget {
     return fields.map((f) => f.displayName).join(', ');
   }
 
-  void _navigateToBrowse(BuildContext context) {
-    DeckNavigation.navigateToBrowse(context, deck.id);
+  void _navigateBasedOnPref(BuildContext context) {
+    DeckNavigation.navigateBasedOnPreference(context, deck.id);
   }
 
   void _navigateToDeckDetail(BuildContext context) {

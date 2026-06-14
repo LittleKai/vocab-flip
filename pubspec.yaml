@@ -2,7 +2,7 @@ name: vocabflip
 description: "VocabFlip - Multi-language vocabulary learning flashcard app"
 publish_to: 'none'
 
-version: 1.1.7+5
+version: 1.2.0+10
 
 environment:
   sdk: ^3.5.1
@@ -75,6 +75,7 @@ dev_dependencies:
   mockito: ^5.4.4
   sqlite3: ^3.1.4  # For building Chinese dictionary
   yaml: ^3.1.2     # For build_release tool
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -89,3 +90,18 @@ flutter:
     - assets/ja_vi_dict.db
     - assets/stroke_data.db
     - .env
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
+  web:
+    generate: true
+    image_path: "assets/icon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon.png"
+  macos:
+    generate: true
+    image_path: "assets/icon.png"
+  remove_alpha_ios: true

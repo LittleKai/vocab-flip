@@ -26,6 +26,9 @@ class AiProvider extends ChangeNotifier {
 
   bool _usageLoaded = false;
 
+  String? _currentDeckId;
+  String? get currentDeckId => _currentDeckId;
+
   Future<String?> generateMnemonic(String word, String language) async {
     _state = AiState.generating;
     _errorMessage = null;
@@ -80,10 +83,12 @@ class AiProvider extends ChangeNotifier {
     bool includeNotes = false,
     String? noteInstructions,
     String model = 'flash',
+    String? deckId,
   }) async {
     _state = AiState.generating;
     _errorMessage = null;
     _draftCards = [];
+    _currentDeckId = deckId;
     notifyListeners();
 
     try {
@@ -124,6 +129,7 @@ class AiProvider extends ChangeNotifier {
     _state = AiState.idle;
     _errorMessage = null;
     _draftCards = [];
+    _currentDeckId = null;
     notifyListeners();
   }
 }

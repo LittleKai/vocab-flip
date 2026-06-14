@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.vocabflip" "\0"
-            VALUE "FileDescription", "vocabflip" "\0"
+            VALUE "FileDescription", "VocabFlip" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "vocabflip" "\0"
+            VALUE "InternalName", "VocabFlip" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.vocabflip. All rights reserved." "\0"
-            VALUE "OriginalFilename", "vocabflip.exe" "\0"
-            VALUE "ProductName", "vocabflip" "\0"
+            VALUE "OriginalFilename", "VocabFlip.exe" "\0"
+            VALUE "ProductName", "VocabFlip" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

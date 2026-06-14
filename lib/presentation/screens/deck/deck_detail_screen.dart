@@ -9,6 +9,7 @@ import '../../../data/models/deck.dart';
 import '../../../data/models/category.dart';
 import '../../../data/services/tts_service.dart';
 import '../../../data/services/excel_service.dart';
+import '../../providers/ai_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/flashcard_provider.dart';
@@ -94,8 +95,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isAuthenticated = context.watch<AuthProvider>().isAuthenticated;
 
-    return Consumer2<DeckProvider, FlashcardProvider>(
-      builder: (context, deckProvider, flashcardProvider, child) {
+    return Consumer3<DeckProvider, FlashcardProvider, AiProvider>(
+      builder: (context, deckProvider, flashcardProvider, aiProvider, child) {
         final deck = deckProvider.selectedDeck;
 
         if (deck == null || flashcardProvider.isLoading) {
@@ -211,8 +212,12 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
             ),
             body: SafeArea(
               top: false,
-              child: CustomScrollView(
-                slivers: [
+              child: Column(
+                children: [
+                  _buildAiStatusBanner(context, aiProvider),
+                  Expanded(
+                    child: CustomScrollView(
+                      slivers: [
                   // Deck header
                   SliverToBoxAdapter(
                     child: _DeckHeader(deck: deck),
@@ -296,11 +301,107 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                 ],
               ),
             ),
+          ],
+        ),
+      ),
             floatingActionButton: _buildFab(context, deck),
           ),
         );
       },
     );
+  }
+
+  Widget _buildAiStatusBanner(BuildContext context, AiProvider aiProvider) {
+    if (aiProvider.currentDeckId != widget.deckId) {
+      return const SizedBox.shrink();
+    }
+    if (aiProvider.state == AiState.idle) {
+      return const SizedBox.shrink();
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+
+    if (aiProvider.state == AiState.generating) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        color: AppColors.primary.withOpacity(0.08),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.generatingCards,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (aiProvider.state == AiState.success && aiProvider.draftCards.isNotEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: AppColors.success.withOpacity(0.08),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '${l10n.success}: ${l10n.aiGeneratedCards} (${aiProvider.draftCards.length})',
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AiDraftReviewScreen(deckId: widget.deckId),
+                  ),
+                );
+              },
+              child: Text(l10n.browse),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: () => aiProvider.reset(),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (aiProvider.state == AiState.error) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: AppColors.error.withOpacity(0.08),
+        child: Row(
+          children: [
+            const Icon(Icons.error, color: AppColors.error, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                aiProvider.errorMessage ?? l10n.aiGenerationFailed,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: () => aiProvider.reset(),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   /// FAB with expandable options: Add Card + AI Generate

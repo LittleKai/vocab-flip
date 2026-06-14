@@ -194,14 +194,24 @@ class SettingsScreen extends StatelessWidget {
                     onChanged: (value) => settings.setDarkMode(value),
                   ),
                   const Divider(height: 1, indent: 70),
-                  _SettingsTile(
-                    leading: const Icon(Icons.language, color: Colors.teal, size: 22),
-                    title: l10n.language,
-                    subtitle: settings.locale == 'vi' ? 'Tiếng Việt' : 'English',
-                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
-                    onTap: () => _showLanguageDialog(context, settings),
-                  ),
-                ],
+                    _SettingsTile(
+                      leading: const Icon(Icons.language, color: Colors.teal, size: 22),
+                      title: l10n.language,
+                      subtitle: settings.locale == 'vi' ? 'Tiếng Việt' : 'English',
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                      onTap: () => _showLanguageDialog(context, settings),
+                    ),
+                    const Divider(height: 1, indent: 70),
+                    _SettingsTile(
+                      leading: const Icon(Icons.touch_app, color: Colors.orange, size: 22),
+                      title: l10n.deckClickAction,
+                      subtitle: settings.deckClickAction == 'browse' 
+                          ? l10n.deckClickActionBrowse 
+                          : l10n.deckClickActionDetail,
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                      onTap: () => _showDeckClickActionDialog(context, settings),
+                    ),
+                  ],
               ),
 
               // Study settings
@@ -446,6 +456,43 @@ class SettingsScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showDeckClickActionDialog(BuildContext context, SettingsProvider settings) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showStandardDialog(
+      context: context,
+      title: l10n.deckClickAction,
+      customContent: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<String>(
+            title: Text(l10n.deckClickActionDetail),
+            value: 'detail',
+            groupValue: settings.deckClickAction,
+            onChanged: (value) {
+              if (value != null) {
+                settings.setDeckClickAction(value);
+                Navigator.of(context, rootNavigator: true).pop();
+              }
+            },
+          ),
+          RadioListTile<String>(
+            title: Text(l10n.deckClickActionBrowse),
+            value: 'browse',
+            groupValue: settings.deckClickAction,
+            onChanged: (value) {
+              if (value != null) {
+                settings.setDeckClickAction(value);
+                Navigator.of(context, rootNavigator: true).pop();
+              }
+            },
+          ),
+        ],
+      ),
+      secondaryButtonText: l10n.cancel,
     );
   }
 

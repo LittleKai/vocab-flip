@@ -215,6 +215,13 @@
   "selectDeck": "Select Deck",
   "addedToDeck": "Added to deck",
   "appearance": "Appearance",
+  "deckClickAction": "Deck tap action",
+  "deckClickActionSubtitle": "Default action when tapping a deck",
+  "deckClickActionDetail": "View Details",
+  "deckClickActionBrowse": "Browse Cards",
+  "@deckClickAction": {
+    "description": "Deck click action setting title"
+  },
   "useDarkTheme": "Use dark theme",
   "studySettings": "Study",
   "newCardsPerDay": "New cards per day",
