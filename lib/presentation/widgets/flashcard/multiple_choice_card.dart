@@ -1,6 +1,7 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/flashcard.dart';
 
@@ -79,84 +80,138 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+    final double questionFontSize = isDesktop ? 120.0 : 64.0;
+    final double optionFontSize = isDesktop ? 22.0 : 16.0;
+    final double optionNumberSize = isDesktop ? 20.0 : 14.0;
+    final double optionNumberBoxSize = isDesktop ? 40.0 : 32.0;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              flex: 2,
-              child: Center(
-                child: Text(
-                  widget.card.front,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+      child: SelectionArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 2,
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      widget.card.front,
+                      style: TextStyle(
+                        fontSize: questionFontSize,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-            const Divider(),
-            Expanded(
-              flex: 3,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: _options.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final text = entry.value;
+              const Divider(),
+              Expanded(
+                flex: 4, // Gave a bit more flex to options to fit larger text
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _options.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final text = entry.value;
 
-                  Color backgroundColor = Colors.transparent;
-                  Color textColor = Theme.of(context).colorScheme.onSurface;
-                  Color borderColor = Theme.of(context).dividerColor;
+                      final baseColors = [
+                        AppColors.primary,
+                        AppColors.secondary,
+                        AppColors.accent,
+                        Colors.purple,
+                      ];
+                      final optionColor = baseColors[index % baseColors.length];
 
-                  if (_hasAnswered) {
-                    if (text == widget.card.back) {
-                      backgroundColor = AppColors.success.withOpacity(0.2);
-                      borderColor = AppColors.success;
-                      textColor = AppColors.success;
-                    } else if (index == _selectedIndex) {
-                      backgroundColor = AppColors.error.withOpacity(0.2);
-                      borderColor = AppColors.error;
-                      textColor = AppColors.error;
-                    }
-                  }
+                      Color backgroundColor = optionColor.withValues(alpha: 0.1);
+                      Color textColor = Theme.of(context).colorScheme.onSurface;
+                      Color borderColor = optionColor.withValues(alpha: 0.3);
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: InkWell(
-                      onTap: () => _handleSelect(index),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          border: Border.all(color: borderColor),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            text,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: textColor,
-                              fontWeight: _hasAnswered && (text == widget.card.back || index == _selectedIndex) 
-                                ? FontWeight.bold 
-                                : FontWeight.normal,
+                      if (_hasAnswered) {
+                        if (text == widget.card.back) {
+                          backgroundColor = AppColors.success.withValues(alpha: 0.2);
+                          borderColor = AppColors.success;
+                          textColor = AppColors.success;
+                        } else if (index == _selectedIndex) {
+                          backgroundColor = AppColors.error.withValues(alpha: 0.2);
+                          borderColor = AppColors.error;
+                          textColor = AppColors.error;
+                        } else {
+                          backgroundColor = Colors.transparent;
+                          borderColor = Theme.of(context).dividerColor.withValues(alpha: 0.5);
+                          textColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
+                        }
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: InkWell(
+                          onTap: () => _handleSelect(index),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              color: backgroundColor,
+                              border: Border.all(color: borderColor, width: 2),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            textAlign: TextAlign.center,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: optionNumberBoxSize,
+                                    height: optionNumberBoxSize,
+                                    decoration: BoxDecoration(
+                                      color: _hasAnswered ? Colors.transparent : optionColor.withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
+                                      border: _hasAnswered ? null : Border.all(color: optionColor.withValues(alpha: 0.5)),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${index + 1}',
+                                        style: TextStyle(
+                                          fontSize: optionNumberSize,
+                                          fontWeight: FontWeight.bold,
+                                          color: _hasAnswered ? textColor : optionColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Flexible(
+                                    child: Text(
+                                      text,
+                                      style: TextStyle(
+                                        fontSize: optionFontSize,
+                                        color: textColor,
+                                        fontWeight: _hasAnswered && (text == widget.card.back || index == _selectedIndex) 
+                                          ? FontWeight.bold 
+                                          : FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -157,10 +157,16 @@ class PublicLibraryProvider extends ChangeNotifier {
       if (refresh) {
         _newestDecks = newDecks;
       } else {
-        _newestDecks = [..._newestDecks, ...newDecks];
+        final existingIds = _newestDecks.map((d) => d.id).toSet();
+        final filteredNewDecks = newDecks.where((d) => !existingIds.contains(d.id)).toList();
+        if (filteredNewDecks.isEmpty && newDecks.isNotEmpty) {
+          _hasMoreNewestDecks = false;
+        } else {
+          _newestDecks = [..._newestDecks, ...filteredNewDecks];
+        }
       }
       
-      _hasMoreNewestDecks = newDecks.length >= 10;
+      _hasMoreNewestDecks = _hasMoreNewestDecks && newDecks.length >= 10;
       _prefetchAuthorProfiles(newDecks);
     } catch (e) {
       debugPrint('Error loading newest decks: $e');
@@ -173,6 +179,69 @@ class PublicLibraryProvider extends ChangeNotifier {
 
   /// Browse decks with current filter
   Future<void> browse({bool refresh = false}) async {
+    debugPrint('[PublicLibraryProvider] browse called. refresh=$refresh, hasMoreDecks=$_hasMoreDecks, currentDecksLength=${_decks.length}');
+    if (refresh) {
+      _decks = [];
+      _hasMoreDecks = true;
+    }
+
+    if (!_hasMoreDecks && !refresh) {
+      debugPrint('[PublicLibraryProvider] browse aborted: no more decks and not refreshing');
+      return;
+    }
+
+    _isLoading = refresh || _decks.isEmpty;
+    _isLoadingMore = !refresh && _decks.isNotEmpty;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final offset = refresh ? 0 : _decks.length;
+      debugPrint('[PublicLibraryProvider] browse requesting API: limit=10, offset=$offset, filter=$_filter');
+      final newDecks = await _repository.browse(
+        filter: _filter,
+        limit: 10,
+        offset: offset,
+      );
+      debugPrint('[PublicLibraryProvider] browse received ${newDecks.length} decks from API');
+
+      if (refresh) {
+        _decks = newDecks;
+      } else {
+        final existingIds = _decks.map((d) => d.id).toSet();
+        final filteredNewDecks = newDecks.where((d) => !existingIds.contains(d.id)).toList();
+        debugPrint('[PublicLibraryProvider] browse filtered new decks: ${filteredNewDecks.length} (after removing ${newDecks.length - filteredNewDecks.length} duplicates)');
+        if (filteredNewDecks.isEmpty && newDecks.isNotEmpty) {
+          debugPrint('[PublicLibraryProvider] browse: all new decks were duplicates, setting hasMoreDecks=false');
+          _hasMoreDecks = false;
+        } else {
+          _decks = [..._decks, ...filteredNewDecks];
+        }
+      }
+
+      _hasMoreDecks = _hasMoreDecks && newDecks.length >= 10;
+      debugPrint('[PublicLibraryProvider] browse completed. totalDecks=${_decks.length}, hasMoreDecks=$_hasMoreDecks');
+      // Prefetch author profiles in background
+      _prefetchAuthorProfiles(_decks);
+    } catch (e) {
+      debugPrint('[PublicLibraryProvider] browse error: $e');
+      _error = e.toString();
+    }
+
+    _isLoading = false;
+    _isLoadingMore = false;
+    notifyListeners();
+  }
+
+  /// Search decks
+  Future<void> search(String query, {bool refresh = false}) async {
+    debugPrint('[PublicLibraryProvider] search("$query") called');
+    
+    if (query != _searchQuery) {
+      refresh = true;
+    }
+    _searchQuery = query;
+
     if (refresh) {
       _decks = [];
       _hasMoreDecks = true;
@@ -186,53 +255,30 @@ class PublicLibraryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final offset = refresh ? 0 : _decks.length;
-      final newDecks = await _repository.browse(
-        filter: _filter,
-        limit: 10,
-        offset: offset,
-      );
-
-      if (refresh) {
-        _decks = newDecks;
-      } else {
-        _decks = [..._decks, ...newDecks];
-      }
-
-      _hasMoreDecks = newDecks.length >= 10;
-      // Prefetch author profiles in background
-      _prefetchAuthorProfiles(_decks);
-    } catch (e) {
-      _error = e.toString();
-    }
-
-    _isLoading = false;
-    _isLoadingMore = false;
-    notifyListeners();
-  }
-
-  /// Search decks
-  Future<void> search(String query) async {
-    debugPrint('[PublicLibraryProvider] search("$query") called');
-    _searchQuery = query;
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
       if (query.isEmpty) {
         debugPrint('[PublicLibraryProvider] search: empty query, calling browse()');
         await browse(refresh: true);
       } else {
         debugPrint('[PublicLibraryProvider] search: calling repository.search("$query")');
-        _decks = await _repository.search(query);
-        debugPrint('[PublicLibraryProvider] search: got ${_decks.length} results');
-        if (_decks.isNotEmpty) {
-          debugPrint('[PublicLibraryProvider] search: first result name="${_decks.first.name}"');
+        final offset = refresh ? 0 : _decks.length;
+        final newDecks = await _repository.search(query, limit: 10, offset: offset);
+        
+        if (refresh) {
+          _decks = newDecks;
+        } else {
+          final existingIds = _decks.map((d) => d.id).toSet();
+          final filteredNewDecks = newDecks.where((d) => !existingIds.contains(d.id)).toList();
+          if (filteredNewDecks.isEmpty && newDecks.isNotEmpty) {
+            _hasMoreDecks = false;
+          } else {
+            _decks = [..._decks, ...filteredNewDecks];
+          }
         }
-        _hasMoreDecks = false;
+        
+        _hasMoreDecks = _hasMoreDecks && newDecks.length >= 10;
+        debugPrint('[PublicLibraryProvider] search: got ${newDecks.length} results, total: ${_decks.length}');
         // Prefetch author profiles in background
-        _prefetchAuthorProfiles(_decks);
+        _prefetchAuthorProfiles(newDecks);
       }
     } catch (e, stackTrace) {
       debugPrint('[PublicLibraryProvider] search ERROR: $e');
@@ -241,6 +287,7 @@ class PublicLibraryProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
+    _isLoadingMore = false;
     notifyListeners();
   }
 
@@ -297,7 +344,7 @@ class PublicLibraryProvider extends ChangeNotifier {
       // Load deck details, flashcards, and ratings in parallel
       final results = await Future.wait([
         _repository.getPublicDeck(deckId),
-        _repository.getPublicFlashcards(deckId),
+        _repository.getPublicFlashcards(deckId, limit: 50), // Only fetch 50 for preview
         _repository.getUserRating(deckId),
         _repository.getDeckRatings(deckId),
       ]);

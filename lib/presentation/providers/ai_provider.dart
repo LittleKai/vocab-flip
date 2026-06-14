@@ -18,6 +18,14 @@ class AiProvider extends ChangeNotifier {
   List<Flashcard> _draftCards = [];
   List<Flashcard> get draftCards => _draftCards;
 
+  int _freeUsesRemaining = 3;
+  int get freeUsesRemaining => _freeUsesRemaining;
+
+  int _creditBalance = 0;
+  int get creditBalance => _creditBalance;
+
+  bool _usageLoaded = false;
+
   Future<String?> generateMnemonic(String word, String language) async {
     _state = AiState.generating;
     _errorMessage = null;
@@ -36,14 +44,63 @@ class AiProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> generateDeck(String text, String language, String targetLanguage) async {
+  /// Load AI usage info (free uses remaining + credit balance).
+  Future<void> loadUsageInfo() async {
+    if (_usageLoaded) return;
+    try {
+      final info = await _repository.getAiUsageInfo();
+      _freeUsesRemaining = info['freeUsesRemaining'] as int;
+      _creditBalance = info['creditBalance'] as int;
+      _usageLoaded = true;
+      notifyListeners();
+    } catch (_) {
+      // Keep defaults
+    }
+  }
+
+  /// Force refresh usage info.
+  Future<void> refreshUsageInfo() async {
+    _usageLoaded = false;
+    await loadUsageInfo();
+  }
+
+  /// Check if the user can generate (has free uses or credits).
+  bool get canGenerate => _freeUsesRemaining > 0 || _creditBalance > 0;
+
+  /// Whether this generation will cost credits (no free uses left).
+  bool get willCostCredit => _freeUsesRemaining <= 0;
+
+  /// Generate flashcards via AI with full options.
+  Future<void> generateCards({
+    required String prompt,
+    required String sourceLanguage,
+    required String targetLanguage,
+    required int count,
+    bool includeExamples = true,
+    bool includeNotes = false,
+    String? noteInstructions,
+    String model = 'flash',
+  }) async {
     _state = AiState.generating;
     _errorMessage = null;
     _draftCards = [];
     notifyListeners();
 
     try {
-      _draftCards = await _repository.generateDeck(text, language, targetLanguage);
+      final result = await _repository.generateCards(
+        prompt: prompt,
+        sourceLanguage: sourceLanguage,
+        targetLanguage: targetLanguage,
+        count: count,
+        includeExamples: includeExamples,
+        includeNotes: includeNotes,
+        noteInstructions: noteInstructions,
+        model: model,
+      );
+
+      _draftCards = result['cards'] as List<Flashcard>;
+      _freeUsesRemaining = result['freeUsesRemaining'] as int;
+      _creditBalance = result['creditBalance'] as int;
       _state = AiState.success;
       notifyListeners();
     } catch (e) {

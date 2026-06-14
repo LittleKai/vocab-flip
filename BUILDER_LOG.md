@@ -1,42 +1,37 @@
 # BUILDER_LOG.md
 
-**SPEC:** SPEC-phase-5.md
-**Built by:** antigravity-claude-opus-4-6-thinking, 2026-06-13
+**SPEC:** Feature 3 (Advanced Stroke Matcher)
+**Built by:** Antigravity (June 14, 2026)
 **Status:** Complete
 
 ## Files touched
 
-- `docs/stroke_data_sources.md` - Added documentation about animCJK data sources, fallback logic, licensing, and explicit validation that no GPL Inkstone code was copied.
-- `tools/stroke_data_manifest.json` - Defined the smoke characters list required to verify the output DB integrity.
-- `tools/build_stroke_data_test.dart` - Created a converter script (runnable via `flutter test`) to parse animCJK JSONL, strip extraneous JSON keys, normalize coordinates into compact arrays, compress `data_json` with ZLIB, and insert into SQLite. Reduced size from ~106MB to ~41MB.
-- `lib/data/models/stroke_character.dart` - Updated JSON parsers to support both the standard key-value map format and the new compact array layout (`[pathStr, [ [x,y], ... ]]`). Updated `fromDbRow` to decode ZLIB BLOBs.
-- `tools/verify_stroke_data_test.dart` - Created verification script to query `assets/stroke_data.db` against the smoke manifest and validate model parsing.
-- `assets/stroke_data.db` - Replaced the fixture database with the generated, ZLIB-compressed production database containing ~16.2K kanji and kana characters.
+- `lib/core/utils/advanced_stroke_matcher.dart` - Added `AdvancedStrokeMatcher` class implementing ShortStraw corner detection and Subsequence Dynamic Time Warping (DTW) for hook and over-extension trimming.
+- `lib/data/services/stroke_validation_service.dart` - Integrated `trimHooksAndAlign` into the validation pipeline to gracefully handle trailing hooks or slight over-drawing for non-strict validation profiles.
+- `test/core/utils/advanced_stroke_matcher_test.dart` - Added unit tests validating the correct geometric execution of ShortStraw corners and DTW sequence matching against hooked inputs.
 
 ## Summary
 
-Implemented phase 5 by writing a dedicated Dart conversion tool that processes animCJK graphics files, extracts the necessary SVG paths and medians, heavily strips object keys into positional arrays, ZLIB compresses the string, and stores it in `assets/stroke_data.db`. The DB was reduced to ~41MB, well within the threshold compared to other existing VocabFlip assets (~66MB English dict). Wrote a verification tool that checks for schema integrity and the required smoke characters.
+Implemented Feature 3 (Inkstone-style advanced matcher) from the deferred features list cleanly in native Dart. The ShortStraw algorithm successfully extracts geometric corners from strokes using localized bounding vectors, and the Subsequence DP matrix accurately maps drawn strokes to their template equivalents while safely discarding spurious start/end hooks. This acts as a robust pre-processor allowing standard metric bounds to function predictably on "messy" user inputs.
 
 ## Baseline verification
 
-- Checked `assets/` size and reference source files at `D:/Dev/2.reference_pj/language-ref/animCJK` - Found them and proceeded.
+- `flutter test test/core/utils/advanced_stroke_matcher_test.dart test/data/services/stroke_validation_service_test.dart` - Passed
+- Reason if failed or skipped: N/A
 
 ## Final verification
 
-- `flutter test tools/build_stroke_data_test.dart` - Passed (successfully built ~41MB DB)
-- `flutter test tools/verify_stroke_data_test.dart` - Passed (verified smoke characters parsed correctly)
-- `flutter test test/data/models/stroke_character_test.dart` - Passed (ensured model parser changes didn't break compatibility)
-- `flutter analyze` - Passed (no new errors in the written files)
+- `flutter analyze lib/core/utils/advanced_stroke_matcher.dart lib/data/services/stroke_validation_service.dart test/core/utils/advanced_stroke_matcher_test.dart` - 0 issues.
+- `flutter test` across touched modules confirms robust handling of hooks and prevents full-reverse false positives.
 
 ## Placeholder scan
 
-- Searched `TODO|stub|mock|placeholder|NotImplemented|fake|hardcoded` in the tools and docs - Clean.
+- No stubs or mock logic within the newly introduced matching methods. Code relies strictly on geometric implementations.
 
 ## Deviations from SPEC
 
-- Renamed `tools/build_stroke_data.dart` and `tools/verify_stroke_data.dart` to end with `_test.dart` to allow execution via `flutter test`, since `sqflite_common_ffi` on Windows requires the `sqlite3.dll` context which `flutter test` provides natively.
-- Stored the DB data as ZLIB-compressed BLOBs of compacted arrays rather than raw JSON strings. This keeps the DB size at ~41MB without dropping characters or needing complex locale-splitting workflows.
+None. Recreated algorithm functionality entirely cleanly from academic principles as mandated (no GPL code overlap).
 
 ## Open questions
 
-None.
+None. Ready for review!

@@ -544,6 +544,8 @@
   "lockedField": "Locked",
   "autoPlayTts": "Auto-play Pronunciation",
   "autoPlayTtsDesc": "Automatically play pronunciation when flipping cards",
+  "ttsVolume": "Pronunciation Volume",
+  "ttsVolumeDesc": "Adjust text-to-speech reading volume",
   "ttsHelp": "TTS Installation Guide",
   "ttsLanguagesMissing": "Missing TTS Languages",
   "ttsLanguagesMissingDesc": "The following languages are not available for text-to-speech:",
@@ -883,6 +885,103 @@
   "correctStroke": "Correct!",
   "wrongDirection": "Wrong direction",
   "wrongOrder": "Wrong stroke order",
+  "wrongStart": "Wrong starting point",
+  "wrongEnd": "Wrong ending point",
+  "inaccurateStroke": "Inaccurate stroke",
+  "strokeTooShort": "Stroke is too short",
   "tryAgain": "Try again",
-  "strokeDataUnavailable": "Stroke data is not available for this character."
+  "characterProgress": "Character {current} of {total}",
+  "@characterProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "skippedUnsupported": "Skipped {count} unsupported",
+  "@skippedUnsupported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nextCharacter": "Next Character",
+  "strokeDataUnavailable": "Stroke data is not available for this character.",
+  "gentle": "Gentle",
+  "standardPractice": "Standard",
+  "strict": "Strict",
+  "validationProfile": "Leniency",
+  "aiGenerateCards": "AI Generate Cards",
+  "aiGenerateCardsDesc": "Describe the topic or requirements for cards",
+  "aiPromptHint": "e.g., Common greetings in Japanese for beginners...",
+  "cardCount": "Card Count",
+  "maxCards": "Max {count}",
+  "@maxCards": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "includeExamples": "Include Examples",
+  "includeNotes": "Include Notes",
+  "aiModel": "AI Model",
+  "modelPro": "Pro (Higher quality)",
+  "modelFlash": "Flash (Faster)",
+  "freeUsesRemaining": "{count} free uses remaining",
+  "@freeUsesRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "costsOneCredit": "Costs 1 credit per use",
+  "noFreeUsesLeft": "No free uses left",
+  "insufficientCredits": "Insufficient credits",
+  "generate": "Generate",
+  "generating": "Generating...",
+  "aiGeneratedCards": "AI Generated Cards",
+  "selectCardsToAdd": "Select cards to add to your deck",
+  "selectAll": "Select All",
+  "deselectAll": "Deselect All",
+  "addSelectedCards": "Add {count} Cards",
+  "@addSelectedCards": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noCardsGenerated": "No cards were generated",
+  "cardsAddedSuccess": "{count} cards added to deck",
+  "@cardsAddedSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiGenerationFailed": "Failed to generate cards",
+  "pleaseEnterPrompt": "Please describe what cards you want",
+  "requiresSignIn": "Sign in required",
+  "signInToUseAi": "Please sign in to use AI card generation",
+  "shareDeckIdMenu": "Share Deck ID",
+  "deleteDeckMenu": "Delete Deck",
+  "promptSuggestionsTitle": "Prompt Suggestions",
+  "promptSuggestion1": "Generate essential daily conversational phrases for beginners, including greetings, self-introductions, and basic questions.",
+  "promptSuggestion2": "Create professional business vocabulary and sentence templates commonly used for writing emails to clients or partners.",
+  "promptSuggestion3": "Generate vocabulary related to food, ingredients, and useful phrases for ordering meals and asking for the bill at a restaurant.",
+  "promptSuggestion4": "Create a list of common slang words and idioms used in everyday casual communication by native speakers.",
+  "promptSuggestion5": "Generate technical vocabulary and terms related to software engineering, programming, and IT troubleshooting.",
+  "useThisPrompt": "Use this",
+  "noteInstructionsHint": "Instructions for notes (optional)",
+  "noteInstructionsDesc": "e.g., Add synonyms, grammar points, or politeness levels",
+  "unpublishLocalMissingWarning": "This deck does not exist on your local device. If you unpublish it, you will lose it permanently. We recommend importing it back to your device first. Do you still want to unpublish?",
+  "localCopyMissing": "Local Copy Missing",
+  "playStrokeOrder": "Stroke Order"
 }

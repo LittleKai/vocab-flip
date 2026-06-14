@@ -157,7 +157,7 @@ class DeckCardHeader extends StatelessWidget {
     );
   }
 
-  static Widget buildDeckImage(BuildContext context, String? imagePath) {
+  static Widget buildDeckImage(BuildContext context, String? imagePath, {double size = 64}) {
     Widget fallback = Container(
       color: AppColors.primary.withOpacity(0.1),
       child: Icon(Icons.style, color: AppColors.primary, size: 32),
@@ -188,8 +188,8 @@ class DeckCardHeader extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
-        width: 64,
-        height: 64,
+        width: size,
+        height: size,
         child: imageWidget,
       ),
     );

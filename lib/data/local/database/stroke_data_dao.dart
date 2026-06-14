@@ -9,7 +9,8 @@ import '../../models/stroke_character.dart';
 
 class StrokeDataDao {
   static const String _assetName = 'assets/stroke_data.db';
-  static const String _dbName = 'stroke_data.db';
+  static const int _dbVersion = 1;
+  static const String _dbName = 'stroke_data_v$_dbVersion.db';
 
   Database? _database;
   bool _isInitialized = false;
@@ -35,8 +36,23 @@ class StrokeDataDao {
 
       final dbFile = File(dbPath);
       if (!dbFile.existsSync()) {
-        debugPrint('[$_dbName] Copying database from assets...');
-        await Directory(dirname(dbPath)).create(recursive: true);
+        debugPrint('[$_dbName] Copying database from assets (v$_dbVersion)...');
+        final targetDir = Directory(dirname(dbPath));
+        await targetDir.create(recursive: true);
+
+        // Clean up any old stroke_data versions to save space
+        if (targetDir.existsSync()) {
+          final files = targetDir.listSync();
+          for (final f in files) {
+            if (f is File && basename(f.path).startsWith('stroke_data_v') && f.path.endsWith('.db')) {
+              try {
+                f.deleteSync();
+                debugPrint('Deleted old stroke DB: ${f.path}');
+              } catch (_) {}
+            }
+          }
+        }
+
         final data = await rootBundle.load(_assetName);
         final bytes = data.buffer.asUint8List();
         await dbFile.writeAsBytes(bytes, flush: true);

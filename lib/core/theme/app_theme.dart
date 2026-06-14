@@ -92,11 +92,15 @@ class AppTheme {
         thickness: 1,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.primary.withOpacity(0.1),
-        labelStyle: const TextStyle(color: AppColors.primary),
+        backgroundColor: AppColors.primary.withValues(alpha: 0.05),
+        selectedColor: AppColors.primary.withValues(alpha: 0.15),
+        labelStyle: TextStyle(color: AppColors.primary.withValues(alpha: 0.8)),
+        secondaryLabelStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(color: Colors.transparent),
         ),
+        showCheckmark: false,
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surfaceLight,
@@ -196,11 +200,15 @@ class AppTheme {
         thickness: 1,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.primaryLight.withOpacity(0.2),
-        labelStyle: const TextStyle(color: AppColors.primaryLight),
+        backgroundColor: AppColors.primaryLight.withValues(alpha: 0.1),
+        selectedColor: AppColors.primaryLight.withValues(alpha: 0.25),
+        labelStyle: TextStyle(color: AppColors.primaryLight.withValues(alpha: 0.8)),
+        secondaryLabelStyle: const TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.bold),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(color: Colors.transparent),
         ),
+        showCheckmark: false,
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surfaceDark,

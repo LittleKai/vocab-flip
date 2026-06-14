@@ -14,6 +14,7 @@ nul
 CLAUDE.md
 /.claude
 .superpowers/
+/.spec-archive/
 /tools/*
 !/tools/build_stroke_data_test.dart
 !/tools/verify_stroke_data_test.dart

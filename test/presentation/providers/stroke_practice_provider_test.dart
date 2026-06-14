@@ -6,31 +6,34 @@ import 'package:vocabflip/data/services/stroke_validation_service.dart';
 import 'package:vocabflip/presentation/providers/stroke_practice_provider.dart';
 
 class MockStrokeDataRepository implements StrokeDataRepository {
-  final StrokeCharacter? fixture;
+  final Map<String, StrokeCharacter> fixtures;
 
-  MockStrokeDataRepository(this.fixture);
+  MockStrokeDataRepository(this.fixtures);
 
   @override
   Future<StrokeCharacter?> lookupCharacter(
       String character, String sourceLanguage) async {
-    return fixture;
+    return fixtures[character];
   }
 
   @override
   Future<bool> hasStrokeData(String character, String sourceLanguage) async {
-    return fixture != null;
+    return fixtures.containsKey(character);
   }
 }
 
 class MockValidationService implements StrokeValidationService {
   StrokeValidationResult? nextResult;
+  StrokeValidationProfile? lastProfile;
 
   @override
   StrokeValidationResult validateStroke({
     required List<Offset> userPoints,
     required int expectedIndex,
     required StrokeCharacter character,
+    StrokeValidationProfile profile = StrokeValidationProfile.standard,
   }) {
+    lastProfile = profile;
     return nextResult ??
         const StrokeValidationResult.reject(StrokeRejection.tooShort);
   }
@@ -41,23 +44,31 @@ void main() {
     late MockStrokeDataRepository repository;
     late MockValidationService validationService;
     late StrokePracticeProvider provider;
-    late StrokeCharacter testCharacter;
+    late StrokeCharacter char1;
+    late StrokeCharacter char2;
 
     setUp(() {
-      testCharacter = const StrokeCharacter(
-        character: '一',
-        locale: 'zh',
+      char1 = const StrokeCharacter(
+        character: '日',
+        locale: 'ja',
         source: 'test',
         viewBox: [0, 0, 1024, 1024],
         strokes: [
           StrokeData(
-            index: 0,
-            path: 'M0,0 L100,100',
-            median: [StrokePoint(100, 100), StrokePoint(200, 200)],
-          )
+              index: 0, path: 'M0,0 L100,100', median: [StrokePoint(100, 100)]),
         ],
       );
-      repository = MockStrokeDataRepository(testCharacter);
+      char2 = const StrokeCharacter(
+        character: '本',
+        locale: 'ja',
+        source: 'test',
+        viewBox: [0, 0, 1024, 1024],
+        strokes: [
+          StrokeData(
+              index: 0, path: 'M0,0 L100,100', median: [StrokePoint(100, 100)]),
+        ],
+      );
+      repository = MockStrokeDataRepository({'日': char1, '本': char2});
       validationService = MockValidationService();
       provider = StrokePracticeProvider(
         repository: repository,
@@ -65,102 +76,114 @@ void main() {
       );
     });
 
-    test('loadForCard updates state correctly on success', () async {
-      await provider.loadForCard(text: '一', sourceLanguage: 'zh');
+    test('loadForCard(text: 日本) loads two targets', () async {
+      await provider.loadForCard(text: '日本', sourceLanguage: 'ja');
 
       expect(provider.state, StrokePracticeState.ready);
-      expect(provider.currentCharacter, testCharacter);
-      expect(provider.activeStrokeIndex, 0);
-      expect(provider.mistakeCount, 0);
-      expect(provider.completedStrokeCount, 0);
+      expect(provider.currentCharacter, char1);
+      expect(provider.supportedCharacterCount, 2);
+      expect(provider.unsupportedCharacterCount, 0);
     });
 
-    test('loadForCard updates state correctly on failure', () async {
-      repository = MockStrokeDataRepository(null);
-      provider = StrokePracticeProvider(
-          repository: repository, validationService: validationService);
-
-      await provider.loadForCard(text: 'x', sourceLanguage: 'zh');
-
-      expect(provider.state, StrokePracticeState.error);
-      expect(provider.currentCharacter, isNull);
-    });
-
-    test('submitStroke accepts correct strokes and increments count', () async {
-      await provider.loadForCard(text: '一', sourceLanguage: 'zh');
+    test(
+        'completing all strokes for the first target advances activeCharacterIndex',
+        () async {
+      await provider.loadForCard(text: '日本', sourceLanguage: 'ja');
       validationService.nextResult = const StrokeValidationResult.accept(0.9);
 
-      final result = await provider.submitStroke([const Offset(0, 0)]);
+      await provider.submitStroke([const Offset(0, 0)]);
 
-      expect(result.accepted, isTrue);
-      expect(provider.activeStrokeIndex, 1);
-      expect(provider.completedStrokeCount, 1);
-      expect(provider.mistakeCount, 0);
+      // It should advance
+      expect(provider.activeCharacterIndex, 1);
+      expect(provider.currentCharacter, char2);
+      expect(provider.isWordComplete, false);
+      expect(provider.ratingForCompletion(), ReviewRating.again);
     });
 
-    test('submitStroke rejects incorrect strokes and increments mistakes',
+    test('completing the final target sets isWordComplete == true', () async {
+      await provider.loadForCard(text: '日本', sourceLanguage: 'ja');
+      validationService.nextResult = const StrokeValidationResult.accept(0.9);
+
+      await provider.submitStroke([const Offset(0, 0)]); // finishes char1
+      expect(provider.isWordComplete, false);
+
+      await provider.submitStroke([const Offset(0, 0)]); // finishes char2
+      expect(provider.isWordComplete, true);
+      expect(provider.ratingForCompletion(), ReviewRating.easy);
+    });
+
+    test('reset during character advance prevents stale delayed mutation',
         () async {
-      await provider.loadForCard(text: '一', sourceLanguage: 'zh');
+      await provider.loadForCard(text: '日本', sourceLanguage: 'ja');
+      validationService.nextResult = const StrokeValidationResult.accept(0.9);
+
+      final submitFuture = provider.submitStroke([const Offset(0, 0)]);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      provider.resetPractice();
+      await submitFuture;
+
+      expect(provider.activeCharacterIndex, 0);
+      expect(provider.currentCharacter, char1);
+      expect(provider.completedStrokeCount, 0);
+      expect(provider.isWordComplete, false);
+    });
+
+    test('ratingForCompletion uses total mistakes across all targets',
+        () async {
+      await provider.loadForCard(text: '日本', sourceLanguage: 'ja');
+
       validationService.nextResult =
           const StrokeValidationResult.reject(StrokeRejection.wrongDirection);
+      await provider.submitStroke([const Offset(0, 0)]);
 
-      final result = await provider.submitStroke([const Offset(0, 0)]);
-
-      expect(result.accepted, isFalse);
-      expect(provider.activeStrokeIndex, 0);
-      expect(provider.completedStrokeCount, 0);
-      expect(provider.mistakeCount, 1);
-    });
-
-    test('ratingForCompletion maps mistakes to ReviewRating', () async {
-      await provider.loadForCard(text: '一', sourceLanguage: 'zh');
-
-      // Complete the stroke (the character has 1 stroke)
       validationService.nextResult = const StrokeValidationResult.accept(0.9);
       await provider.submitStroke([const Offset(0, 0)]);
 
-      // 0 mistakes -> easy
-      expect(provider.ratingForCompletion(), ReviewRating.easy);
-
-      // Reset and try again with 1 mistake
-      provider.resetPractice();
       validationService.nextResult =
           const StrokeValidationResult.reject(StrokeRejection.wrongDirection);
-      await provider.submitStroke([const Offset(0, 0)]); // mistake
-      validationService.nextResult = const StrokeValidationResult.accept(0.9);
-      await provider.submitStroke([const Offset(0, 0)]); // accept
-      expect(
-          provider.ratingForCompletion(), ReviewRating.good); // <= 2 mistakes
+      await provider.submitStroke([const Offset(0, 0)]);
 
-      // Try with 3 mistakes
-      provider.resetPractice();
-      validationService.nextResult =
-          const StrokeValidationResult.reject(StrokeRejection.wrongDirection);
-      await provider.submitStroke([const Offset(0, 0)]); // 1
-      await provider.submitStroke([const Offset(0, 0)]); // 2
-      await provider.submitStroke([const Offset(0, 0)]); // 3
       validationService.nextResult = const StrokeValidationResult.accept(0.9);
-      await provider.submitStroke([const Offset(0, 0)]); // accept
-      expect(
-          provider.ratingForCompletion(), ReviewRating.hard); // <= 5 mistakes
+      await provider.submitStroke([const Offset(0, 0)]);
 
-      // Try with 6 mistakes
-      provider.resetPractice();
-      validationService.nextResult =
-          const StrokeValidationResult.reject(StrokeRejection.wrongDirection);
-      for (int i = 0; i < 6; i++) {
-        await provider.submitStroke([const Offset(0, 0)]);
-      }
-      validationService.nextResult = const StrokeValidationResult.accept(0.9);
-      await provider.submitStroke([const Offset(0, 0)]); // accept
-      expect(
-          provider.ratingForCompletion(), ReviewRating.again); // > 5 mistakes
+      expect(provider.isWordComplete, true);
+      expect(provider.ratingForCompletion(), ReviewRating.good);
     });
 
-    test('ratingForCompletion returns again if incomplete', () async {
-      await provider.loadForCard(text: '一', sourceLanguage: 'zh');
-      // No strokes submitted
-      expect(provider.ratingForCompletion(), ReviewRating.again);
+    test('mixed text skips unsupported characters and reports count', () async {
+      await provider.loadForCard(text: '日本!A', sourceLanguage: 'ja');
+
+      expect(provider.state, StrokePracticeState.ready);
+      expect(provider.supportedCharacterCount, 2);
+      expect(provider.unsupportedCharacterCount, 2); // '!' and 'A'
+    });
+
+    test('text with no supported characters enters error state', () async {
+      await provider.loadForCard(text: 'Hello', sourceLanguage: 'ja');
+
+      expect(provider.state, StrokePracticeState.error);
+      expect(provider.supportedCharacterCount, 0);
+    });
+
+    test('changes validation profile and passes it to service', () async {
+      await provider.loadForCard(text: '日', sourceLanguage: 'ja');
+
+      provider.setValidationProfile(StrokeValidationProfile.gentle);
+      expect(provider.validationProfile, StrokeValidationProfile.gentle);
+
+      validationService.nextResult = const StrokeValidationResult.accept(0.9);
+      await provider.submitStroke([const Offset(0, 0)]);
+
+      expect(validationService.lastProfile, StrokeValidationProfile.gentle);
+    });
+
+    test('resetPractice does not reset validation profile', () async {
+      await provider.loadForCard(text: '日', sourceLanguage: 'ja');
+      provider.setValidationProfile(StrokeValidationProfile.strict);
+
+      provider.resetPractice();
+      expect(provider.validationProfile, StrokeValidationProfile.strict);
     });
   });
 }

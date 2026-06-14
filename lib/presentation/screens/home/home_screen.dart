@@ -1,9 +1,12 @@
+import 'dart:math' show min;
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/deck_navigation.dart';
+import '../../../data/models/deck.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/update_provider.dart';
@@ -11,9 +14,9 @@ import '../../widgets/dialogs/update_dialog.dart';
 import '../../widgets/common/responsive_grid.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
-import 'package:draggable_home/draggable_home.dart';
 import '../../widgets/stats/study_heatmap.dart';
 import '../../widgets/deck/deck_summary_card.dart';
+import '../../widgets/common/deck_card_header.dart';
 import '../deck/deck_list_screen.dart';
 import '../statistics/statistics_screen.dart';
 import '../settings/settings_screen.dart';
@@ -235,6 +238,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Home Tab - redesigned with CustomScrollView
+// ---------------------------------------------------------------------------
+
 class _HomeTab extends StatelessWidget {
   final VoidCallback? onSeeAllDecks;
 
@@ -244,37 +251,54 @@ class _HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<DeckProvider, SettingsProvider>(
       builder: (context, deckProvider, settingsProvider, child) {
-        return DraggableHome(
-          title: Text(AppLocalizations.of(context)!.home),
-          headerWidget: Container(
-            padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-            color: Theme.of(context).scaffoldBackgroundColor,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildHeaderRow(context, settingsProvider),
-                const SizedBox(height: 24),
-                _buildHeroCard(context, deckProvider),
-              ],
-            ),
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-          headerExpandedHeight: 0.4,
-          body: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildQuickStats(context, deckProvider, settingsProvider),
-                  const SizedBox(height: 32),
-                  StudyHeatmap(),
-                  const SizedBox(height: 40),
-                  _buildDueTodaySection(context, deckProvider),
-                  const SizedBox(height: 40),
-                  _buildRecentDecks(context, deckProvider),
-                  const SizedBox(height: 100), // padding for bottom nav
-                ],
+          slivers: [
+            // Greeting header
+            SliverToBoxAdapter(
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: _buildHeaderRow(context, settingsProvider),
+                ),
+              ),
+            ),
+            // Hero card
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: _buildHeroCard(context, deckProvider),
+              ),
+            ),
+            // Quick stats (2 + 1 asymmetric)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                child: _buildQuickStats(context, deckProvider),
+              ),
+            ),
+            // Study heatmap
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 32, 20, 0),
+                child: StudyHeatmap(),
+              ),
+            ),
+            // Due today (horizontal scroll - handles its own horizontal padding)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: _buildDueTodaySection(context, deckProvider),
+              ),
+            ),
+            // Recent decks (vertical list)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 32, 20, 100),
+                child: _buildRecentDecks(context, deckProvider),
               ),
             ),
           ],
@@ -282,6 +306,8 @@ class _HomeTab extends StatelessWidget {
       },
     );
   }
+
+  // -- Header: greeting + streak chip ------------------------------------
 
   Widget _buildHeaderRow(BuildContext context, SettingsProvider settings) {
     final l10n = AppLocalizations.of(context)!;
@@ -295,289 +321,396 @@ class _HomeTab extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              greeting,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.textPrimary(context),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.readyToLearn,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary(context),
-                  ),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                greeting,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: AppColors.textPrimary(context),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.readyToLearn,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textSecondary(context),
+                    ),
+              ),
+            ],
+          ),
         ),
         _HeroMetricChip(
           icon: Icons.local_fire_department_rounded,
           label: l10n.dayStreak(settings.streak),
           color: AppColors.accent,
-          bgColor: AppColors.accent.withOpacity(0.12),
+          bgColor: AppColors.accent.withValues(alpha: 0.12),
         ),
       ],
     );
   }
 
+  // -- Hero card: gradient + decorative depth circles --------------------
+
   Widget _buildHeroCard(BuildContext context, DeckProvider provider) {
     final l10n = AppLocalizations.of(context)!;
-    final dueDecks = provider.decks.where((deck) => deck.dueCount > 0).toList();
+    final dueDecks =
+        provider.decks.where((deck) => deck.dueCount > 0).toList();
     final primaryDeck = dueDecks.isNotEmpty ? dueDecks.first : null;
     final hasDue = provider.totalDueCards > 0 && primaryDeck != null;
 
-    final textColor = Colors.white;
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(28),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment(-1, -0.8),
+          end: Alignment(1, 0.8),
           colors: [
-            AppColors.primaryDark,
-            AppColors.primary,
-            AppColors.secondaryDark,
+            Color(0xFF4C1D95), // Deep Purple 900
+            Color(0xFF7C3AED), // Violet 600
+            Color(0xFFEC4899), // Pink 500
           ],
+          stops: [0.0, 0.5, 1.0],
         ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.25),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+            color: AppColors.primary.withValues(alpha: 0.30),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  hasDue ? Icons.auto_stories_rounded : Icons.check_circle_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const Spacer(),
-              if (hasDue)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    primaryDeck.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
+          // Decorative circles for depth
+          Positioned(
+            top: -30,
+            right: -20,
+            child: _circle(120, 0.08),
           ),
-          const SizedBox(height: 24),
-          Text(
-            hasDue ? '${provider.totalDueCards}' : '0',
-            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w900,
-                  height: 1.1,
-                ),
+          Positioned(
+            bottom: -40,
+            left: -30,
+            child: _circle(150, 0.05),
           ),
-          Text(
-            hasDue ? l10n.cardsDue(provider.totalDueCards) : l10n.allCaughtUp,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: textColor.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
-                ),
+          Positioned(
+            top: 50,
+            right: 70,
+            child: _circle(44, 0.07),
           ),
-          const SizedBox(height: 32),
-          if (hasDue)
-              SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: () => DeckNavigation.navigateToStudy(context, primaryDeck.id),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.primary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: Text(
-                  l10n.startStudy,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickStats(
-    BuildContext context,
-    DeckProvider deckProvider,
-    SettingsProvider settings,
-  ) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            icon: Icons.folder,
-            label: l10n.decks,
-            value: '${deckProvider.totalDecks}',
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.style,
-            label: l10n.cards,
-            value: '${deckProvider.totalCards}',
-            color: AppColors.secondary,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.schedule,
-            label: l10n.due,
-            value: '${deckProvider.totalDueCards}',
-            color: AppColors.accent,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDueTodaySection(BuildContext context, DeckProvider provider) {
-    final l10n = AppLocalizations.of(context)!;
-    final dueDecks = provider.decks.where((d) => d.dueCount > 0).toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.dueToday,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                  ),
-            ),
-            if (dueDecks.length > 3 && onSeeAllDecks != null)
-              TextButton(
-                onPressed: onSeeAllDecks,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  textStyle: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                child: Text(l10n.seeAll),
-              ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (dueDecks.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.primary.withOpacity(0.08)),
-            ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(28),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primaryDark,
-                        AppColors.primary,
-                        AppColors.secondaryDark,
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+                      child: Icon(
+                        hasDue
+                            ? Icons.auto_stories_rounded
+                            : Icons.check_circle_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (hasDue)
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 160),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          primaryDeck.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 28),
                 Text(
-                  l10n.allCaughtUp,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary(context),
+                  hasDue ? '${provider.totalDueCards}' : '0',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        height: 1.0,
+                        letterSpacing: -1,
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  l10n.noCardsToReviewToday,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary(context),
+                  hasDue
+                      ? l10n.cardsDue(provider.totalDueCards)
+                      : l10n.allCaughtUp,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontWeight: FontWeight.w500,
                       ),
                 ),
+                if (hasDue) ...[
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: () => DeckNavigation.navigateToStudy(
+                          context, primaryDeck.id),
+                      icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                      label: Text(
+                        l10n.startStudy,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF7C3AED), // Violet match
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _circle(double size, double opacity) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: opacity),
+      ),
+    );
+  }
+
+  // -- Quick stats: 2-column + full-width due banner ---------------------
+
+  Widget _buildQuickStats(BuildContext context, DeckProvider deckProvider) {
+    final l10n = AppLocalizations.of(context)!;
+    final hasDue = deckProvider.totalDueCards > 0;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                icon: Icons.folder_rounded,
+                label: l10n.decks,
+                value: '${deckProvider.totalDecks}',
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.style_rounded,
+                label: l10n.cards,
+                value: '${deckProvider.totalCards}',
+                color: AppColors.secondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Full-width due banner
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: hasDue
+                ? AppColors.accent.withValues(alpha: 0.10)
+                : AppColors.success.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: hasDue
+                  ? AppColors.accent.withValues(alpha: 0.15)
+                  : AppColors.success.withValues(alpha: 0.12),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: (hasDue ? AppColors.accent : AppColors.success)
+                      .withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  hasDue
+                      ? Icons.schedule_rounded
+                      : Icons.check_circle_rounded,
+                  color: hasDue ? AppColors.accent : AppColors.success,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                '${deckProvider.totalDueCards}',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color:
+                          hasDue ? AppColors.accentDark : AppColors.success,
+                    ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.due,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary(context),
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // -- Due today: horizontal scrollable cards ----------------------------
+
+  Widget _buildDueTodaySection(BuildContext context, DeckProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+    final dueDecks =
+        provider.decks.where((d) => d.dueCount > 0).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.dueToday,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+              ),
+              if (dueDecks.length > 3 && onSeeAllDecks != null)
+                TextButton(
+                  onPressed: onSeeAllDecks,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  child: Text(l10n.seeAll),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (dueDecks.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildEmptyDueState(context),
           )
         else
-          _ResponsiveCardList(
-            items: dueDecks.take(3).toList(),
-            itemBuilder: (deck) => DeckSummaryCard(
-              deck: deck,
-              cardCountLabel: l10n.nCards(deck.cardCount),
-              dueLabel: l10n.cardsDue(deck.dueCount),
-              studyLabel: l10n.study,
-              onTap: () => DeckNavigation.navigateToStudy(context, deck.id),
-              onStudy: () => DeckNavigation.navigateToStudy(context, deck.id),
-              compact: true,
+          SizedBox(
+            height: 200,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: min(dueDecks.length, 8),
+              separatorBuilder: (_, __) => const SizedBox(width: 14),
+              itemBuilder: (context, index) {
+                final deck = dueDecks[index];
+                return _DueDeckCard(
+                  deck: deck,
+                  dueLabel: l10n.cardsDue(deck.dueCount),
+                  studyLabel: l10n.study,
+                  onStudy: () =>
+                      DeckNavigation.navigateToStudy(context, deck.id),
+                );
+              },
             ),
           ),
       ],
     );
   }
+
+  Widget _buildEmptyDueState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.10)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.success,
+              size: 36,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            l10n.allCaughtUp,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary(context),
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.noCardsToReviewToday,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary(context),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Recent decks: vertical card list ----------------------------------
 
   Widget _buildRecentDecks(BuildContext context, DeckProvider provider) {
     final l10n = AppLocalizations.of(context)!;
@@ -628,6 +761,10 @@ class _HomeTab extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Stat card (horizontal layout: icon left, value + label right)
+// ---------------------------------------------------------------------------
+
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -646,49 +783,52 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: color.withValues(alpha: 0.04), // Tinted background
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: color.withValues(alpha: 0.12)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: color.withValues(alpha: 0.10),
+              shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary(context),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary(context),
+                      ),
                 ),
-          ),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(context),
-                  fontWeight: FontWeight.w500,
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary(context),
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Streak / metric chip (pill)
+// ---------------------------------------------------------------------------
 
 class _HeroMetricChip extends StatelessWidget {
   final IconData icon;
@@ -709,7 +849,7 @@ class _HeroMetricChip extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 220),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: bgColor ?? color.withOpacity(0.1),
+        color: bgColor ?? color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -733,6 +873,106 @@ class _HeroMetricChip extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Due deck card (compact, used in horizontal scroll)
+// ---------------------------------------------------------------------------
+
+class _DueDeckCard extends StatelessWidget {
+  final Deck deck;
+  final String dueLabel;
+  final String studyLabel;
+  final VoidCallback onStudy;
+
+  const _DueDeckCard({
+    required this.deck,
+    required this.dueLabel,
+    required this.studyLabel,
+    required this.onStudy,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final langColor = DeckCardHeader.getLanguageColor(deck.sourceLanguage);
+
+    return GestureDetector(
+      onTap: onStudy,
+      child: Container(
+        width: 156,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: langColor.withValues(alpha: 0.03), // Subtle lang tint
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: langColor.withValues(alpha: 0.18)),
+          boxShadow: [
+            BoxShadow(
+              color: langColor.withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                DeckCardHeader.buildDeckImage(
+                  context,
+                  deck.imagePath,
+                  size: 40,
+                ),
+                const Spacer(),
+                DeckCardHeader.buildLanguageBadge(
+                    context, deck.sourceLanguage),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              deck.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const Spacer(),
+            DeckStatusChip(
+              icon: Icons.schedule,
+              label: dueLabel,
+              color: AppColors.accent,
+              emphasized: true,
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 34,
+              child: ElevatedButton.icon(
+                onPressed: onStudy,
+                icon: const Icon(Icons.play_arrow_rounded, size: 16),
+                label: Text(studyLabel),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                  foregroundColor: AppColors.primary,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Responsive card list (used by Recent Decks)
+// ---------------------------------------------------------------------------
 
 /// Lays out items in a responsive grid inside a non-scrollable context.
 /// Uses shrinkWrap GridView for multi-column, or Column for single column.

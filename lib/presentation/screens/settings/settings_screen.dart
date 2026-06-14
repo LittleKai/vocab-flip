@@ -187,7 +187,7 @@ class SettingsScreen extends StatelessWidget {
                 title: l10n.appearance,
                 children: [
                   _SettingsSwitchTile(
-                    leading: const Icon(Icons.dark_mode, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.dark_mode, color: Colors.indigo, size: 22),
                     title: l10n.darkMode,
                     subtitle: l10n.useDarkTheme,
                     value: settings.isDarkMode,
@@ -195,7 +195,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsTile(
-                    leading: const Icon(Icons.language, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.language, color: Colors.teal, size: 22),
                     title: l10n.language,
                     subtitle: settings.locale == 'vi' ? 'Tiếng Việt' : 'English',
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
@@ -209,7 +209,7 @@ class SettingsScreen extends StatelessWidget {
                 title: l10n.studySettings,
                 children: [
                   _SettingsTile(
-                    leading: const Icon(Icons.fiber_new, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.fiber_new, color: Colors.blue, size: 22),
                     title: l10n.newCardsPerDay,
                     subtitle: l10n.nCards(settings.newCardsPerDay),
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
@@ -222,7 +222,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsTile(
-                    leading: const Icon(Icons.replay, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.replay, color: Colors.purple, size: 22),
                     title: l10n.reviewCardsPerDay,
                     subtitle: l10n.nCards(settings.reviewCardsPerDay),
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
@@ -235,7 +235,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsSwitchTile(
-                    leading: const Icon(Icons.record_voice_over, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.record_voice_over, color: Colors.deepOrange, size: 22),
                     title: l10n.showPhonetic,
                     subtitle: l10n.displayPronunciation,
                     value: settings.showPhonetic,
@@ -243,15 +243,36 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsSwitchTile(
-                    leading: const Icon(Icons.volume_up, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.play_circle_fill, color: Colors.green, size: 22),
                     title: l10n.autoPlayAudio,
                     subtitle: l10n.automaticallyPlayPronunciation,
                     value: settings.autoPlayAudio,
                     onChanged: settings.setAutoPlayAudio,
                   ),
                   const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.volume_up, color: Colors.cyan, size: 22),
+                    title: l10n.ttsVolume,
+                    subtitle: l10n.ttsVolumeDesc,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${(settings.ttsVolume * 100).round()}%',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                      ],
+                    ),
+                    onTap: () => _showTtsVolumePicker(context, settings, l10n),
+                  ),
+                  const Divider(height: 1, indent: 70),
                   _SettingsSwitchTile(
-                    leading: const Icon(Icons.science, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.science, color: Colors.pink, size: 22),
                     title: l10n.advancedLearningScience,
                     subtitle: l10n.advancedLearningScienceDesc,
                     value: settings.advancedLearningScience,
@@ -259,7 +280,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsTile(
-                    leading: const Icon(Icons.photo_size_select_large, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.photo_size_select_large, color: Colors.brown, size: 22),
                     title: l10n.flashcardImageSize,
                     subtitle: '${settings.flashcardImageMaxWidth}px',
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
@@ -267,7 +288,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsTile(
-                    leading: const Icon(Icons.text_fields, color: AppColors.primary, size: 22),
+                    leading: const Icon(Icons.text_fields, color: Colors.blueGrey, size: 22),
                     title: l10n.flashcardFontSize,
                     subtitle: l10n.fontSizePixels(settings.flashcardMainFontSize),
                     trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
@@ -512,6 +533,55 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showTtsVolumePicker(
+      BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
+    showStandardDialog(
+      context: context,
+      title: l10n.ttsVolume,
+      primaryButtonText: l10n.done,
+      customContent: StatefulBuilder(
+        builder: (context, setState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.ttsVolumeDesc,
+              style: TextStyle(color: AppColors.textSecondary(context), fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(Icons.volume_mute, size: 24, color: AppColors.textSecondary(context)),
+                Text(
+                  '${(settings.ttsVolume * 100).round()}%',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                Icon(Icons.volume_up, size: 24, color: AppColors.primary),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Slider(
+              value: settings.ttsVolume,
+              min: 0.0,
+              max: 2.0,
+              divisions: 40, // 5% steps
+              activeColor: AppColors.primary,
+              onChanged: (value) {
+                settings.setTtsVolume(value);
+                setState(() {});
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showFontSizePicker(
       BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
     showStandardDialog(
@@ -530,7 +600,7 @@ class SettingsScreen extends StatelessWidget {
               _FontSizeSlider(
                 value: settings.flashcardMainFontSize,
                 min: 20,
-                max: 48,
+                max: 80,
                 onChanged: (value) {
                   settings.setFlashcardMainFontSize(value);
                   setState(() {});
@@ -543,7 +613,7 @@ class SettingsScreen extends StatelessWidget {
               _FontSizeSlider(
                 value: settings.flashcardPhoneticFontSize,
                 min: 14,
-                max: 32,
+                max: 48,
                 onChanged: (value) {
                   settings.setFlashcardPhoneticFontSize(value);
                   setState(() {});
@@ -556,7 +626,7 @@ class SettingsScreen extends StatelessWidget {
               _FontSizeSlider(
                 value: settings.flashcardDetailFontSize,
                 min: 12,
-                max: 24,
+                max: 32,
                 onChanged: (value) {
                   settings.setFlashcardDetailFontSize(value);
                   setState(() {});

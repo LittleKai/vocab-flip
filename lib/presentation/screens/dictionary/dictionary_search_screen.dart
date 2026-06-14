@@ -8,10 +8,14 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../core/utils/romaji_converter.dart';
 import '../../../data/models/dictionary_result.dart';
+import '../../../data/models/stroke_character.dart';
+import '../../../data/local/database/stroke_data_dao.dart';
+import '../../../data/repositories/stroke_data_repository.dart';
 import '../../../data/services/tts_service.dart';
 import '../../providers/dictionary_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/common/loading_widget.dart';
+import '../../widgets/stroke/stroke_order_animation.dart';
 
 class DictionarySearchScreen extends StatefulWidget {
   const DictionarySearchScreen({super.key});
@@ -67,49 +71,52 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                     ],
                   ),
                   child: Column(
-                      children: [
-                        // Language selector + conversion buttons + settings
-                        Row(
-                          children: [
-                            if (!isNarrow) ...[
-                              Text('${l10n.dictionary}: ', 
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500, 
-                                    color: AppColors.textSecondaryLight
-                                  )
-                              ),
-                              const SizedBox(width: 4),
-                            ],
-                            // Language dropdown
-                            DropdownButton<SupportedLanguage>(
-                              value: provider.selectedLanguage,
-                              underline: const SizedBox(),
-                              isDense: true,
-                              items: [
-                                SupportedLanguage.english,
-                                SupportedLanguage.japanese,
-                                SupportedLanguage.chinese,
-                              ].map((lang) {
-                                String getLangName(SupportedLanguage l) {
-                                  switch (l) {
-                                    case SupportedLanguage.english: return l10n.english;
-                                    case SupportedLanguage.japanese: return l10n.japanese;
-                                    case SupportedLanguage.chinese: return l10n.chinese;
-                                    case SupportedLanguage.vietnamese: return l10n.vietnamese;
-                                  }
+                    children: [
+                      // Language selector + conversion buttons + settings
+                      Row(
+                        children: [
+                          if (!isNarrow) ...[
+                            Text('${l10n.dictionary}: ',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textSecondaryLight)),
+                            const SizedBox(width: 4),
+                          ],
+                          // Language dropdown
+                          DropdownButton<SupportedLanguage>(
+                            value: provider.selectedLanguage,
+                            underline: const SizedBox(),
+                            isDense: true,
+                            items: [
+                              SupportedLanguage.english,
+                              SupportedLanguage.japanese,
+                              SupportedLanguage.chinese,
+                            ].map((lang) {
+                              String getLangName(SupportedLanguage l) {
+                                switch (l) {
+                                  case SupportedLanguage.english:
+                                    return l10n.english;
+                                  case SupportedLanguage.japanese:
+                                    return l10n.japanese;
+                                  case SupportedLanguage.chinese:
+                                    return l10n.chinese;
+                                  case SupportedLanguage.vietnamese:
+                                    return l10n.vietnamese;
                                 }
-                                return DropdownMenuItem(
-                                  value: lang,
-                                  child: Text(getLangName(lang),
-                                      style: const TextStyle(fontSize: 14)),
-                                );
-                              }).toList(),
-                              onChanged: (lang) {
-                                if (lang != null) {
-                                  provider.setLanguage(lang);
-                                }
-                              },
-                            ),
+                              }
+
+                              return DropdownMenuItem(
+                                value: lang,
+                                child: Text(getLangName(lang),
+                                    style: const TextStyle(fontSize: 14)),
+                              );
+                            }).toList(),
+                            onChanged: (lang) {
+                              if (lang != null) {
+                                provider.setLanguage(lang);
+                              }
+                            },
+                          ),
 
                           // Conversion buttons for Japanese
                           if (provider.selectedLanguage ==
@@ -257,13 +264,15 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.search),
                         label: Text(l10n.lookUp),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                          textStyle:
+                              const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ),
                     ),
@@ -277,7 +286,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                         label: Text(l10n.cancel),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 16),
                         ),
                       ),
                     ],
@@ -302,7 +312,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     if (query.isNotEmpty) {
       // Auto-convert Romaji to Hiragana for Japanese
       if (provider.selectedLanguage == SupportedLanguage.japanese) {
-        if (!RomajiConverter.isJapanese(query) && RomajiConverter.isRomaji(query)) {
+        if (!RomajiConverter.isJapanese(query) &&
+            RomajiConverter.isRomaji(query)) {
           query = RomajiConverter.convertToKana(query, toKatakana: false);
           _searchController.value = TextEditingValue(
             text: query,
@@ -310,7 +321,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
           );
         }
       }
-      
+
       provider.lookup(query, limit: _resultLimit);
       _focusNode.unfocus();
     }
@@ -375,115 +386,108 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
       customContent: StatefulBuilder(
         builder: (context, setDialogState) {
           return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Result limit
+                Text(l10n.resultLimit,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
                   children: [
-                    // Result limit
-                    Text(l10n.resultLimit,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            value: tempLimit.toDouble(),
-                            min: 1,
-                            max: 10,
-                            divisions: 9,
-                            label: '$tempLimit',
-                            onChanged: (value) {
-                              setDialogState(() {
-                                tempLimit = value.round();
-                              });
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                          width: 40,
-                          child:
-                              Text('$tempLimit', textAlign: TextAlign.center),
-                        ),
-                      ],
+                    Expanded(
+                      child: Slider(
+                        value: tempLimit.toDouble(),
+                        min: 1,
+                        max: 10,
+                        divisions: 9,
+                        label: '$tempLimit',
+                        onChanged: (value) {
+                          setDialogState(() {
+                            tempLimit = value.round();
+                          });
+                        },
+                      ),
                     ),
-
-                    const Divider(height: 24),
-
-                    // Filter mode
-                    Text(l10n.filterMode,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    _FilterOption(
-                      title: l10n.filterExactFirst,
-                      subtitle: l10n.filterExactFirstDesc,
-                      value: 'exact_first',
-                      groupValue: tempFilterMode,
-                      onChanged: (v) =>
-                          setDialogState(() => tempFilterMode = v!),
-                    ),
-                    _FilterOption(
-                      title: l10n.filterWithMeanings,
-                      subtitle: l10n.filterWithMeaningsDesc,
-                      value: 'with_meanings',
-                      groupValue: tempFilterMode,
-                      onChanged: (v) =>
-                          setDialogState(() => tempFilterMode = v!),
-                    ),
-                    _FilterOption(
-                      title: l10n.filterAll,
-                      subtitle: l10n.filterAllDesc,
-                      value: 'all',
-                      groupValue: tempFilterMode,
-                      onChanged: (v) =>
-                          setDialogState(() => tempFilterMode = v!),
-                    ),
-
-                    const Divider(height: 24),
-
-                    // Fetch mode
-                    const Text('Nguồn dữ liệu',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    _FilterOption(
-                      title: 'Kết hợp cả 2',
-                      subtitle: 'Sử dụng cả offline database và online API',
-                      value: 'both',
-                      groupValue: tempFetchMode,
-                      onChanged: (v) =>
-                          setDialogState(() => tempFetchMode = v!),
-                    ),
-                    _FilterOption(
-                      title: 'Chỉ Offline',
-                      subtitle: 'Chỉ tìm trong máy, không cần internet',
-                      value: 'offline',
-                      groupValue: tempFetchMode,
-                      onChanged: (v) =>
-                          setDialogState(() => tempFetchMode = v!),
-                    ),
-                    _FilterOption(
-                      title: 'Chỉ Online',
-                      subtitle: 'Chỉ tìm trên máy chủ',
-                      value: 'online',
-                      groupValue: tempFetchMode,
-                      onChanged: (v) =>
-                          setDialogState(() => tempFetchMode = v!),
-                    ),
-
-                    const Divider(height: 24),
-
-                    // Fallback to English
-                    SwitchListTile(
-                      title: Text(l10n.fallbackToEnglish),
-                      subtitle: Text(l10n.fallbackToEnglishDesc),
-                      value: tempFallback,
-                      onChanged: (v) => setDialogState(() => tempFallback = v),
-                      contentPadding: EdgeInsets.zero,
+                    SizedBox(
+                      width: 40,
+                      child: Text('$tempLimit', textAlign: TextAlign.center),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
+
+                const Divider(height: 24),
+
+                // Filter mode
+                Text(l10n.filterMode,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                _FilterOption(
+                  title: l10n.filterExactFirst,
+                  subtitle: l10n.filterExactFirstDesc,
+                  value: 'exact_first',
+                  groupValue: tempFilterMode,
+                  onChanged: (v) => setDialogState(() => tempFilterMode = v!),
+                ),
+                _FilterOption(
+                  title: l10n.filterWithMeanings,
+                  subtitle: l10n.filterWithMeaningsDesc,
+                  value: 'with_meanings',
+                  groupValue: tempFilterMode,
+                  onChanged: (v) => setDialogState(() => tempFilterMode = v!),
+                ),
+                _FilterOption(
+                  title: l10n.filterAll,
+                  subtitle: l10n.filterAllDesc,
+                  value: 'all',
+                  groupValue: tempFilterMode,
+                  onChanged: (v) => setDialogState(() => tempFilterMode = v!),
+                ),
+
+                const Divider(height: 24),
+
+                // Fetch mode
+                const Text('Nguồn dữ liệu',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                _FilterOption(
+                  title: 'Kết hợp cả 2',
+                  subtitle: 'Sử dụng cả offline database và online API',
+                  value: 'both',
+                  groupValue: tempFetchMode,
+                  onChanged: (v) => setDialogState(() => tempFetchMode = v!),
+                ),
+                _FilterOption(
+                  title: 'Chỉ Offline',
+                  subtitle: 'Chỉ tìm trong máy, không cần internet',
+                  value: 'offline',
+                  groupValue: tempFetchMode,
+                  onChanged: (v) => setDialogState(() => tempFetchMode = v!),
+                ),
+                _FilterOption(
+                  title: 'Chỉ Online',
+                  subtitle: 'Chỉ tìm trên máy chủ',
+                  value: 'online',
+                  groupValue: tempFetchMode,
+                  onChanged: (v) => setDialogState(() => tempFetchMode = v!),
+                ),
+
+                const Divider(height: 24),
+
+                // Fallback to English
+                SwitchListTile(
+                  title: Text(l10n.fallbackToEnglish),
+                  subtitle: Text(l10n.fallbackToEnglishDesc),
+                  value: tempFallback,
+                  onChanged: (v) => setDialogState(() => tempFallback = v),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
       secondaryButtonText: l10n.cancel,
       onSecondaryPressed: () {},
       primaryButtonText: l10n.save,
@@ -553,78 +557,79 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     final hasFallbackBanner =
         provider.usedFallback && provider.fallbackSource != null;
     final baseItemCount = provider.results.length + (hasFallbackBanner ? 1 : 0);
-    final showLoadingAtBottom = provider.isLoading && provider.results.isNotEmpty;
+    final showLoadingAtBottom =
+        provider.isLoading && provider.results.isNotEmpty;
     final itemCount = baseItemCount + (showLoadingAtBottom ? 1 : 0);
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: itemCount,
       itemBuilder: (context, index) {
-          // Loading indicator at the bottom
-          if (showLoadingAtBottom && index == itemCount - 1) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Đang tìm thêm trên các nguồn online...',
-                    style: TextStyle(
-                      color: AppColors.textSecondaryLight.withValues(alpha: 0.8),
-                      fontStyle: FontStyle.italic,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Show fallback notification banner as first item
-          if (hasFallbackBanner && index == 0) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Không tìm được từ điển Việt. Đang hiển thị kết quả từ ${provider.fallbackSource}.',
-                      style: const TextStyle(fontSize: 13, color: Colors.orange),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final resultIndex = hasFallbackBanner ? index - 1 : index;
-          final result = provider.results[resultIndex];
+        // Loading indicator at the bottom
+        if (showLoadingAtBottom && index == itemCount - 1) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _DictionaryResultCard(
-              result: result,
-              resultIndex: resultIndex + 1,
-              totalResults: provider.results.length,
-              selectedLanguage: provider.selectedLanguage,
-              onAddToDeck: () => _showAddToDeckDialog(context, result),
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Đang tìm thêm trên các nguồn online...',
+                  style: TextStyle(
+                    color: AppColors.textSecondaryLight.withValues(alpha: 0.8),
+                    fontStyle: FontStyle.italic,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
           );
-        },
-      );
+        }
+
+        // Show fallback notification banner as first item
+        if (hasFallbackBanner && index == 0) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Không tìm được từ điển Việt. Đang hiển thị kết quả từ ${provider.fallbackSource}.',
+                    style: const TextStyle(fontSize: 13, color: Colors.orange),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final resultIndex = hasFallbackBanner ? index - 1 : index;
+        final result = provider.results[resultIndex];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _DictionaryResultCard(
+            result: result,
+            resultIndex: resultIndex + 1,
+            totalResults: provider.results.length,
+            selectedLanguage: provider.selectedLanguage,
+            onAddToDeck: () => _showAddToDeckDialog(context, result),
+          ),
+        );
+      },
+    );
   }
 
   void _showAddToDeckDialog(BuildContext context, DictionaryResult result) {
@@ -676,7 +681,8 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24)),
               titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
               contentPadding: const EdgeInsets.symmetric(horizontal: 24),
               actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -977,8 +983,9 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
               ),
               actions: [
                 TextButton(
-                style: TextButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                
+                  style: TextButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12))),
                   onPressed: () {
                     phoneticController.dispose();
                     backController.dispose();
@@ -1084,6 +1091,26 @@ class _DictionaryResultCard extends StatelessWidget {
     this.onAddToDeck,
   });
 
+  void _showStrokeOrderDialog(
+      BuildContext context, String word, SupportedLanguage language) {
+    final l10n = AppLocalizations.of(context)!;
+
+    final targetChars = word.characters
+        .where((char) => RegExp(r'[一-龿]').hasMatch(char))
+        .toList();
+    if (targetChars.isEmpty) return;
+
+    showStandardDialog(
+      context: context,
+      title: l10n.playStrokeOrder,
+      customContent: _StrokeAnimationDialogContent(
+        characters: targetChars,
+        sourceLanguage: language.code,
+      ),
+      primaryButtonText: l10n.close,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -1098,96 +1125,106 @@ class _DictionaryResultCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Result number badge & Data Source badge
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            if (totalResults > 1)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.textSecondaryLight
-                                      .withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '$resultIndex / $totalResults',
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondaryLight),
-                                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Result number badge & Data Source badge
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          if (totalResults > 1)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.textSecondaryLight
+                                    .withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            if (result.dataSource != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                  color: result.dataSource!.toLowerCase().contains('offline') 
-                                      ? Colors.blueGrey.withValues(alpha: 0.2)
-                                      : Colors.green.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      result.dataSource!.toLowerCase().contains('offline')
-                                          ? Icons.sd_storage
-                                          : Icons.cloud_done,
-                                      size: 12,
-                                      color: result.dataSource!.toLowerCase().contains('offline')
+                              child: Text(
+                                '$resultIndex / $totalResults',
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondaryLight),
+                              ),
+                            ),
+                          if (result.dataSource != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: result.dataSource!
+                                        .toLowerCase()
+                                        .contains('offline')
+                                    ? Colors.blueGrey.withValues(alpha: 0.2)
+                                    : Colors.green.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    result.dataSource!
+                                            .toLowerCase()
+                                            .contains('offline')
+                                        ? Icons.sd_storage
+                                        : Icons.cloud_done,
+                                    size: 12,
+                                    color: result.dataSource!
+                                            .toLowerCase()
+                                            .contains('offline')
+                                        ? Colors.blueGrey
+                                        : Colors.green,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    result.dataSource!,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: result.dataSource!
+                                              .toLowerCase()
+                                              .contains('offline')
                                           ? Colors.blueGrey
                                           : Colors.green,
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      result.dataSource!,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: result.dataSource!.toLowerCase().contains('offline')
-                                            ? Colors.blueGrey
-                                            : Colors.green,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Flexible(
-                              child: SelectableText(
-                                result.word,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            IconButton(
-                              icon: const Icon(Icons.volume_up, color: AppColors.primary),
-                              onPressed: () {
-                                TtsService().speak(result.word, language: selectedLanguage);
-                              },
-                              tooltip: 'Phát âm (TTS)',
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: SelectableText(
+                              result.word,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(Icons.volume_up,
+                                color: AppColors.primary),
+                            onPressed: () {
+                              TtsService().speak(result.word,
+                                  language: selectedLanguage);
+                            },
+                            tooltip: 'Phát âm (TTS)',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
                       if (result.phonetic != null) ...[
                         const SizedBox(height: 4),
                         SelectableText(
@@ -1202,13 +1239,29 @@ class _DictionaryResultCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Add button at top right
-                IconButton(
-                  onPressed: onAddToDeck,
-                  icon: const Icon(Icons.add_circle),
-                  color: AppColors.primary,
-                  tooltip: l10n.addToDeck,
-                  iconSize: 32,
+                // Actions at top right
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if ((selectedLanguage == SupportedLanguage.japanese ||
+                            selectedLanguage == SupportedLanguage.chinese) &&
+                        RegExp(r'[一-龿]').hasMatch(result.word))
+                      IconButton(
+                        onPressed: () => _showStrokeOrderDialog(
+                            context, result.word, selectedLanguage),
+                        icon: const Icon(Icons.brush),
+                        color: Colors.orange,
+                        tooltip: l10n.playStrokeOrder,
+                        iconSize: 28,
+                      ),
+                    IconButton(
+                      onPressed: onAddToDeck,
+                      icon: const Icon(Icons.add_circle),
+                      color: Colors.green,
+                      tooltip: l10n.addToDeck,
+                      iconSize: 32,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1523,3 +1576,138 @@ class _FilterOption extends StatelessWidget {
   }
 }
 
+class _StrokeAnimationDialogContent extends StatefulWidget {
+  final List<String> characters;
+  final String sourceLanguage;
+
+  const _StrokeAnimationDialogContent({
+    required this.characters,
+    required this.sourceLanguage,
+  });
+
+  @override
+  State<_StrokeAnimationDialogContent> createState() =>
+      _StrokeAnimationDialogContentState();
+}
+
+class _StrokeAnimationDialogContentState
+    extends State<_StrokeAnimationDialogContent> {
+  int _currentIndex = 0;
+  List<StrokeCharacter?> _strokeDataList = [];
+  bool _isLoading = true;
+  final GlobalKey<StrokeOrderAnimationState> _animationKey =
+      GlobalKey<StrokeOrderAnimationState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStrokeData();
+  }
+
+  Future<void> _loadStrokeData() async {
+    final dao = StrokeDataDao();
+    await dao.init();
+    final repository = StrokeDataRepository(dao);
+
+    final List<StrokeCharacter?> dataList = [];
+    for (final char in widget.characters) {
+      final data =
+          await repository.lookupCharacter(char, widget.sourceLanguage);
+      dataList.add(data);
+    }
+
+    if (mounted) {
+      setState(() {
+        _strokeDataList = dataList;
+        final firstValidIndex = dataList.indexWhere((data) => data != null);
+        if (firstValidIndex != -1) {
+          _currentIndex = firstValidIndex;
+        }
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const SizedBox(
+        height: 200,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final currentData =
+        _strokeDataList.isNotEmpty ? _strokeDataList[_currentIndex] : null;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (widget.characters.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Wrap(
+              spacing: 8,
+              children: List.generate(widget.characters.length, (index) {
+                final isSelected = index == _currentIndex;
+                final hasData = _strokeDataList[index] != null;
+                return ChoiceChip(
+                  label: Text(
+                    widget.characters[index],
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: hasData ? null : Colors.grey,
+                    ),
+                  ),
+                  selected: isSelected,
+                  onSelected: hasData
+                      ? (selected) {
+                          if (selected) {
+                            setState(() {
+                              _currentIndex = index;
+                            });
+                          }
+                        }
+                      : null,
+                );
+              }),
+            ),
+          ),
+        Container(
+          width: 250,
+          height: 250,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: currentData != null
+              ? StrokeOrderAnimation(
+                  key: _animationKey,
+                  character: currentData,
+                  strokeDuration: const Duration(milliseconds: 300),
+                  pauseBetweenStrokes: const Duration(milliseconds: 500),
+                  onCompleted: () {},
+                )
+              : const Center(
+                  child: Text('Không có dữ liệu nét chữ',
+                      style: TextStyle(color: AppColors.textSecondaryLight)),
+                ),
+        ),
+        const SizedBox(height: 16),
+        if (currentData != null)
+          IconButton(
+            onPressed: () {
+              _animationKey.currentState?.replay();
+            },
+            icon: const Icon(Icons.replay),
+            color: AppColors.primary,
+            tooltip: 'Phát lại',
+            iconSize: 32,
+          ),
+      ],
+    );
+  }
+}

@@ -76,10 +76,17 @@ class HandwritingCanvasState extends State<HandwritingCanvas> {
     final dx = (_lastSize.width - vbW * scale) / 2;
     final dy = (_lastSize.height - vbH * scale) / 2;
 
-    return Offset(
-      (local.dx - dx) / scale,
-      (local.dy - dy) / scale,
-    );
+    if (widget.character.isYUp) {
+      return Offset(
+        (local.dx - dx) / scale,
+        vbH - (local.dy - dy) / scale,
+      );
+    } else {
+      return Offset(
+        (local.dx - dx) / scale,
+        (local.dy - dy) / scale,
+      );
+    }
   }
 
   @override

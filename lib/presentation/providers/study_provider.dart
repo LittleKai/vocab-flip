@@ -36,6 +36,26 @@ class StudyProvider extends ChangeNotifier {
   bool _isFatigued = false;
   bool get isFatigued => _isFatigued;
 
+  bool _isShuffleMode = true;
+  bool get isShuffleMode => _isShuffleMode;
+
+  void toggleShuffleMode() {
+    _isShuffleMode = !_isShuffleMode;
+    if (_isShuffleMode) {
+      shuffleCards();
+    } else {
+      if (_currentIndex + 1 < _studyQueue.length) {
+        final remainingCards = _studyQueue.sublist(_currentIndex + 1);
+        remainingCards.sort((a, b) => a.id.compareTo(b.id));
+        _studyQueue = [
+          ..._studyQueue.sublist(0, _currentIndex + 1),
+          ...remainingCards,
+        ];
+      }
+    }
+    notifyListeners();
+  }
+
   void resetFatigue() {
     _isFatigued = false;
     _advancedLearning.resetFatigue();
@@ -88,10 +108,21 @@ class StudyProvider extends ChangeNotifier {
           deckId,
           limit: _preferences.newCardsPerDay + _preferences.reviewCardsPerDay,
         );
+
+        // If no due cards, load random cards for practice/cramming
+        if (_studyQueue.isEmpty) {
+          final allCards = await _flashcardRepository.getFlashcardsByDeckId(deckId);
+          if (allCards.isNotEmpty) {
+            allCards.shuffle();
+            _studyQueue = allCards.take(_preferences.newCardsPerDay + _preferences.reviewCardsPerDay).toList();
+          }
+        }
       }
 
       if (_preferences.advancedLearningScience) {
         _studyQueue = _advancedLearning.applySemanticShuffle(_studyQueue);
+      } else if (_isShuffleMode) {
+        _studyQueue.shuffle();
       }
 
       if (_studyQueue.isEmpty) {
@@ -221,17 +252,17 @@ class StudyProvider extends ChangeNotifier {
     }
   }
 
-  /// Shuffle remaining cards in the queue
+  /// Shuffle remaining cards in the queue (preserving the current card)
   void shuffleCards() {
-    if (_currentIndex >= _studyQueue.length) return;
+    if (_currentIndex + 1 >= _studyQueue.length) return;
 
-    // Get remaining cards (from current index to end)
-    final remainingCards = _studyQueue.sublist(_currentIndex);
+    // Get remaining cards (after current index)
+    final remainingCards = _studyQueue.sublist(_currentIndex + 1);
     remainingCards.shuffle();
 
     // Replace remaining portion with shuffled cards
     _studyQueue = [
-      ..._studyQueue.sublist(0, _currentIndex),
+      ..._studyQueue.sublist(0, _currentIndex + 1),
       ...remainingCards,
     ];
 

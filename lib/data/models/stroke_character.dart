@@ -136,6 +136,16 @@ class StrokeCharacter {
 
   int get strokeCount => strokes.length;
 
+  /// Whether the original SVG data uses a Y-up coordinate system (e.g., AnimCJK, MakeMeAHanzi).
+  bool get isYUp {
+    final lowerSource = source.toLowerCase();
+    return lowerSource.contains('animcjk') ||
+        lowerSource.contains('makemeahanzi') ||
+        // Fallback checks just in case source string is missing/incomplete
+        locale.startsWith('zh') ||
+        locale.startsWith('ja');
+  }
+
   /// Parse from the unified JSON shape stored in `data_json`.
   factory StrokeCharacter.fromJson(Map<String, dynamic> json) {
     final character = json['character'] as String?;

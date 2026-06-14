@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../local/database/chinese_dict_dao.dart';
 import '../../models/dictionary_result.dart';
 import '../../api/api_client.dart';
+import 'package:lpinyin/lpinyin.dart';
 
 /// chineseDict API for Chinese-Vietnamese translation
 /// Uses local SQLite database from LacViet dictionary on mobile/desktop,
@@ -22,22 +23,32 @@ class ChineseDictApi {
   }
 
   /// Look up a Chinese word and get Vietnamese translation
-  Future<ChineseDictResult?> lookup(String word, {String fetchMode = 'both'}) async {
-    debugPrint('[ChineseDictApi] lookup: "$word" (fetchMode: $fetchMode)');
+  Future<ChineseDictResult?> lookup(String word,
+      {String fetchMode = 'both'}) async {
+    final String searchWord = ChineseHelper.convertToSimplifiedChinese(word);
+    debugPrint(
+        '[ChineseDictApi] lookup: "$word" -> "$searchWord" (fetchMode: $fetchMode)');
 
     try {
-      bool tryOnline = fetchMode == 'online' || fetchMode == 'both';
-      bool tryOffline = (fetchMode == 'offline' || fetchMode == 'both') && !kIsWeb;
-      
-      debugPrint('[ChineseDictApi] lookup flags - tryOnline: $tryOnline, tryOffline: $tryOffline');
+      bool tryOnline = fetchMode == 'online' || (fetchMode == 'both' && kIsWeb);
+      bool tryOffline =
+          (fetchMode == 'offline' || fetchMode == 'both') && !kIsWeb;
+
+      debugPrint(
+          '[ChineseDictApi] lookup flags - tryOnline: $tryOnline, tryOffline: $tryOffline');
 
       ChineseDictResult? apiResult;
       if (tryOnline) {
         try {
-          debugPrint('[ChineseDictApi] lookup - Calling API /vocab/dictionary/chinese/lookup');
-          final response = await _apiClient.dio.get('/vocab/dictionary/chinese/lookup', queryParameters: {'word': word});
-          debugPrint('[ChineseDictApi] lookup - API Response Status: ${response.statusCode}');
-          if (response.data['success'] == true && response.data['data'] != null) {
+          debugPrint(
+              '[ChineseDictApi] lookup - Calling API /vocab/dictionary/chinese/lookup');
+          final response = await _apiClient.dio.get(
+              '/vocab/dictionary/chinese/lookup',
+              queryParameters: {'word': searchWord});
+          debugPrint(
+              '[ChineseDictApi] lookup - API Response Status: ${response.statusCode}');
+          if (response.data['success'] == true &&
+              response.data['data'] != null) {
             final data = response.data['data'];
             final entry = ChineseDictEntry(
               id: data['wordId'] ?? 0,
@@ -46,20 +57,20 @@ class ChineseDictApi {
               hanViet: data['hanViet'],
               definition: data['definition'] ?? '',
             );
-            debugPrint('[ChineseDictApi] Found (Online API): ${entry.word}');
-            apiResult = _entryToResult(entry, dataSource: 'Online API');
+            debugPrint('[ChineseDictApi] Found (REST API): ${entry.word}');
+            apiResult = _entryToResult(entry, dataSource: 'Từ điển trực tuyến (Lạc Việt)');
           } else {
-             debugPrint('[ChineseDictApi] API returned no valid data');
+            debugPrint('[ChineseDictApi] API returned no valid data');
           }
         } catch (apiError) {
           debugPrint('[ChineseDictApi] API Error: $apiError');
         }
-      } 
-      
+      }
+
       ChineseDictResult? dbResult;
-      if (tryOffline) {
+      if (tryOffline && apiResult == null) {
         debugPrint('[ChineseDictApi] lookup - Calling SQLite DB');
-        final entry = await _dao.lookup(word);
+        final entry = await _dao.lookup(searchWord);
         if (entry == null) {
           debugPrint('[ChineseDictApi] No exact match found (Local DB)');
         } else {
@@ -67,7 +78,7 @@ class ChineseDictApi {
           dbResult = _entryToResult(entry);
         }
       }
-      
+
       // Prefer API result, fallback to DB
       return apiResult ?? dbResult;
     } catch (e) {
@@ -77,32 +88,47 @@ class ChineseDictApi {
   }
 
   /// Search for Chinese words
-  Future<List<ChineseDictResult>> search(String query, {int limit = 10, String fetchMode = 'both'}) async {
-    debugPrint('[ChineseDictApi] search: "$query" (limit: $limit, fetchMode: $fetchMode)');
+  Future<List<ChineseDictResult>> search(String query,
+      {int limit = 10, String fetchMode = 'both'}) async {
+    final String searchQuery = ChineseHelper.convertToSimplifiedChinese(query);
+    debugPrint(
+        '[ChineseDictApi] search: "$query" -> "$searchQuery" (limit: $limit, fetchMode: $fetchMode)');
 
     try {
-      bool tryOnline = fetchMode == 'online' || fetchMode == 'both';
-      bool tryOffline = (fetchMode == 'offline' || fetchMode == 'both') && !kIsWeb;
-      
-      debugPrint('[ChineseDictApi] search flags - tryOnline: $tryOnline, tryOffline: $tryOffline');
+      bool tryOnline = fetchMode == 'online' || (fetchMode == 'both' && kIsWeb);
+      bool tryOffline =
+          (fetchMode == 'offline' || fetchMode == 'both') && !kIsWeb;
+
+      debugPrint(
+          '[ChineseDictApi] search flags - tryOnline: $tryOnline, tryOffline: $tryOffline');
 
       List<ChineseDictResult> apiResults = [];
       if (tryOnline) {
         try {
-          debugPrint('[ChineseDictApi] search - Calling API /vocab/dictionary/chinese/search');
-          final response = await _apiClient.dio.get('/vocab/dictionary/chinese/search', queryParameters: {'query': query, 'limit': limit});
-          debugPrint('[ChineseDictApi] search - API Response Status: ${response.statusCode}');
-          if (response.data['success'] == true && response.data['data'] != null) {
+          debugPrint(
+              '[ChineseDictApi] search - Calling API /vocab/dictionary/chinese/search');
+          final response = await _apiClient.dio.get(
+              '/vocab/dictionary/chinese/search',
+              queryParameters: {'query': searchQuery, 'limit': limit});
+          debugPrint(
+              '[ChineseDictApi] search - API Response Status: ${response.statusCode}');
+          if (response.data['success'] == true &&
+              response.data['data'] != null) {
             final items = response.data['data'] as List;
-            final entries = items.map((data) => ChineseDictEntry(
-              id: data['wordId'] ?? 0,
-              word: data['word'] ?? '',
-              pinyin: data['pinyin'],
-              hanViet: data['hanViet'],
-              definition: data['definition'] ?? '',
-            )).toList();
-            debugPrint('[ChineseDictApi] Found ${entries.length} results (Online API)');
-            apiResults = entries.map((e) => _entryToResult(e, dataSource: 'Online API')).toList();
+            final entries = items
+                .map((data) => ChineseDictEntry(
+                      id: data['wordId'] ?? 0,
+                      word: data['word'] ?? '',
+                      pinyin: data['pinyin'],
+                      hanViet: data['hanViet'],
+                      definition: data['definition'] ?? '',
+                    ))
+                .toList();
+            debugPrint(
+                '[ChineseDictApi] Found ${entries.length} results (REST API)');
+            apiResults = entries
+                .map((e) => _entryToResult(e, dataSource: 'Từ điển trực tuyến (Lạc Việt)'))
+                .toList();
           } else {
             debugPrint('[ChineseDictApi] API returned no valid data');
           }
@@ -110,24 +136,26 @@ class ChineseDictApi {
           debugPrint('[ChineseDictApi] API Error: $apiError');
         }
       }
-      
+
       List<ChineseDictResult> dbResults = [];
-      if (tryOffline) {
+      if (tryOffline && apiResults.isEmpty) {
         debugPrint('[ChineseDictApi] search - Calling SQLite DB');
         final entries = await _dao.search(query, limit: limit);
-        debugPrint('[ChineseDictApi] Found ${entries.length} results (Local DB)');
+        debugPrint(
+            '[ChineseDictApi] Found ${entries.length} results (Local DB)');
         dbResults = entries.map((e) => _entryToResult(e)).toList();
       }
-      
+
       // Combine and deduplicate
       if (fetchMode == 'both') {
-         final Map<String, ChineseDictResult> combined = {};
-         for (var r in dbResults) combined[r.word] = r; // DB first
-         for (var r in apiResults) combined[r.word] = r; // API overrides DB if same word
-         debugPrint('[ChineseDictApi] Combined results: ${combined.length}');
-         return combined.values.toList();
+        final Map<String, ChineseDictResult> combined = {};
+        for (var r in dbResults) combined[r.word] = r; // DB first
+        for (var r in apiResults)
+          combined[r.word] = r; // API overrides DB if same word
+        debugPrint('[ChineseDictApi] Combined results: ${combined.length}');
+        return combined.values.toList();
       }
-      
+
       return tryOnline && fetchMode == 'online' ? apiResults : dbResults;
     } catch (e) {
       debugPrint('[ChineseDictApi] Error: $e');
@@ -136,7 +164,8 @@ class ChineseDictApi {
   }
 
   /// Convert database entry to ChineseDictResult
-  ChineseDictResult _entryToResult(ChineseDictEntry entry, {String dataSource = 'Offline DB (LacViet)'}) {
+  ChineseDictResult _entryToResult(ChineseDictEntry entry,
+      {String dataSource = 'Offline DB (LacViet)'}) {
     // Keep all definitions as a single meaning to preserve numbering
     // The definition already has proper numbering from the database
     final definition = entry.definition.trim();
@@ -195,7 +224,7 @@ class ChineseDictResult {
     this.oppositeWords = const [],
     this.synonyms = const [],
     this.mobileId,
-    this.dataSource = 'Online API',
+    this.dataSource = 'Từ điển trực tuyến (Lạc Việt)',
   });
 
   /// Convert to generic DictionaryResult

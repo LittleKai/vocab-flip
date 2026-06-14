@@ -668,9 +668,9 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   Widget _buildFlashcardsSection(
       BuildContext context, PublicLibraryProvider provider) {
     final l10n = AppLocalizations.of(context)!;
-    final flashcards = provider.previewFlashcards;
+    final allFlashcards = provider.previewFlashcards;
 
-    if (flashcards.isEmpty) {
+    if (allFlashcards.isEmpty) {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -686,20 +686,41 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
       );
     }
 
+    final int maxPreviewCount = 50;
+    final flashcards = allFlashcards.take(maxPreviewCount).toList();
+    final deckCardCount = provider.selectedDeck?.cardCount ?? allFlashcards.length;
+    final hiddenCount = deckCardCount > flashcards.length ? deckCardCount - flashcards.length : 0;
+
     return Column(
-      children: flashcards.map((card) {
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            title: Text(
-              card.front,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+      children: [
+        ...flashcards.map((card) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              title: Text(
+                card.front,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: Text(card.back),
+              trailing: const Icon(Icons.chevron_right),
             ),
-            subtitle: Text(card.back),
-            trailing: const Icon(Icons.chevron_right),
+          );
+        }),
+        if (hiddenCount > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 16),
+            child: Center(
+              child: Text(
+                '+ $hiddenCount more cards',
+                style: TextStyle(
+                  color: AppColors.textSecondaryLight,
+                  fontWeight: FontWeight.w500,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
           ),
-        );
-      }).toList(),
+      ],
     );
   }
 

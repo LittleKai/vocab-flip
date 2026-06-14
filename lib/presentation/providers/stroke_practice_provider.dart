@@ -24,8 +24,42 @@ class StrokePracticeProvider extends ChangeNotifier {
   StrokePracticeState _state = StrokePracticeState.initial;
   StrokePracticeState get state => _state;
 
-  StrokeCharacter? _currentCharacter;
-  StrokeCharacter? get currentCharacter => _currentCharacter;
+  List<StrokeCharacter> _targets = [];
+  List<String> _targetGraphemes = [];
+
+  int _activeCharacterIndex = 0;
+  int _supportedCharacterCount = 0;
+  int _unsupportedCharacterCount = 0;
+  int _totalCompletedCharacters = 0;
+  int _totalMistakeCount = 0;
+  bool _isWordComplete = false;
+  int _practiceGeneration = 0;
+
+  StrokeValidationProfile _validationProfile = StrokeValidationProfile.standard;
+  StrokeValidationProfile get validationProfile => _validationProfile;
+
+  void setValidationProfile(StrokeValidationProfile profile) {
+    if (_validationProfile != profile) {
+      _validationProfile = profile;
+      notifyListeners();
+    }
+  }
+
+  StrokeCharacter? get currentCharacter =>
+      _targets.isNotEmpty && _activeCharacterIndex < _targets.length
+          ? _targets[_activeCharacterIndex]
+          : null;
+
+  String? get activeDisplayCharacter => _targetGraphemes.isNotEmpty &&
+          _activeCharacterIndex < _targetGraphemes.length
+      ? _targetGraphemes[_activeCharacterIndex]
+      : null;
+
+  int get activeCharacterIndex => _activeCharacterIndex;
+  int get supportedCharacterCount => _supportedCharacterCount;
+  int get unsupportedCharacterCount => _unsupportedCharacterCount;
+  int get totalCompletedCharacters => _totalCompletedCharacters;
+  bool get isWordComplete => _isWordComplete;
 
   int _activeStrokeIndex = 0;
   int get activeStrokeIndex => _activeStrokeIndex;
@@ -46,8 +80,17 @@ class StrokePracticeProvider extends ChangeNotifier {
     required String text,
     required String sourceLanguage,
   }) async {
+    _practiceGeneration++;
     _state = StrokePracticeState.loading;
-    _currentCharacter = null;
+    _targets = [];
+    _targetGraphemes = [];
+    _activeCharacterIndex = 0;
+    _supportedCharacterCount = 0;
+    _unsupportedCharacterCount = 0;
+    _totalCompletedCharacters = 0;
+    _totalMistakeCount = 0;
+    _isWordComplete = false;
+
     _activeStrokeIndex = 0;
     _completedStrokeCount = 0;
     _mistakeCount = 0;
@@ -55,22 +98,27 @@ class StrokePracticeProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Typically 'text' might contain multiple characters. For this implementation,
-      // we'll try to find stroke data for the first character if it's multiple.
-      // Wait, let's just use the first character.
       if (text.isEmpty) {
         _state = StrokePracticeState.error;
         notifyListeners();
         return;
       }
 
-      String searchChar = text.characters.first;
-      
-      final result = await _repository.lookupCharacter(searchChar, sourceLanguage);
-      if (result == null) {
+      for (var char in text.characters) {
+        if (char.trim().isEmpty) continue; // skip spaces
+        final result = await _repository.lookupCharacter(char, sourceLanguage);
+        if (result != null) {
+          _targets.add(result);
+          _targetGraphemes.add(char);
+          _supportedCharacterCount++;
+        } else {
+          _unsupportedCharacterCount++;
+        }
+      }
+
+      if (_targets.isEmpty) {
         _state = StrokePracticeState.error;
       } else {
-        _currentCharacter = result;
         _state = StrokePracticeState.ready;
       }
     } catch (e) {
@@ -80,15 +128,19 @@ class StrokePracticeProvider extends ChangeNotifier {
   }
 
   Future<StrokeValidationResult> submitStroke(List<Offset> points) async {
-    if (_currentCharacter == null || _activeStrokeIndex >= _currentCharacter!.strokes.length) {
-      const result = StrokeValidationResult.reject(StrokeRejection.wrongOrder); // fallback
+    final generation = _practiceGeneration;
+    final char = currentCharacter;
+    if (char == null || _activeStrokeIndex >= char.strokes.length) {
+      const result =
+          StrokeValidationResult.reject(StrokeRejection.wrongOrder); // fallback
       return result;
     }
 
     final result = _validationService.validateStroke(
       userPoints: points,
       expectedIndex: _activeStrokeIndex,
-      character: _currentCharacter!,
+      character: char,
+      profile: _validationProfile,
     );
 
     _lastValidationResult = result;
@@ -96,6 +148,25 @@ class StrokePracticeProvider extends ChangeNotifier {
     if (result.accepted) {
       _activeStrokeIndex++;
       _completedStrokeCount++;
+
+      if (_completedStrokeCount >= char.strokes.length) {
+        _totalCompletedCharacters++;
+        _totalMistakeCount += _mistakeCount;
+
+        notifyListeners(); // Show final stroke
+
+        if (_activeCharacterIndex + 1 < _targets.length) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (generation != _practiceGeneration) return result;
+          _activeCharacterIndex++;
+          _activeStrokeIndex = 0;
+          _completedStrokeCount = 0;
+          _mistakeCount = 0;
+          _lastValidationResult = null;
+        } else {
+          _isWordComplete = true;
+        }
+      }
     } else {
       _mistakeCount++;
     }
@@ -110,6 +181,12 @@ class StrokePracticeProvider extends ChangeNotifier {
   }
 
   void resetPractice() {
+    _practiceGeneration++;
+    _activeCharacterIndex = 0;
+    _totalCompletedCharacters = 0;
+    _totalMistakeCount = 0;
+    _isWordComplete = false;
+
     _activeStrokeIndex = 0;
     _completedStrokeCount = 0;
     _mistakeCount = 0;
@@ -118,13 +195,13 @@ class StrokePracticeProvider extends ChangeNotifier {
   }
 
   ReviewRating ratingForCompletion() {
-    if (_currentCharacter == null || _completedStrokeCount < _currentCharacter!.strokes.length) {
+    if (!_isWordComplete) {
       return ReviewRating.again;
     }
 
-    if (_mistakeCount == 0) return ReviewRating.easy;
-    if (_mistakeCount <= 2) return ReviewRating.good;
-    if (_mistakeCount <= 5) return ReviewRating.hard;
+    if (_totalMistakeCount == 0) return ReviewRating.easy;
+    if (_totalMistakeCount <= 2) return ReviewRating.good;
+    if (_totalMistakeCount <= 5) return ReviewRating.hard;
     return ReviewRating.again;
   }
 }

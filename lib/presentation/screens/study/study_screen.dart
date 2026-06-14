@@ -17,7 +17,6 @@ import '../../providers/stroke_practice_provider.dart';
 enum StudyMode {
   classic,
   multipleChoice,
-  typeAnswer,
   writingPractice,
 }
 
@@ -113,10 +112,6 @@ class _StudyScreenState extends State<StudyScreen> {
                         value: StudyMode.multipleChoice,
                         child: Text(l10n.multipleChoice),
                       ),
-                      PopupMenuItem<StudyMode>(
-                        value: StudyMode.typeAnswer,
-                        child: Text(l10n.typeAnswer),
-                      ),
                       if (deck?.sourceLanguage == 'ja' ||
                           deck?.sourceLanguage == 'zh')
                         PopupMenuItem<StudyMode>(
@@ -125,19 +120,24 @@ class _StudyScreenState extends State<StudyScreen> {
                         ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.shuffle),
-                    onPressed: () {
-                      studyProvider.shuffleCards();
-                      if (_currentMode == StudyMode.writingPractice &&
-                          studyProvider.currentCard != null) {
-                        strokeProvider.loadForCard(
-                          text: studyProvider.currentCard!.front,
-                          sourceLanguage: deck?.sourceLanguage ?? '',
-                        );
-                      }
-                    },
-                    tooltip: l10n.shuffle,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: studyProvider.isShuffleMode 
+                          ? AppColors.primary.withValues(alpha: 0.2) 
+                          : Colors.grey.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        studyProvider.isShuffleMode ? Icons.shuffle : Icons.format_list_numbered,
+                        color: studyProvider.isShuffleMode ? AppColors.primary : Colors.grey,
+                      ),
+                      onPressed: () {
+                        studyProvider.toggleShuffleMode();
+                      },
+                      tooltip: studyProvider.isShuffleMode ? l10n.shuffle : 'Sequential',
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.skip_next),
@@ -308,14 +308,6 @@ class _StudyScreenState extends State<StudyScreen> {
                 provider, isCorrect ? ReviewRating.good : ReviewRating.again);
           },
         );
-      case StudyMode.typeAnswer:
-        return TypeAnswerCard(
-          card: card,
-          onAnswerSelected: (isCorrect) {
-            _rateCard(
-                provider, isCorrect ? ReviewRating.good : ReviewRating.again);
-          },
-        );
       case StudyMode.writingPractice:
         return WritingPracticeCard(
           card: card,
@@ -409,9 +401,10 @@ class _StudyScreenState extends State<StudyScreen> {
 
   void _rateCard(StudyProvider provider, ReviewRating rating) async {
     await provider.rateCard(rating);
-    _flipController.reset();
-
+    
     if (!mounted) return;
+    
+    _flipController.reset();
 
     if (_currentMode == StudyMode.writingPractice &&
         provider.currentCard != null) {

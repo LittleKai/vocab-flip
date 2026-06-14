@@ -2402,6 +2402,18 @@ abstract class AppLocalizations {
   /// **'Automatically play pronunciation when flipping cards'**
   String get autoPlayTtsDesc;
 
+  /// No description provided for @ttsVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Pronunciation Volume'**
+  String get ttsVolume;
+
+  /// No description provided for @ttsVolumeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust text-to-speech reading volume'**
+  String get ttsVolumeDesc;
+
   /// No description provided for @ttsHelp.
   ///
   /// In en, this message translates to:
@@ -3602,11 +3614,323 @@ abstract class AppLocalizations {
   /// **'Wrong stroke order'**
   String get wrongOrder;
 
+  /// No description provided for @wrongStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong starting point'**
+  String get wrongStart;
+
+  /// No description provided for @wrongEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong ending point'**
+  String get wrongEnd;
+
+  /// No description provided for @inaccurateStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Inaccurate stroke'**
+  String get inaccurateStroke;
+
+  /// No description provided for @strokeTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke is too short'**
+  String get strokeTooShort;
+
+  /// No description provided for @characterProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Character {current} of {total}'**
+  String characterProgress(int current, int total);
+
+  /// No description provided for @skippedUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped {count} unsupported'**
+  String skippedUnsupported(int count);
+
+  /// No description provided for @nextCharacter.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Character'**
+  String get nextCharacter;
+
   /// No description provided for @strokeDataUnavailable.
   ///
   /// In en, this message translates to:
   /// **'Stroke data is not available for this character.'**
   String get strokeDataUnavailable;
+
+  /// No description provided for @gentle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle'**
+  String get gentle;
+
+  /// No description provided for @standardPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get standardPractice;
+
+  /// No description provided for @strict.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict'**
+  String get strict;
+
+  /// No description provided for @validationProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Leniency'**
+  String get validationProfile;
+
+  /// No description provided for @aiGenerateCards.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Generate Cards'**
+  String get aiGenerateCards;
+
+  /// No description provided for @aiGenerateCardsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the topic or requirements for cards'**
+  String get aiGenerateCardsDesc;
+
+  /// No description provided for @aiPromptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Common greetings in Japanese for beginners...'**
+  String get aiPromptHint;
+
+  /// No description provided for @cardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Count'**
+  String get cardCount;
+
+  /// No description provided for @maxCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {count}'**
+  String maxCards(int count);
+
+  /// No description provided for @includeExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Include Examples'**
+  String get includeExamples;
+
+  /// No description provided for @includeNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Include Notes'**
+  String get includeNotes;
+
+  /// No description provided for @aiModel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model'**
+  String get aiModel;
+
+  /// No description provided for @modelPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro (Higher quality)'**
+  String get modelPro;
+
+  /// No description provided for @modelFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash (Faster)'**
+  String get modelFlash;
+
+  /// No description provided for @freeUsesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} free uses remaining'**
+  String freeUsesRemaining(int count);
+
+  /// No description provided for @costsOneCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Costs 1 credit per use'**
+  String get costsOneCredit;
+
+  /// No description provided for @noFreeUsesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'No free uses left'**
+  String get noFreeUsesLeft;
+
+  /// No description provided for @insufficientCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient credits'**
+  String get insufficientCredits;
+
+  /// No description provided for @generate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate'**
+  String get generate;
+
+  /// No description provided for @generating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating...'**
+  String get generating;
+
+  /// No description provided for @aiGeneratedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Generated Cards'**
+  String get aiGeneratedCards;
+
+  /// No description provided for @selectCardsToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Select cards to add to your deck'**
+  String get selectCardsToAdd;
+
+  /// No description provided for @selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get selectAll;
+
+  /// No description provided for @deselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get deselectAll;
+
+  /// No description provided for @addSelectedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count} Cards'**
+  String addSelectedCards(int count);
+
+  /// No description provided for @noCardsGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards were generated'**
+  String get noCardsGenerated;
+
+  /// No description provided for @cardsAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cards added to deck'**
+  String cardsAddedSuccess(int count);
+
+  /// No description provided for @aiGenerationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to generate cards'**
+  String get aiGenerationFailed;
+
+  /// No description provided for @pleaseEnterPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please describe what cards you want'**
+  String get pleaseEnterPrompt;
+
+  /// No description provided for @requiresSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in required'**
+  String get requiresSignIn;
+
+  /// No description provided for @signInToUseAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in to use AI card generation'**
+  String get signInToUseAi;
+
+  /// No description provided for @shareDeckIdMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Deck ID'**
+  String get shareDeckIdMenu;
+
+  /// No description provided for @deleteDeckMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Deck'**
+  String get deleteDeckMenu;
+
+  /// No description provided for @promptSuggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt Suggestions'**
+  String get promptSuggestionsTitle;
+
+  /// No description provided for @promptSuggestion1.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate essential daily conversational phrases for beginners, including greetings, self-introductions, and basic questions.'**
+  String get promptSuggestion1;
+
+  /// No description provided for @promptSuggestion2.
+  ///
+  /// In en, this message translates to:
+  /// **'Create professional business vocabulary and sentence templates commonly used for writing emails to clients or partners.'**
+  String get promptSuggestion2;
+
+  /// No description provided for @promptSuggestion3.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate vocabulary related to food, ingredients, and useful phrases for ordering meals and asking for the bill at a restaurant.'**
+  String get promptSuggestion3;
+
+  /// No description provided for @promptSuggestion4.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a list of common slang words and idioms used in everyday casual communication by native speakers.'**
+  String get promptSuggestion4;
+
+  /// No description provided for @promptSuggestion5.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate technical vocabulary and terms related to software engineering, programming, and IT troubleshooting.'**
+  String get promptSuggestion5;
+
+  /// No description provided for @useThisPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this'**
+  String get useThisPrompt;
+
+  /// No description provided for @noteInstructionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions for notes (optional)'**
+  String get noteInstructionsHint;
+
+  /// No description provided for @noteInstructionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Add synonyms, grammar points, or politeness levels'**
+  String get noteInstructionsDesc;
+
+  /// No description provided for @unpublishLocalMissingWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This deck does not exist on your local device. If you unpublish it, you will lose it permanently. We recommend importing it back to your device first. Do you still want to unpublish?'**
+  String get unpublishLocalMissingWarning;
+
+  /// No description provided for @localCopyMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Copy Missing'**
+  String get localCopyMissing;
+
+  /// No description provided for @playStrokeOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke Order'**
+  String get playStrokeOrder;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../providers/deck_provider.dart';
 import '../../providers/publish_provider.dart';
 import '../../widgets/library/rating_widget.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
@@ -269,6 +270,8 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
 
   void _confirmUnpublish(BuildContext context, String publicDeckId) {
     final l10n = AppLocalizations.of(context)!;
+    final publishProvider = context.read<PublishProvider>();
+    final messenger = ScaffoldMessenger.of(context);
 
     showStandardDialog(
       context: context,
@@ -277,11 +280,42 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
       isDestructive: true,
       secondaryButtonText: l10n.cancel,
       primaryButtonText: l10n.unpublish,
-      onPrimaryPressed: () {
-        // TODO: Implement unpublish with local deck ID
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.deckUnpublished)),
+      onPrimaryPressed: () async {
+        final localDeckExists = context.read<DeckProvider>().decks.any(
+          (d) => d.publishedDeckId == publicDeckId || d.linkedPublicDeckId == publicDeckId,
         );
+
+        if (!localDeckExists) {
+          // Show second confirmation dialog warning the user they will lose the deck permanently
+          showStandardDialog(
+            context: context,
+            title: l10n.localCopyMissing,
+            content: l10n.unpublishLocalMissingWarning,
+            isDestructive: true,
+            secondaryButtonText: l10n.cancel,
+            primaryButtonText: l10n.unpublish,
+            onPrimaryPressed: () async {
+              final success = await publishProvider.unpublishByPublicId(publicDeckId);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(success
+                      ? l10n.deckUnpublished
+                      : publishProvider.error ?? 'Failed to unpublish'),
+                ),
+              );
+            },
+          );
+        } else {
+          // Local copy exists, proceed normally
+          final success = await publishProvider.unpublishByPublicId(publicDeckId);
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(success
+                  ? l10n.deckUnpublished
+                  : publishProvider.error ?? 'Failed to unpublish'),
+            ),
+          );
+        }
       },
     );
   }

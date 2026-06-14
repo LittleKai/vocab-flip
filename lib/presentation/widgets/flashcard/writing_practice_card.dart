@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/spaced_repetition.dart';
@@ -34,11 +35,13 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<StrokePracticeProvider>();
 
-    if (provider.state == StrokePracticeState.loading || provider.state == StrokePracticeState.initial) {
+    if (provider.state == StrokePracticeState.loading ||
+        provider.state == StrokePracticeState.initial) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (provider.state == StrokePracticeState.error || provider.currentCharacter == null) {
+    if (provider.state == StrokePracticeState.error ||
+        provider.currentCharacter == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -57,7 +60,7 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
     }
 
     final char = provider.currentCharacter!;
-    final isDone = provider.completedStrokeCount >= char.strokes.length;
+    final isCharDone = provider.completedStrokeCount >= char.strokes.length;
 
     return Card(
       elevation: 4,
@@ -67,24 +70,50 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
           // Header
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
               children: [
-                Text(
-                  widget.card.front,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.card.front,
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    if (widget.card.frontPhonetic != null &&
+                        widget.card.frontPhonetic!.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '[${widget.card.frontPhonetic}]',
+                        style: TextStyle(
+                            fontSize: 18, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ],
                 ),
-                if (widget.card.frontPhonetic != null && widget.card.frontPhonetic!.isNotEmpty) ...[
-                  const SizedBox(width: 8),
+                if (provider.supportedCharacterCount > 1 ||
+                    provider.unsupportedCharacterCount > 0) ...[
+                  const SizedBox(height: 8),
                   Text(
-                    '[${widget.card.frontPhonetic}]',
-                    style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                    l10n.characterProgress(provider.activeCharacterIndex + 1,
+                        provider.supportedCharacterCount),
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500),
                   ),
+                  if (provider.unsupportedCharacterCount > 0)
+                    Text(
+                      l10n.skippedUnsupported(
+                          provider.unsupportedCharacterCount),
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                    ),
                 ],
               ],
             ),
           ),
-          
+
           // Feedback Text
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -112,8 +141,10 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
                       children: [
                         if (_isReplaying)
                           StrokeOrderAnimation(
-                            key: ValueKey('replay_${provider.replayKey}'),
+                            key: ValueKey(
+                                'replay_${provider.activeCharacterIndex}_${provider.replayKey}'),
                             character: char,
+                            strokeDuration: const Duration(milliseconds: 300),
                             onCompleted: () {
                               if (mounted) {
                                 setState(() {
@@ -127,33 +158,47 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
                             key: _canvasKey,
                             character: char,
                             completedStrokeCount: provider.completedStrokeCount,
-                            onStrokeComplete: isDone ? (_) {} : (points) async {
-                              final currentProvider = context.read<StrokePracticeProvider>();
-                              final res = await currentProvider.submitStroke(points);
-                              if (mounted && !res.accepted) {
-                                _canvasKey.currentState?.clear();
-                              }
-                              
-                              if (mounted && currentProvider.completedStrokeCount >= char.strokes.length) {
-                                Future.delayed(const Duration(milliseconds: 500), () {
-                                  if (mounted) {
-                                    widget.onComplete(currentProvider.ratingForCompletion());
-                                  }
-                                });
-                              }
-                            },
+                            onStrokeComplete: isCharDone
+                                ? (_) {}
+                                : (points) async {
+                                    final currentProvider =
+                                        context.read<StrokePracticeProvider>();
+                                    final res = await currentProvider
+                                        .submitStroke(points);
+                                    if (mounted && !res.accepted) {
+                                      HapticFeedback.heavyImpact()
+                                          .catchError((_) {});
+                                      _canvasKey.currentState?.clear();
+                                    } else if (mounted && res.accepted) {
+                                      HapticFeedback.lightImpact()
+                                          .catchError((_) {});
+                                      // Accepted strokes are now reflected by the guide; clear only transient user ink.
+                                      _canvasKey.currentState?.clear();
+                                    }
+
+                                    if (mounted &&
+                                        currentProvider.isWordComplete) {
+                                      Future.delayed(
+                                          const Duration(milliseconds: 500),
+                                          () {
+                                        if (mounted) {
+                                          widget.onComplete(currentProvider
+                                              .ratingForCompletion());
+                                        }
+                                      });
+                                    }
+                                  },
                           ),
-                          
-                        // Hint overlay: just show the current stroke faintly by passing completed + 1 and progress 0, wait, progress 1.
-                        if (_showHint && !_isReplaying && !isDone)
+                        if (_showHint && !_isReplaying && !isCharDone)
                           IgnorePointer(
                             child: CustomPaint(
                               size: Size.infinite,
                               painter: StrokeOrderPainter(
                                 character: char,
-                                completedStrokeCount: provider.completedStrokeCount + 1,
+                                completedStrokeCount:
+                                    provider.completedStrokeCount + 1,
                                 activeProgress: 1.0,
-                                inkColor: Colors.blue.withValues(alpha: 0.3), // Hint color
+                                inkColor: Colors.blue.withValues(alpha: 0.3),
                               ),
                             ),
                           ),
@@ -191,13 +236,79 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
                   tooltip: l10n.replayStroke,
                 ),
                 IconButton(
-                  onPressed: isDone ? null : () {
-                    setState(() {
-                      _showHint = true;
-                    });
-                  },
+                  onPressed: isCharDone
+                      ? null
+                      : () {
+                          setState(() {
+                            _showHint = true;
+                          });
+                        },
                   icon: const Icon(Icons.lightbulb_outline),
                   tooltip: l10n.showHint,
+                ),
+                PopupMenuButton<StrokeValidationProfile>(
+                  icon: const Icon(Icons.tune),
+                  tooltip: l10n.validationProfile,
+                  onSelected: (profile) =>
+                      provider.setValidationProfile(profile),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: StrokeValidationProfile.gentle,
+                      child: Row(
+                        children: [
+                          if (provider.validationProfile ==
+                              StrokeValidationProfile.gentle)
+                            const Icon(Icons.check, size: 16)
+                          else
+                            const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.sentiment_satisfied_alt,
+                              size: 18, color: AppColors.success),
+                          const SizedBox(width: 8),
+                          Text(l10n.gentle,
+                              style:
+                                  const TextStyle(color: AppColors.success)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: StrokeValidationProfile.standard,
+                      child: Row(
+                        children: [
+                          if (provider.validationProfile ==
+                              StrokeValidationProfile.standard)
+                            const Icon(Icons.check, size: 16)
+                          else
+                            const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.sentiment_neutral,
+                              size: 18, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Text(l10n.standardPractice,
+                              style:
+                                  const TextStyle(color: AppColors.primary)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: StrokeValidationProfile.strict,
+                      child: Row(
+                        children: [
+                          if (provider.validationProfile ==
+                              StrokeValidationProfile.strict)
+                            const Icon(Icons.check, size: 16)
+                          else
+                            const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.sentiment_very_dissatisfied,
+                              size: 18, color: AppColors.error),
+                          const SizedBox(width: 8),
+                          Text(l10n.strict,
+                              style: const TextStyle(color: AppColors.error)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -214,7 +325,8 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
     if (result.accepted) {
       return Text(
         l10n.correctStroke,
-        style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.success, fontWeight: FontWeight.bold),
       );
     }
 
@@ -227,9 +339,17 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
         msg = l10n.wrongOrder;
         break;
       case StrokeRejection.wrongStart:
+        msg = l10n.wrongStart;
+        break;
       case StrokeRejection.wrongEnd:
+        msg = l10n.wrongEnd;
+        break;
       case StrokeRejection.inaccurate:
+        msg = l10n.inaccurateStroke;
+        break;
       case StrokeRejection.tooShort:
+        msg = l10n.strokeTooShort;
+        break;
       case null:
         msg = l10n.tryAgain;
         break;
@@ -237,7 +357,8 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
 
     return Text(
       msg,
-      style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+      style:
+          const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
     );
   }
 }

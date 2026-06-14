@@ -18,6 +18,7 @@ class SettingsProvider extends ChangeNotifier {
   int _flashcardMainFontSize = AppPreferences.defaultMainFontSize;
   int _flashcardPhoneticFontSize = AppPreferences.defaultPhoneticFontSize;
   int _flashcardDetailFontSize = AppPreferences.defaultDetailFontSize;
+  double _ttsVolume = 1.0;
 
   SettingsProvider({AppPreferences? preferences})
       : _preferences = preferences ?? AppPreferences();
@@ -39,6 +40,7 @@ class SettingsProvider extends ChangeNotifier {
   int get flashcardMainFontSize => _flashcardMainFontSize;
   int get flashcardPhoneticFontSize => _flashcardPhoneticFontSize;
   int get flashcardDetailFontSize => _flashcardDetailFontSize;
+  double get ttsVolume => _ttsVolume;
 
   String get formattedStudyTime {
     final hours = _totalStudyTime ~/ 3600;
@@ -66,6 +68,7 @@ class SettingsProvider extends ChangeNotifier {
     _flashcardMainFontSize = _preferences.flashcardMainFontSize;
     _flashcardPhoneticFontSize = _preferences.flashcardPhoneticFontSize;
     _flashcardDetailFontSize = _preferences.flashcardDetailFontSize;
+    _ttsVolume = _preferences.ttsVolume;
 
     notifyListeners();
   }
@@ -139,6 +142,12 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setFlashcardDetailFontSize(int value) async {
     _flashcardDetailFontSize = value;
     await _preferences.setFlashcardDetailFontSize(value);
+    notifyListeners();
+  }
+
+  Future<void> setTtsVolume(double value) async {
+    _ttsVolume = value;
+    await _preferences.setTtsVolume(value);
     notifyListeners();
   }
 

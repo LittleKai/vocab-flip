@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/deck.dart';
+import '../../../data/models/flashcard.dart';
 import '../../../data/services/tts_service.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../providers/flashcard_provider.dart';
@@ -32,6 +33,8 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
 
   int _currentIndex = 0;
   bool _isFlipped = false;
+  bool _isShuffleMode = true;
+  List<Flashcard> _viewCards = [];
 
   @override
   void initState() {
@@ -40,11 +43,22 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
     _ttsService.init();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _initCards();
       if (widget.startIndex != null) {
         _pageController.jumpToPage(widget.startIndex!);
       }
       _focusNode.requestFocus();
     });
+  }
+
+  void _initCards() {
+    final providerCards = context.read<FlashcardProvider>().flashcards;
+    _viewCards = List.from(providerCards);
+    if (_isShuffleMode && widget.startIndex == null) {
+      _viewCards.shuffle();
+    }
+    setState(() {});
   }
 
   @override
@@ -57,9 +71,8 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
-      final flashcards = context.read<FlashcardProvider>().flashcards;
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        if (_currentIndex < flashcards.length - 1) {
+        if (_currentIndex < _viewCards.length - 1) {
           _nextCard();
         }
       } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
@@ -95,10 +108,9 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
 
     return Consumer2<FlashcardProvider, DeckProvider>(
       builder: (context, flashcardProvider, deckProvider, child) {
-        final flashcards = flashcardProvider.flashcards;
         final deck = deckProvider.selectedDeck;
 
-        if (flashcards.isEmpty) {
+        if (_viewCards.isEmpty) {
           return Scaffold(
             appBar: AppBar(title: Text(l10n.viewCards)),
             body: Center(child: Text(l10n.noFlashcards)),
@@ -114,7 +126,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
           onKeyEvent: _handleKeyEvent,
           child: Scaffold(
             appBar: AppBar(
-              title: Text('${_currentIndex + 1} / ${flashcards.length}'),
+              title: Text('${_currentIndex + 1} / ${_viewCards.length}'),
               actions: [
                 // Show display mode indicator
                 Padding(
@@ -125,19 +137,49 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                     color: Colors.white70,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.shuffle),
-                  onPressed: () {
-                    flashcardProvider.shuffleFlashcards();
-                    // Reset to first card after shuffle
-                    _pageController.jumpToPage(0);
-                    setState(() {
-                      _currentIndex = 0;
-                      _isFlipped = false;
-                    });
-                    _flipController.reset();
-                  },
-                  tooltip: l10n.shuffle,
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _isShuffleMode 
+                        ? AppColors.primary.withValues(alpha: 0.2) 
+                        : Colors.grey.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      _isShuffleMode ? Icons.shuffle : Icons.format_list_numbered,
+                      color: _isShuffleMode ? AppColors.primary : Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isShuffleMode = !_isShuffleMode;
+                        if (_isShuffleMode) {
+                          if (_currentIndex + 1 < _viewCards.length) {
+                            final remaining = _viewCards.sublist(_currentIndex + 1);
+                            remaining.shuffle();
+                            _viewCards = [
+                              ..._viewCards.sublist(0, _currentIndex + 1),
+                              ...remaining,
+                            ];
+                          }
+                        } else {
+                          if (_currentIndex + 1 < _viewCards.length) {
+                            final remaining = _viewCards.sublist(_currentIndex + 1);
+                            final originalList = flashcardProvider.flashcards;
+                            remaining.sort((a, b) {
+                              return originalList.indexWhere((c) => c.id == a.id)
+                                  .compareTo(originalList.indexWhere((c) => c.id == b.id));
+                            });
+                            _viewCards = [
+                              ..._viewCards.sublist(0, _currentIndex + 1),
+                              ...remaining,
+                            ];
+                          }
+                        }
+                      });
+                    },
+                    tooltip: _isShuffleMode ? l10n.shuffle : 'Sequential',
+                  ),
                 ),
               ],
             ),
@@ -145,7 +187,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
             children: [
               // Progress indicator
               LinearProgressIndicator(
-                value: (_currentIndex + 1) / flashcards.length,
+                value: (_currentIndex + 1) / _viewCards.length,
                 backgroundColor: Colors.grey.shade200,
                 valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
@@ -154,7 +196,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
-                  itemCount: flashcards.length,
+                  itemCount: _viewCards.length,
                   onPageChanged: (index) {
                     setState(() {
                       _currentIndex = index;
@@ -163,7 +205,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                     _flipController.reset();
                   },
                   itemBuilder: (context, index) {
-                    final card = flashcards[index];
+                    final card = _viewCards[index];
 
                     // Create structured front and back faces based on deck configuration
                     final frontFace = StructuredFlashcardFace(
@@ -216,7 +258,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                       ),
                       IconButton(
                         onPressed: () {
-                          final card = flashcards[_currentIndex];
+                          final card = _viewCards[_currentIndex];
                           // Always speak word (front) using source language
                           _speakWord(card.front, deck?.sourceLanguage ?? 'en');
                         },
@@ -225,7 +267,7 @@ class _FlashcardViewerScreenState extends State<FlashcardViewerScreen> {
                         color: AppColors.primary,
                       ),
                       IconButton(
-                        onPressed: _currentIndex < flashcards.length - 1
+                        onPressed: _currentIndex < _viewCards.length - 1
                             ? _nextCard
                             : null,
                         icon: const Icon(Icons.arrow_forward_ios),

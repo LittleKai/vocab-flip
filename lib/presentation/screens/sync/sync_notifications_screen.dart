@@ -171,9 +171,14 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
     return provider.notifications.map((notification) {
       final dateFormat = DateFormat.yMMMd().add_jm();
 
+      final surfaceColor = Theme.of(context).colorScheme.surface;
+      final cardBgColor = notification.isRead
+          ? surfaceColor
+          : Color.lerp(surfaceColor, AppColors.primary, 0.05)!;
+
       return Card(
         margin: const EdgeInsets.only(bottom: 8),
-        color: notification.isRead ? null : AppColors.primary.withOpacity(0.05),
+        color: cardBgColor,
         child: ListTile(
           leading: CircleAvatar(
             backgroundColor: notification.isRead

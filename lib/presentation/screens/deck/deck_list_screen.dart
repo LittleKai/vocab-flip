@@ -374,15 +374,38 @@ class _DeckCard extends StatelessWidget {
                               _handleMenuAction(context, value),
                           itemBuilder: (context) => [
                             PopupMenuItem(
-                                value: 'info', child: Text(l10n.deckDetails)),
+                              value: 'info',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(l10n.deckDetails),
+                                ],
+                              ),
+                            ),
                             PopupMenuItem(
-                                value: 'edit', child: Text(l10n.edit)),
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.edit_outlined, color: AppColors.secondary, size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(l10n.edit),
+                                ],
+                              ),
+                            ),
                             const PopupMenuDivider(),
                             PopupMenuItem(
                               value: 'delete',
-                              child: Text(l10n.delete,
-                                  style:
-                                      const TextStyle(color: AppColors.error)),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    l10n.delete,
+                                    style: const TextStyle(color: AppColors.error),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -558,26 +581,16 @@ class _DeckCard extends StatelessWidget {
   void _confirmDelete(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteDeck),
-        content: Text(l10n.deleteConfirmMessage(deck.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<DeckProvider>().deleteDeck(deck.id);
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+      title: l10n.deleteDeck,
+      content: l10n.deleteConfirmMessage(deck.name),
+      primaryButtonText: l10n.delete,
+      secondaryButtonText: l10n.cancel,
+      isDestructive: true,
+      onPrimaryPressed: () {
+        context.read<DeckProvider>().deleteDeck(deck.id);
+      },
     );
   }
 }

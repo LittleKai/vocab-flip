@@ -66,6 +66,7 @@ dependencies:
   draggable_home: ^1.0.5
   cached_network_image: ^3.4.1
   path_drawing: ^1.0.1
+  lpinyin: ^2.0.3
 
 dev_dependencies:
   flutter_test:

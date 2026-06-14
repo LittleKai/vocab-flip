@@ -1213,6 +1213,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get autoPlayTtsDesc => 'Tự động phát âm khi lật thẻ';
 
   @override
+  String get ttsVolume => 'Âm lượng phát âm';
+
+  @override
+  String get ttsVolumeDesc => 'Điều chỉnh âm lượng giọng đọc tự động';
+
+  @override
   String get ttsHelp => 'Hướng dẫn cài đặt TTS';
 
   @override
@@ -1860,5 +1866,181 @@ class AppLocalizationsVi extends AppLocalizations {
   String get wrongOrder => 'Sai thứ tự nét';
 
   @override
+  String get wrongStart => 'Sai điểm bắt đầu';
+
+  @override
+  String get wrongEnd => 'Sai điểm kết thúc';
+
+  @override
+  String get inaccurateStroke => 'Nét vẽ chưa chính xác';
+
+  @override
+  String get strokeTooShort => 'Nét vẽ quá ngắn';
+
+  @override
+  String characterProgress(int current, int total) {
+    return 'Ký tự $current / $total';
+  }
+
+  @override
+  String skippedUnsupported(int count) {
+    return 'Đã bỏ qua $count ký tự không hỗ trợ';
+  }
+
+  @override
+  String get nextCharacter => 'Ký tự tiếp theo';
+
+  @override
   String get strokeDataUnavailable => 'Không có dữ liệu nét chữ cho ký tự này.';
+
+  @override
+  String get gentle => 'Dễ';
+
+  @override
+  String get standardPractice => 'Tiêu chuẩn';
+
+  @override
+  String get strict => 'Khắt khe';
+
+  @override
+  String get validationProfile => 'Độ khó';
+
+  @override
+  String get aiGenerateCards => 'AI Tạo thẻ';
+
+  @override
+  String get aiGenerateCardsDesc => 'Mô tả đề tài hoặc yêu cầu cho thẻ';
+
+  @override
+  String get aiPromptHint =>
+      'VD: Từ vựng giao tiếp tiếng Nhật cho người mới bắt đầu...';
+
+  @override
+  String get cardCount => 'Số lượng thẻ';
+
+  @override
+  String maxCards(int count) {
+    return 'Tối đa $count';
+  }
+
+  @override
+  String get includeExamples => 'Thêm ví dụ';
+
+  @override
+  String get includeNotes => 'Thêm ghi chú';
+
+  @override
+  String get aiModel => 'Model AI';
+
+  @override
+  String get modelPro => 'Pro (Chất lượng cao)';
+
+  @override
+  String get modelFlash => 'Flash (Nhanh hơn)';
+
+  @override
+  String freeUsesRemaining(int count) {
+    return 'Còn $count lượt miễn phí';
+  }
+
+  @override
+  String get costsOneCredit => 'Tốn 1 credit mỗi lần dùng';
+
+  @override
+  String get noFreeUsesLeft => 'Đã hết lượt miễn phí';
+
+  @override
+  String get insufficientCredits => 'Không đủ credit';
+
+  @override
+  String get generate => 'Tạo';
+
+  @override
+  String get generating => 'Đang tạo...';
+
+  @override
+  String get aiGeneratedCards => 'Thẻ AI đã tạo';
+
+  @override
+  String get selectCardsToAdd => 'Chọn thẻ để thêm vào bộ thẻ';
+
+  @override
+  String get selectAll => 'Chọn tất cả';
+
+  @override
+  String get deselectAll => 'Bỏ chọn tất cả';
+
+  @override
+  String addSelectedCards(int count) {
+    return 'Thêm $count thẻ';
+  }
+
+  @override
+  String get noCardsGenerated => 'Không có thẻ nào được tạo';
+
+  @override
+  String cardsAddedSuccess(int count) {
+    return 'Đã thêm $count thẻ vào bộ thẻ';
+  }
+
+  @override
+  String get aiGenerationFailed => 'Tạo thẻ thất bại';
+
+  @override
+  String get pleaseEnterPrompt => 'Vui lòng mô tả nội dung thẻ cần tạo';
+
+  @override
+  String get requiresSignIn => 'Cần đăng nhập';
+
+  @override
+  String get signInToUseAi => 'Vui lòng đăng nhập để sử dụng AI tạo thẻ';
+
+  @override
+  String get shareDeckIdMenu => 'Chia sẻ ID bộ thẻ';
+
+  @override
+  String get deleteDeckMenu => 'Xóa bộ thẻ';
+
+  @override
+  String get promptSuggestionsTitle => 'Gợi ý Prompt';
+
+  @override
+  String get promptSuggestion1 =>
+      'Tạo danh sách các mẫu câu giao tiếp cơ bản hàng ngày cho người mới, bao gồm chào hỏi, giới thiệu bản thân và hỏi đường.';
+
+  @override
+  String get promptSuggestion2 =>
+      'Tạo các từ vựng và mẫu câu chuyên nghiệp thường dùng trong việc viết email gửi khách hàng hoặc đối tác công sở.';
+
+  @override
+  String get promptSuggestion3 =>
+      'Tạo từ vựng liên quan đến đồ ăn, nguyên liệu và các mẫu câu thực tế dùng để gọi món, thanh toán tại nhà hàng.';
+
+  @override
+  String get promptSuggestion4 =>
+      'Tạo một danh sách các từ lóng và thành ngữ phổ biến thường được người bản xứ sử dụng trong giao tiếp đời thường.';
+
+  @override
+  String get promptSuggestion5 =>
+      'Tạo các từ vựng và thuật ngữ chuyên ngành liên quan đến công nghệ thông tin, lập trình phần mềm và xử lý sự cố.';
+
+  @override
+  String get useThisPrompt => 'Dùng gợi ý này';
+
+  @override
+  String get noteInstructionsHint => 'Hướng dẫn ghi chú cho AI (tùy chọn)';
+
+  @override
+  String get noteInstructionsDesc =>
+      'VD: Thêm từ đồng nghĩa, cấu trúc ngữ pháp, mức độ lịch sự...';
+
+  @override
+  String get unpublishLocalMissingWarning =>
+      'Bộ thẻ này không tồn tại trên thiết bị của bạn. Nếu bạn gỡ bỏ, bạn sẽ mất nó vĩnh viễn. Chúng tôi khuyên bạn nên nhập lại về máy trước. Bạn vẫn muốn gỡ chứ?';
+
+  @override
+  String get localCopyMissing => 'Thiếu bản sao cục bộ';
+
+  @override
+  String get playStrokeOrder => 'Cách vẽ nét';
 }

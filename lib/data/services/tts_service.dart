@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/supported_languages.dart';
 
 class TtsService {
@@ -55,7 +56,9 @@ class TtsService {
       }
 
       await _flutterTts.setSpeechRate(0.5);
-      await _flutterTts.setVolume(1.0);
+      final prefs = await SharedPreferences.getInstance();
+      final volume = prefs.getDouble('tts_volume') ?? 1.0;
+      await _flutterTts.setVolume(volume);
       await _flutterTts.setPitch(1.0);
 
       _isInitialized = true;
@@ -232,6 +235,11 @@ class TtsService {
     }
 
     try {
+      // Always get latest volume preference before speaking
+      final prefs = await SharedPreferences.getInstance();
+      final volume = prefs.getDouble('tts_volume') ?? 1.0;
+      await _flutterTts.setVolume(volume);
+
       if (language != null) {
         final success = await _setVoiceForLanguage(language);
         print('[TTS] _setVoiceForLanguage result: $success');

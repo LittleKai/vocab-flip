@@ -1,96 +1,115 @@
-# Các tính năng Luyện viết được hoãn lại và chưa áp dụng
+# Các tính năng Luyện viết còn lại
 
-Tài liệu này liệt kê các khả năng quan trọng của tính năng Luyện viết (Writing Practice) được cố ý loại bỏ khỏi tài liệu đặc tả (SPEC) triển khai ban đầu, hoặc chỉ được lên kế hoạch cho các giai đoạn sau. Tài liệu này tồn tại để đảm bảo Người xây dựng (Builder) không tự ý mở rộng phạm vi (scope creep) trong quá trình triển khai các tệp tài liệu giai đoạn (phase files).
+Tài liệu này chỉ liệt kê các phần quan trọng của Writing Practice vẫn chưa được triển khai hoặc chưa được áp dụng sau các phase hiện tại. Các hạng mục đã hoàn thành không được liệt kê lại. Hỗ trợ nền tảng web không nằm trong phạm vi tính năng này.
 
-## Ghi chú Đánh giá Gói thư viện (Package Evaluation Notes)
+Thang điểm "mức độ nên áp dụng" dùng thang 10: `10/10` là nên làm sớm vì ảnh hưởng trực tiếp tới giá trị học tập hoặc độ hoàn chỉnh sản phẩm; `1/10` là chỉ nên làm khi có nhu cầu cụ thể.
 
-- `path_drawing` chỉ được khuyến nghị cho việc phân tích cú pháp (parsing) đường dẫn SVG. Nó không thay thế bộ dựng nét (renderer) hoặc bộ xác thực (validator) tự tùy chỉnh.
-- `kanji_drawing_animation` không được chọn làm bộ dựng nét cốt lõi vì nó tập trung vào Kanji/KanjiVG, không hỗ trợ rộng rãi cho việc luyện tập tiếng Trung/Kana, và không xác thực nét vẽ tay.
-- `svg_drawing_animation` hữu ích cho các hoạt ảnh đường nét SVG chung, nhưng VocabFlip cần dữ liệu trung vị (median) của từng nét vẽ, cắt vùng hiển thị (clipping), lớp phủ người dùng (user overlay), và tính năng xác thực.
-- Các thư viện `signature`, `flutter_signature_pad`, `scribble`, và `flutter_drawing_board` không được chọn cho lớp nhập liệu (input layer) ban đầu. Chúng ghi nhận tốt việc vẽ tự do, nhưng ứng dụng cần luồng điểm vẽ (point stream) chính xác của từng nét và được chuẩn hóa về cùng một không gian tọa độ với dữ liệu nét vẽ.
+## 1. Luyện viết từ gồm nhiều ký tự
 
-## Các tính năng quan trọng chưa được áp dụng trong tài liệu đặc tả (SPEC) ban đầu
+Trạng thái: ĐÃ HOÀN THÀNH (Phase 6).
 
-### Bộ dữ liệu nét vẽ đầy đủ cho môi trường sản phẩm (Full production stroke dataset)
+Mức độ nên áp dụng: 10/10.
 
-Các giai đoạn ban đầu sử dụng một cơ sở dữ liệu fixture nhỏ được tích hợp sẵn để thử nghiệm hành vi của ứng dụng. Việc chuyển đổi toàn bộ dữ liệu từ animCJK/hanzi-writer-data được ấn định cho Giai đoạn 5 (Phase 5).
+Hiện tại Writing Practice đã xử lý chuỗi ký tự của `card.front`.
 
-Lý do hoãn lại: việc chuyển đổi dữ liệu đi kèm với các rủi ro riêng về giấy phép, kích thước tệp, chất lượng và xác thực dữ liệu.
+Phần đã hoàn thành:
+- Tách `card.front` thành chuỗi grapheme/character có dữ liệu nét.
+- Luyện từng ký tự theo thứ tự trong từ.
+- Bỏ qua ký tự không có dữ liệu nét như dấu câu, khoảng trắng, Latin text.
+- Chỉ đánh giá flashcard sau khi hoàn thành toàn bộ các ký tự được hỗ trợ.
+- Hiển thị tiến trình ký tự hiện tại, ký tự đã xong, và ký tự bị bỏ qua.
 
-### Bộ so khớp nâng cao kiểu Inkstone (Inkstone-style advanced matcher)
+## 2. Độ khó thích ứng và mức độ châm chước
 
-Bộ xác thực ban đầu sử dụng các chỉ số đo lường kiểu Hanzi Writer: khoảng cách điểm bắt đầu/kết thúc, hướng vẽ, khoảng cách trung bình, tỷ lệ độ dài và khoảng cách hình dạng tương tự Frechet.
+Trạng thái: ĐÃ HOÀN THÀNH (Phase 7).
 
-Chưa được áp dụng:
-- Thuật toán phát hiện góc ShortStraw.
-- Căn chỉnh đoạn bằng quy hoạch động (Dynamic programming segment alignment).
-- Dọn dẹp các đoạn thừa/móc nét (Hook/dangling segment cleanup).
-- So khớp từng phần nhận biết phím tắt/thành phần (Shortcut/component-aware partial matching).
-- So khớp sai thứ tự linh hoạt hơn.
+Mức độ nên áp dụng: 8/10.
 
-Lý do hoãn lại: Inkstone sử dụng giấy phép GPLv3, do đó không thể sao chép mã trực tiếp, và thuật toán cần phải được tự triển khai lại và kiểm thử độc lập.
+Hiện tại `StrokeValidationService` dùng các ngưỡng cấu hình động qua `StrokeValidationOptions`.
 
-### Phân tích chữ viết tay lưu trữ lâu dài (Persistent handwriting analytics)
+Phần đã hoàn thành:
+- Tách các ngưỡng validation thành profile rõ ràng: nhẹ, tiêu chuẩn, nghiêm ngặt.
+- Cho phép người dùng đổi profile trong phiên luyện viết.
+- Đảm bảo chế độ nhẹ không cho qua lỗi sai thứ tự nét hoặc sai hướng nét.
+- Điều chỉnh chấm điểm theo profile nhưng không thay đổi FSRS hoặc `ReviewRating` core.
+- Thêm phản hồi native nhẹ như haptic feedback trên nền tảng hỗ trợ.
 
-Chưa được áp dụng:
-- Lịch sử lỗi sai theo từng ký tự.
-- Theo dõi các nét vẽ yếu theo từng nét.
-- Xu hướng độ chính xác theo thời gian.
-- Mở rộng nhật ký đánh giá (review log) cho các chỉ số dành riêng cho chữ viết tay.
+## 3. Bộ so khớp nâng cao kiểu Inkstone
 
-Lý do hoãn lại: tính năng này yêu cầu thiết kế lại cấu trúc bảng (schema design) và có thể cần di chuyển cơ sở dữ liệu (database migrations) của ứng dụng vượt ngoài phạm vi chế độ học ban đầu.
+Trạng thái: chưa có SPEC triển khai chi tiết.
 
-### Độ khó thích ứng và mức độ châm chước (Adaptive difficulty and leniency)
+Mức độ nên áp dụng: 6/10.
 
-Chưa được áp dụng:
-- Các ngưỡng xác thực cho cấp độ Sơ cấp/Trung cấp/Cao cấp.
-- Điều chỉnh ngưỡng động dựa trên kích thước màn hình, loại đầu vào (bút cảm ứng/ngón tay) hoặc lịch sử của người dùng.
-- Cách chấm điểm khác nhau cho Kana, chữ Hán (Hanzi) đơn giản và chữ Hán (Kanji) phức tạp.
+Bộ validation hiện tại đã kiểm tra thứ tự nét, hướng nét, khoảng cách, độ dài và hình dạng bằng các phép đo hình học. Phần nâng cao hơn vẫn chưa được tự triển khai lại.
 
-Lý do hoãn lại: bản triển khai đầu tiên cần thiết lập tính xác thực nhất quán (deterministic validation) trước khi thêm các hành vi thích ứng.
+Phần còn lại:
 
-### Tải xuống dữ liệu nét vẽ hoặc các gói mô-đun (Stroke data downloads or modular packs)
+- Phát hiện góc bằng thuật toán kiểu ShortStraw.
+- Căn chỉnh đoạn nét bằng dynamic programming segment alignment.
+- Dọn dẹp đoạn thừa, móc nét, hoặc nét kéo quá dài.
+- So khớp partial/component-aware cho các trường hợp người dùng viết tắt hoặc viết theo cụm nét.
+- Nhận diện sai thứ tự linh hoạt hơn nhưng vẫn giữ mục tiêu học đúng stroke order.
 
-Chưa được áp dụng:
-- Tải xuống gói dữ liệu nét vẽ theo ngôn ngữ/vùng (locale).
-- Cập nhật dữ liệu nét vẽ độc lập với mã nguồn ứng dụng (binary).
-- Bộ nhớ đệm (cache) dữ liệu nét vẽ từ xa.
+Lưu ý: không được copy mã từ Inkstone vì ràng buộc GPLv3. Nếu làm phần này, cần tự triển khai thuật toán bằng Dart và có test độc lập.
 
-Lý do hoãn lại: tích hợp sẵn dữ liệu ngoại tuyến (offline) sẽ đơn giản hơn và đồng nhất với mô hình tài nguyên từ điển hiện tại của VocabFlip.
+## 4. Phân tích chữ viết tay lưu trữ lâu dài
 
-### Giao diện người dùng siêu dữ liệu KanjiVG (KanjiVG metadata UI)
+Trạng thái: chưa có SPEC triển khai chi tiết.
 
-Chưa được áp dụng:
-- Làm nổi bật bộ thủ/thành phần cấu tạo (Radical/component highlighting).
-- Hiển thị các trường `kvg:element` và `kvg:type`.
-- Học theo từng thành phần cấu tạo ký tự.
+Mức độ nên áp dụng: 7/10.
 
-Lý do hoãn lại: siêu dữ liệu KanjiVG rất hữu ích cho phương pháp giảng dạy Kanji tiếng Nhật nhưng không bắt buộc cho chu trình luyện viết chữ viết tay ban đầu.
+Hiện tại kết quả luyện viết chỉ được quy đổi thành `ReviewRating` để đi qua luồng học hiện có. App chưa lưu lịch sử lỗi chi tiết theo ký tự hoặc theo nét.
 
-### Từ gồm nhiều ký tự (Multi-character words)
+Phần còn lại:
 
-Chưa được áp dụng:
-- Luyện tập từng ký tự trong một từ gồm nhiều ký tự theo thứ tự chuỗi.
-- Hoàn thành một phần của các từ ghép.
-- Hiển thị nghĩa/chuyển văn bản thành giọng nói (TTS) theo từng ký tự bên trong từ ghép.
+- Lưu lỗi sai theo từng ký tự.
+- Lưu lỗi sai theo từng nét: sai hướng, sai thứ tự, quá ngắn, lệch điểm đầu/cuối, lệch hình dạng.
+- Theo dõi xu hướng độ chính xác theo thời gian.
+- Mở rộng review log hoặc thêm bảng analytics riêng cho handwriting.
+- Thiết kế migration SQLite rõ ràng trước khi thay đổi schema.
 
-Lý do hoãn lại: ở bước đầu tiên chỉ nên luyện tập với `card.front` khi nó tương ứng với một ký tự duy nhất được hỗ trợ. Việc xử lý chuỗi ký tự dài hơn nên được thực hiện sau khi luồng xử lý ký tự đơn lẻ đã hoạt động ổn định.
+## 5. Giao diện siêu dữ liệu KanjiVG
 
-### Hỗ trợ nền tảng Web (Web support)
+Trạng thái: chưa có SPEC triển khai chi tiết.
 
-Chưa được áp dụng:
-- Cơ sở dữ liệu tài nguyên nét vẽ sử dụng SQLite trên môi trường web.
-- Tinh chỉnh bút vẽ/con trỏ đặc thù cho trình duyệt.
+Mức độ nên áp dụng: 4/10.
 
-Lý do hoãn lại: DAO từ điển ngoại tuyến hiện tại vô hiệu hóa cơ sở dữ liệu từ điển cục bộ trên nền tảng web, và cơ sở dữ liệu nét vẽ trước hết nên tuân theo các ràng buộc nền tảng hiện tại của ứng dụng.
+Tính năng này hữu ích cho học Kanji chuyên sâu, nhưng chưa cần cho luồng luyện viết nét cơ bản.
 
-### Tinh chỉnh hiệu ứng trực quan ngoài các điều khiển cốt lõi (Visual polish beyond core controls)
+Phần còn lại:
 
-Chưa được áp dụng:
-- Hoạt ảnh chuyển cảnh thành công/thất bại sinh động hơn ngoài các phản hồi cơ bản.
-- Dựng nét bút vẽ nhạy cảm với lực nhấn (pressure-sensitive).
-- Phản hồi xúc giác (rung).
-- Phản hồi âm thanh.
-- Lớp phủ gợi ý nâng cao như mũi tên hoặc đánh số điểm bắt đầu nét vẽ.
+- Làm nổi bật bộ thủ hoặc thành phần cấu tạo.
+- Hiển thị metadata như `kvg:element` và `kvg:type` khi dữ liệu nguồn hỗ trợ.
+- Cho phép học hoặc ôn theo thành phần cấu tạo của ký tự.
+- Kết nối metadata với UI mà không phá vỡ luồng luyện viết chung cho tiếng Trung và tiếng Nhật.
 
-Lý do hoãn lại: đây là các cải tiến trải nghiệm người dùng (UX) rất giá trị nhưng không bắt buộc để kiểm chứng hành vi học cốt lõi.
+## 6. Cập nhật dữ liệu nét theo gói hoặc từ xa
+
+Trạng thái: chưa được ưu tiên.
+
+Mức độ nên áp dụng: 3/10.
+
+Hiện tại dữ liệu nét được đóng gói offline trong `assets/stroke_data.db`. Đây là hướng đơn giản và ổn định nhất cho bản hiện tại.
+
+Phần còn lại nếu sau này cần:
+
+- Tách dữ liệu nét thành các gói theo locale hoặc cấp độ.
+- Cập nhật dữ liệu nét độc lập với binary ứng dụng.
+- Kiểm tra checksum/version của gói dữ liệu.
+- Cache dữ liệu tải về mà không làm chậm lookup offline.
+
+## 7. Tinh chỉnh trải nghiệm trực quan ngoài điều khiển lõi
+
+Trạng thái: một phần được lên kế hoạch trong Phase 7, phần còn lại chưa có SPEC riêng.
+
+Mức độ nên áp dụng: 5/10.
+
+Luồng hiện tại đã có animation mẫu, hint, reset và feedback cơ bản. Các cải tiến sau chỉ nên làm sau khi multi-character flow và leniency ổn định.
+
+Phần còn lại:
+
+- Chuyển cảnh thành công/thất bại mượt hơn.
+- Dựng nét bút nhạy với lực nhấn khi thiết bị hỗ trợ.
+- Phản hồi âm thanh tùy chọn.
+- Gợi ý nâng cao như mũi tên hướng nét, đánh số điểm bắt đầu, hoặc highlight vùng sai.
+- Tối ưu bố cục cho màn hình nhỏ, text scale lớn, và chuỗi ký tự dài.

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/flashcard.dart';
 import '../../../data/models/deck.dart';
+import '../../../data/models/category.dart';
 import '../../../data/services/tts_service.dart';
 import '../../../data/services/excel_service.dart';
 import '../../providers/auth_provider.dart';
@@ -16,12 +16,16 @@ import '../../providers/settings_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/common/deck_card_header.dart';
 import '../../widgets/sync/sync_badge.dart';
 import '../../widgets/dialogs/tts_help_dialog.dart';
+import '../../widgets/ai/ai_generate_bottom_sheet.dart';
 import '../deck/create_deck_screen.dart';
 import '../flashcard/flashcard_editor_screen.dart';
 import '../flashcard/flashcard_viewer_screen.dart';
 import '../study/study_screen.dart';
+import '../ai/ai_draft_review_screen.dart';
+import '../../widgets/dialogs/standard_dialog.dart';
 
 class DeckDetailScreen extends StatefulWidget {
   final String deckId;
@@ -118,127 +122,232 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                   onSelected: (value) =>
                       _handleMenuAction(context, value, deck),
                   itemBuilder: (context) => [
-                    PopupMenuItem(value: 'edit', child: Text(l10n.editDeck)),
+                    // Edit deck
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 20, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Text(l10n.editDeck),
+                        ],
+                      ),
+                    ),
                     const PopupMenuDivider(),
+                    // Export to Excel
                     PopupMenuItem(
                       value: 'export-excel',
                       child: Row(
                         children: [
-                          const Icon(Icons.file_download, size: 20),
+                          Icon(Icons.file_download_outlined, size: 20, color: AppColors.secondary),
                           const SizedBox(width: 8),
                           Text(l10n.exportToExcel),
                         ],
                       ),
                     ),
+                    // Import from Excel
                     PopupMenuItem(
                       value: 'import-excel',
                       child: Row(
                         children: [
-                          const Icon(Icons.upload_file, size: 20),
+                          Icon(Icons.upload_file_outlined, size: 20, color: AppColors.info),
                           const SizedBox(width: 8),
                           Text(l10n.importFromExcel),
                         ],
                       ),
                     ),
                     const PopupMenuDivider(),
-                    if (deck.isPublished)
+                    // Publish (only if canPublish and authenticated)
+                    if (deck.canPublish && isAuthenticated)
                       PopupMenuItem(
-                          value: 'manage-published',
-                          child: Text(l10n.managePublished))
-                    else if (deck.canPublish && isAuthenticated)
-                      PopupMenuItem(
-                          value: 'publish', child: Text(l10n.publishToLibrary)),
+                        value: 'publish',
+                        child: Row(
+                          children: [
+                            Icon(Icons.public, size: 20, color: AppColors.success),
+                            const SizedBox(width: 8),
+                            Text(l10n.publishToLibrary),
+                          ],
+                        ),
+                      ),
+                    // Unlink from library
                     if (deck.isLinked)
                       PopupMenuItem(
-                          value: 'unlink', child: Text(l10n.unlinkFromLibrary)),
+                        value: 'unlink',
+                        child: Row(
+                          children: [
+                            Icon(Icons.link_off, size: 20, color: AppColors.warning),
+                            const SizedBox(width: 8),
+                            Text(l10n.unlinkFromLibrary),
+                          ],
+                        ),
+                      ),
+                    // Share Deck ID (only if published)
+                    if (deck.isPublished && deck.publishedDeckId != null)
+                      PopupMenuItem(
+                        value: 'share-id',
+                        child: Row(
+                          children: [
+                            Icon(Icons.share_outlined, size: 20, color: AppColors.primary),
+                            const SizedBox(width: 8),
+                            Text(l10n.shareDeckIdMenu),
+                          ],
+                        ),
+                      ),
+                    const PopupMenuDivider(),
+                    // Delete deck
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+                          const SizedBox(width: 8),
+                          Text(l10n.deleteDeckMenu, style: const TextStyle(color: AppColors.error)),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
             body: SafeArea(
               top: false,
-              child: Column(
-                children: [
-                  // Deck stats header
-                  _DeckHeader(deck: deck),
+              child: CustomScrollView(
+                slivers: [
+                  // Deck header
+                  SliverToBoxAdapter(
+                    child: _DeckHeader(deck: deck),
+                  ),
 
-                  // Action buttons
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: flashcardProvider.flashcards.isEmpty
-                                ? null
-                                : () => _navigateToViewer(context),
-                            icon: const Icon(Icons.visibility),
-                            label: Text(l10n.browse),
+                  // Action buttons (pinned)
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _StickyActionButtonsDelegate(
+                      child: Container(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 48,
+                                  child: OutlinedButton.icon(
+                                    onPressed: flashcardProvider.flashcards.isEmpty
+                                        ? null
+                                        : () => _navigateToViewer(context),
+                                    icon: const Icon(Icons.visibility),
+                                    label: Text(l10n.browse),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 48,
+                                  child: ElevatedButton.icon(
+                                    onPressed: deck.cardCount == 0
+                                        ? null
+                                        : () => _navigateToStudy(context),
+                                    icon: const Icon(Icons.school),
+                                    label: deck.dueCount > 0
+                                        ? Text(l10n.studyN(deck.dueCount))
+                                        : Text(l10n.studyAgain),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: deck.dueCount == 0
-                                ? null
-                                : () => _navigateToStudy(context),
-                            icon: const Icon(Icons.school),
-                            label: Text(l10n.studyN(deck.dueCount)),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
 
                   // Flashcard list
-                  Expanded(
-                    child: flashcardProvider.flashcards.isEmpty
-                        ? EmptyStateWidget(
-                            title: l10n.noFlashcardsYet,
-                            subtitle: l10n.addFlashcardsToStart,
-                            icon: Icons.style,
-                            action: ElevatedButton.icon(
-                              onPressed: () => _navigateToAddCard(context),
-                              icon: const Icon(Icons.add),
-                              label: Text(l10n.addFlashcard),
-                            ),
-                          )
-                        : ReorderableListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: flashcardProvider.flashcards.length,
-                            buildDefaultDragHandles: false,
-                            onReorder: (oldIndex, newIndex) {
-                              flashcardProvider.reorderFlashcards(
-                                  oldIndex, newIndex);
-                            },
-                            itemBuilder: (context, index) {
-                              final card = flashcardProvider.flashcards[index];
-                              return _FlashcardListItem(
-                                key: ValueKey(card.id),
-                                flashcard: card,
-                                index: index,
-                                onDoubleTap: () =>
-                                    _navigateToBrowseAt(context, index),
-                                onEdit: () =>
-                                    _navigateToEditCard(context, card),
-                                onDelete: () =>
-                                    _confirmDeleteCard(context, card),
-                              );
-                            },
+                  if (flashcardProvider.flashcards.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: EmptyStateWidget(
+                        title: l10n.noFlashcardsYet,
+                        subtitle: l10n.addFlashcardsToStart,
+                        icon: Icons.style,
+                        action: ElevatedButton.icon(
+                          onPressed: () => _navigateToAddCard(context),
+                          icon: const Icon(Icons.add),
+                          label: Text(l10n.addFlashcard),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverList.builder(
+                      itemCount: flashcardProvider.flashcards.length,
+                      itemBuilder: (context, index) {
+                        final card = flashcardProvider.flashcards[index];
+                        return Padding(
+                          key: ValueKey(card.id),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _FlashcardListItem(
+                            flashcard: card,
+                            index: index,
+                            onDoubleTap: () => _navigateToBrowseAt(context, index),
+                            onEdit: () => _navigateToEditCard(context, card),
+                            onDelete: () => _confirmDeleteCard(context, card),
                           ),
-                  ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),
-            floatingActionButton: FloatingActionButton(
-              heroTag: 'deck_detail_fab',
-              onPressed: () => _navigateToAddCard(context),
-              child: const Icon(Icons.add),
-            ),
+            floatingActionButton: _buildFab(context, deck),
           ),
         );
       },
     );
+  }
+
+  /// FAB with expandable options: Add Card + AI Generate
+  Widget _buildFab(BuildContext context, Deck deck) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // AI Generate mini FAB
+        FloatingActionButton.small(
+          heroTag: 'deck_detail_ai_fab',
+          onPressed: () => _showAiGenerateSheet(context, deck),
+          backgroundColor: AppColors.secondary,
+          child: const Icon(Icons.auto_awesome, size: 20),
+        ),
+        const SizedBox(height: 10),
+        // Add card main FAB
+        FloatingActionButton(
+          heroTag: 'deck_detail_fab',
+          onPressed: () => _navigateToAddCard(context),
+          child: const Icon(Icons.add),
+        ),
+      ],
+    );
+  }
+
+  void _showAiGenerateSheet(BuildContext context, Deck deck) async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AiGenerateBottomSheet(
+        sourceLanguage: deck.sourceLanguage,
+        targetLanguage: deck.targetLanguage,
+        deckId: deck.id,
+      ),
+    );
+
+    if (result == true && mounted) {
+      // AI generation succeeded, navigate to draft review
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AiDraftReviewScreen(deckId: deck.id),
+        ),
+      );
+    }
   }
 
   void _navigateToBrowseAt(BuildContext context, int index) {
@@ -270,13 +379,44 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
       case 'publish':
         Navigator.pushNamed(context, '/publish', arguments: deck.id);
         break;
-      case 'manage-published':
-        Navigator.pushNamed(context, '/manage-published');
-        break;
       case 'unlink':
         _confirmUnlink(context);
         break;
+      case 'share-id':
+        _shareDeckId(context, deck);
+        break;
+      case 'delete':
+        _confirmDeleteDeck(context, deck);
+        break;
     }
+  }
+
+  void _shareDeckId(BuildContext context, Deck deck) {
+    final id = deck.publishedDeckId ?? deck.id;
+    Clipboard.setData(ClipboardData(text: id));
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.deckIdCopied)),
+    );
+  }
+
+  void _confirmDeleteDeck(BuildContext context, Deck deck) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showStandardDialog(
+      context: context,
+      title: l10n.deleteConfirmTitle(deck.name),
+      content: l10n.deleteConfirmMessage(deck.name),
+      primaryButtonText: l10n.delete,
+      secondaryButtonText: l10n.cancel,
+      isDestructive: true,
+      onPrimaryPressed: () async {
+        await context.read<DeckProvider>().deleteDeck(deck.id);
+        if (context.mounted) {
+          Navigator.pop(context); // go back from deck detail
+        }
+      },
+    );
   }
 
   Future<void> _importFromExcel(BuildContext context, Deck deck) async {
@@ -601,141 +741,319 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
   }
 }
 
+class _StickyActionButtonsDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _StickyActionButtonsDelegate({required this.child});
+
+  @override
+  double get minExtent => 72.0; // 12 padding top + 48 button + 12 padding bottom
+  @override
+  double get maxExtent => 72.0;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      height: maxExtent,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        boxShadow: overlapsContent || shrinkOffset > 0
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : null,
+      ),
+      alignment: Alignment.center,
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _StickyActionButtonsDelegate oldDelegate) {
+    return true;
+  }
+}
+
+/// Deck header styled like the public library deck preview card.
+/// Shows deck image, name, front/back field chips, language badges,
+/// status badges, description, tags, category, and stats.
 class _DeckHeader extends StatelessWidget {
-  final dynamic deck;
+  final Deck deck;
 
   const _DeckHeader({required this.deck});
+
+  String _formatFields(List<CardFieldType> fields) {
+    return fields.map((f) => f.displayName).join(', ');
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final category = deck.category != null ? Category.getById(deck.category!) : null;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Row 1: Status badges (linked + published) inline
-          if (deck.isLinked || deck.isPublished) ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // === Row 1: Image + Info ===
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (deck.isLinked)
-                  Consumer<SyncProvider>(
-                    builder: (context, syncProvider, _) {
-                      final hasUpdate = syncProvider.hasUpdateForDeck(deck.id);
-                      final update = syncProvider.getUpdateForDeck(deck.id);
-                      final isSyncing = syncProvider.syncingDeckId == deck.id;
+                // Deck image
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: DeckCardHeader.buildDeckImage(context, deck.imagePath),
+                ),
+                const SizedBox(width: 12),
 
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
+                // Info column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name
+                      Text(
+                        deck.name,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      // Front/back field chips + language badges
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          LinkedDeckIndicator(
-                            hasUpdate: hasUpdate,
-                            onSyncTap: hasUpdate && !isSyncing
-                                ? () => syncProvider.syncDeck(deck.id)
-                                : null,
-                          ),
-                          if (isSyncing) ...[
-                            const SizedBox(width: 6),
-                            const SyncBadge(isSyncing: true),
-                          ] else if (hasUpdate && update != null) ...[
-                            const SizedBox(width: 6),
-                            SyncBadge(
-                              hasUpdate: true,
-                              versionsBehind: update.versionsBehind,
-                              onTap: () => syncProvider.syncDeck(deck.id),
+                          if (!deck.showBackFirst) ...[
+                            DeckCardHeader.buildMiniChip(
+                              context,
+                              Icons.flip_to_front,
+                              _formatFields(deck.frontFields),
+                              AppColors.primary,
+                            ),
+                            DeckCardHeader.buildMiniChip(
+                              context,
+                              Icons.flip_to_back,
+                              _formatFields(deck.backFields),
+                              AppColors.secondary,
+                            ),
+                          ] else ...[
+                            DeckCardHeader.buildMiniChip(
+                              context,
+                              Icons.flip_to_back,
+                              _formatFields(deck.backFields),
+                              AppColors.secondary,
+                            ),
+                            DeckCardHeader.buildMiniChip(
+                              context,
+                              Icons.flip_to_front,
+                              _formatFields(deck.frontFields),
+                              AppColors.primary,
                             ),
                           ],
+                          // Language badges
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              DeckCardHeader.buildLanguageBadge(context, deck.sourceLanguage),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 2),
+                                child: Icon(Icons.arrow_forward, size: 14, color: Colors.grey),
+                              ),
+                              DeckCardHeader.buildLanguageBadge(context, deck.targetLanguage),
+                            ],
+                          ),
                         ],
-                      );
-                    },
+                      ),
+
+                      // Description
+                      if (deck.description != null && deck.description!.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          deck.description!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary(context),
+                              ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
-                if (deck.isPublished)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                ),
+              ],
+            ),
+
+            // === Status badges row ===
+            if (deck.isLinked || deck.isPublished) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  if (deck.isLinked)
+                    Consumer<SyncProvider>(
+                      builder: (context, syncProvider, _) {
+                        final hasUpdate = syncProvider.hasUpdateForDeck(deck.id);
+                        final update = syncProvider.getUpdateForDeck(deck.id);
+                        final isSyncing = syncProvider.syncingDeckId == deck.id;
+
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LinkedDeckIndicator(
+                              hasUpdate: hasUpdate,
+                              onSyncTap: hasUpdate && !isSyncing
+                                  ? () => syncProvider.syncDeck(deck.id)
+                                  : null,
+                            ),
+                            if (isSyncing) ...[
+                              const SizedBox(width: 6),
+                              const SyncBadge(isSyncing: true),
+                            ] else if (hasUpdate && update != null) ...[
+                              const SizedBox(width: 6),
+                              SyncBadge(
+                                hasUpdate: true,
+                                versionsBehind: update.versionsBehind,
+                                onTap: () => syncProvider.syncDeck(deck.id),
+                              ),
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                  if (deck.isPublished)
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.public, size: 13, color: AppColors.success),
+                          const SizedBox(width: 3),
+                          Text(
+                            l10n.published,
+                            style: TextStyle(
+                              color: AppColors.success,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ],
+
+            // === Tags ===
+            if (deck.tags.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: deck.tags.map((tag) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.1),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '#$tag',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 11,
+                            color: AppColors.textSecondary(context),
+                          ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+
+            const SizedBox(height: 10),
+
+            // === Bottom row: Category + Stats ===
+            Row(
+              children: [
+                // Category chip
+                if (category != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.public, size: 13, color: AppColors.success),
-                        const SizedBox(width: 3),
+                        Icon(
+                          _getCategoryIcon(category.icon ?? 'category'),
+                          size: 13,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          l10n.published,
-                          style: TextStyle(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11,
-                          ),
+                          category.name,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                              ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
+                ],
+
+                const Spacer(),
+
+                // Stats inline
+                _StatChip(label: l10n.total, value: '${deck.cardCount}', color: AppColors.primary),
+                const SizedBox(width: 10),
+                _StatChip(label: l10n.newCards, value: '${deck.newCount}', color: AppColors.info),
+                const SizedBox(width: 10),
+                _StatChip(label: l10n.learning, value: '${deck.learningCount}', color: AppColors.warning),
+                const SizedBox(width: 10),
+                _StatChip(label: l10n.reviewCards, value: '${deck.reviewCount}', color: AppColors.secondary),
               ],
             ),
-            const SizedBox(height: 8),
           ],
-
-          // Row 2: Description
-          if (deck.description != null && deck.description!.isNotEmpty) ...[
-            Text(
-              deck.description!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary(context),
-                  ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-          ],
-
-          // Row 3: Stats as compact inline chips
-          Row(
-            children: [
-              _StatChip(
-                label: l10n.total,
-                value: '${deck.cardCount}',
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 12),
-              _StatChip(
-                label: l10n.newCards,
-                value: '${deck.newCount}',
-                color: AppColors.info,
-              ),
-              const SizedBox(width: 12),
-              _StatChip(
-                label: l10n.learning,
-                value: '${deck.learningCount}',
-                color: AppColors.warning,
-              ),
-              const SizedBox(width: 12),
-              _StatChip(
-                label: l10n.reviewCards,
-                value: '${deck.reviewCount}',
-                color: AppColors.secondary,
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  IconData _getCategoryIcon(String iconName) {
+    switch (iconName) {
+      case 'flight': return Icons.flight;
+      case 'business': return Icons.business;
+      case 'home': return Icons.home;
+      case 'menu_book': return Icons.menu_book;
+      case 'chat_bubble': return Icons.chat_bubble;
+      case 'school': return Icons.school;
+      case 'translate': return Icons.translate;
+      case 'more_horiz': return Icons.more_horiz;
+      default: return Icons.category;
+    }
   }
 }
 
@@ -760,15 +1078,15 @@ class _StatChip extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: color,
-            fontSize: 16,
+            fontSize: 14,
           ),
         ),
-        const SizedBox(width: 3),
+        const SizedBox(width: 2),
         Text(
           label,
           style: TextStyle(
             color: AppColors.textSecondary(context),
-            fontSize: 11,
+            fontSize: 10,
           ),
         ),
       ],
@@ -805,18 +1123,7 @@ class _FlashcardListItem extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Drag handle at start only
-              ReorderableDragStartListener(
-                index: index,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Icon(
-                    Icons.drag_handle,
-                    color: AppColors.textSecondaryLight,
-                    size: 20,
-                  ),
-                ),
-              ),
+              // Remove drag handle since reordering is not supported
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -855,11 +1162,26 @@ class _FlashcardListItem extends StatelessWidget {
                   if (value == 'delete') onDelete();
                 },
                 itemBuilder: (context) => [
-                  PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Text(l10n.edit),
+                      ],
+                    ),
+                  ),
                   PopupMenuItem(
                     value: 'delete',
-                    child: Text(l10n.delete,
-                        style: const TextStyle(color: AppColors.error)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                        const SizedBox(width: 8),
+                        Text(l10n.delete,
+                            style: const TextStyle(color: AppColors.error)),
+                      ],
+                    ),
                   ),
                 ],
               ),

@@ -110,9 +110,36 @@ class _LibraryScreenState extends State<LibraryScreen>
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             tabs: [
-              Tab(text: l10n.browse),
-              Tab(text: l10n.newDecks),
-              Tab(text: l10n.myPublishedDecks),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.explore_rounded, color: Colors.blue, size: 18),
+                    const SizedBox(width: 6),
+                    Text(l10n.browse),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.new_releases_rounded, color: Colors.orange, size: 18),
+                    const SizedBox(width: 6),
+                    Text(l10n.newDecks),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_done_rounded, color: Colors.green, size: 18),
+                    const SizedBox(width: 6),
+                    Text(l10n.myPublishedDecks),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -145,8 +172,11 @@ class _NewestTab extends StatefulWidget {
   State<_NewestTab> createState() => _NewestTabState();
 }
 
-class _NewestTabState extends State<_NewestTab> {
+class _NewestTabState extends State<_NewestTab> with AutomaticKeepAliveClientMixin {
   final _scrollController = ScrollController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -171,6 +201,7 @@ class _NewestTabState extends State<_NewestTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context)!;
 
     return Consumer<PublicLibraryProvider>(
@@ -234,9 +265,12 @@ class _BrowseTab extends StatefulWidget {
   State<_BrowseTab> createState() => _BrowseTabState();
 }
 
-class _BrowseTabState extends State<_BrowseTab> {
+class _BrowseTabState extends State<_BrowseTab> with AutomaticKeepAliveClientMixin {
   final _scrollController = ScrollController();
   final _searchController = TextEditingController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -261,16 +295,24 @@ class _BrowseTabState extends State<_BrowseTab> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final provider = context.read<PublicLibraryProvider>();
+      debugPrint('[_BrowseTab] onScroll triggered near bottom. isLoading: ${provider.isLoading}, isLoadingMore: ${provider.isLoadingMore}, hasMoreDecks: ${provider.hasMoreDecks}');
       if (!provider.isLoading &&
           !provider.isLoadingMore &&
           provider.hasMoreDecks) {
-        provider.browse();
+        if (provider.searchQuery.isEmpty) {
+          debugPrint('[_BrowseTab] calling provider.browse() from scroll');
+          provider.browse();
+        } else {
+          debugPrint('[_BrowseTab] calling provider.search() from scroll');
+          provider.search(provider.searchQuery);
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Consumer<PublicLibraryProvider>(
       builder: (context, provider, _) {
         return Stack(
@@ -498,17 +540,24 @@ class _MyDecksTab extends StatefulWidget {
   State<_MyDecksTab> createState() => _MyDecksTabState();
 }
 
-class _MyDecksTabState extends State<_MyDecksTab> {
+class _MyDecksTabState extends State<_MyDecksTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PublishProvider>().loadMyPublishedDecks();
+      final provider = context.read<PublishProvider>();
+      if (!provider.hasLoadedMyDecks) {
+        provider.loadMyPublishedDecks();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context)!;
 
     return Stack(
@@ -817,15 +866,41 @@ class _MyDecksTabState extends State<_MyDecksTab> {
       secondaryButtonText: l10n.cancel,
       primaryButtonText: l10n.unpublish,
       onPrimaryPressed: () async {
-        final success =
-            await publishProvider.unpublishByPublicId(publicDeckId);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(success
-                ? l10n.deckUnpublished
-                : publishProvider.error ?? 'Failed to unpublish'),
-          ),
+        final localDeckExists = context.read<DeckProvider>().decks.any(
+          (d) => d.publishedDeckId == publicDeckId || d.linkedPublicDeckId == publicDeckId,
         );
+
+        if (!localDeckExists) {
+          // Show second confirmation dialog warning the user they will lose the deck permanently
+          showStandardDialog(
+            context: context,
+            title: l10n.localCopyMissing,
+            content: l10n.unpublishLocalMissingWarning,
+            isDestructive: true,
+            secondaryButtonText: l10n.cancel,
+            primaryButtonText: l10n.unpublish,
+            onPrimaryPressed: () async {
+              final success = await publishProvider.unpublishByPublicId(publicDeckId);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(success
+                      ? l10n.deckUnpublished
+                      : publishProvider.error ?? 'Failed to unpublish'),
+                ),
+              );
+            },
+          );
+        } else {
+          // Local copy exists, proceed normally
+          final success = await publishProvider.unpublishByPublicId(publicDeckId);
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(success
+                  ? l10n.deckUnpublished
+                  : publishProvider.error ?? 'Failed to unpublish'),
+            ),
+          );
+        }
       },
     );
   }

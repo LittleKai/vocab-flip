@@ -1219,6 +1219,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Automatically play pronunciation when flipping cards';
 
   @override
+  String get ttsVolume => 'Pronunciation Volume';
+
+  @override
+  String get ttsVolumeDesc => 'Adjust text-to-speech reading volume';
+
+  @override
   String get ttsHelp => 'TTS Installation Guide';
 
   @override
@@ -1867,6 +1873,183 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wrongOrder => 'Wrong stroke order';
 
   @override
+  String get wrongStart => 'Wrong starting point';
+
+  @override
+  String get wrongEnd => 'Wrong ending point';
+
+  @override
+  String get inaccurateStroke => 'Inaccurate stroke';
+
+  @override
+  String get strokeTooShort => 'Stroke is too short';
+
+  @override
+  String characterProgress(int current, int total) {
+    return 'Character $current of $total';
+  }
+
+  @override
+  String skippedUnsupported(int count) {
+    return 'Skipped $count unsupported';
+  }
+
+  @override
+  String get nextCharacter => 'Next Character';
+
+  @override
   String get strokeDataUnavailable =>
       'Stroke data is not available for this character.';
+
+  @override
+  String get gentle => 'Gentle';
+
+  @override
+  String get standardPractice => 'Standard';
+
+  @override
+  String get strict => 'Strict';
+
+  @override
+  String get validationProfile => 'Leniency';
+
+  @override
+  String get aiGenerateCards => 'AI Generate Cards';
+
+  @override
+  String get aiGenerateCardsDesc =>
+      'Describe the topic or requirements for cards';
+
+  @override
+  String get aiPromptHint =>
+      'e.g., Common greetings in Japanese for beginners...';
+
+  @override
+  String get cardCount => 'Card Count';
+
+  @override
+  String maxCards(int count) {
+    return 'Max $count';
+  }
+
+  @override
+  String get includeExamples => 'Include Examples';
+
+  @override
+  String get includeNotes => 'Include Notes';
+
+  @override
+  String get aiModel => 'AI Model';
+
+  @override
+  String get modelPro => 'Pro (Higher quality)';
+
+  @override
+  String get modelFlash => 'Flash (Faster)';
+
+  @override
+  String freeUsesRemaining(int count) {
+    return '$count free uses remaining';
+  }
+
+  @override
+  String get costsOneCredit => 'Costs 1 credit per use';
+
+  @override
+  String get noFreeUsesLeft => 'No free uses left';
+
+  @override
+  String get insufficientCredits => 'Insufficient credits';
+
+  @override
+  String get generate => 'Generate';
+
+  @override
+  String get generating => 'Generating...';
+
+  @override
+  String get aiGeneratedCards => 'AI Generated Cards';
+
+  @override
+  String get selectCardsToAdd => 'Select cards to add to your deck';
+
+  @override
+  String get selectAll => 'Select All';
+
+  @override
+  String get deselectAll => 'Deselect All';
+
+  @override
+  String addSelectedCards(int count) {
+    return 'Add $count Cards';
+  }
+
+  @override
+  String get noCardsGenerated => 'No cards were generated';
+
+  @override
+  String cardsAddedSuccess(int count) {
+    return '$count cards added to deck';
+  }
+
+  @override
+  String get aiGenerationFailed => 'Failed to generate cards';
+
+  @override
+  String get pleaseEnterPrompt => 'Please describe what cards you want';
+
+  @override
+  String get requiresSignIn => 'Sign in required';
+
+  @override
+  String get signInToUseAi => 'Please sign in to use AI card generation';
+
+  @override
+  String get shareDeckIdMenu => 'Share Deck ID';
+
+  @override
+  String get deleteDeckMenu => 'Delete Deck';
+
+  @override
+  String get promptSuggestionsTitle => 'Prompt Suggestions';
+
+  @override
+  String get promptSuggestion1 =>
+      'Generate essential daily conversational phrases for beginners, including greetings, self-introductions, and basic questions.';
+
+  @override
+  String get promptSuggestion2 =>
+      'Create professional business vocabulary and sentence templates commonly used for writing emails to clients or partners.';
+
+  @override
+  String get promptSuggestion3 =>
+      'Generate vocabulary related to food, ingredients, and useful phrases for ordering meals and asking for the bill at a restaurant.';
+
+  @override
+  String get promptSuggestion4 =>
+      'Create a list of common slang words and idioms used in everyday casual communication by native speakers.';
+
+  @override
+  String get promptSuggestion5 =>
+      'Generate technical vocabulary and terms related to software engineering, programming, and IT troubleshooting.';
+
+  @override
+  String get useThisPrompt => 'Use this';
+
+  @override
+  String get noteInstructionsHint => 'Instructions for notes (optional)';
+
+  @override
+  String get noteInstructionsDesc =>
+      'e.g., Add synonyms, grammar points, or politeness levels';
+
+  @override
+  String get unpublishLocalMissingWarning =>
+      'This deck does not exist on your local device. If you unpublish it, you will lose it permanently. We recommend importing it back to your device first. Do you still want to unpublish?';
+
+  @override
+  String get localCopyMissing => 'Local Copy Missing';
+
+  @override
+  String get playStrokeOrder => 'Stroke Order';
 }

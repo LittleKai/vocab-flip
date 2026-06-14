@@ -36,7 +36,7 @@ class PublicDeckCard extends StatelessWidget {
 
   Widget _buildFullCard(BuildContext context) {
     final category = Category.getById(deck.categoryId);
-    final accentColor = deck.hasRatings ? Colors.amber : AppColors.primary;
+    final langColor = DeckCardHeader.getLanguageColor(deck.sourceLanguage);
     final surfaceColor = Theme.of(context).colorScheme.surface;
     final cardTint = Color.lerp(
       surfaceColor,
@@ -52,7 +52,7 @@ class PublicDeckCard extends StatelessWidget {
       color: cardTint,
       shape: RoundedRectangleBorder(
         borderRadius: borderRadius,
-        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.16)),
+        side: BorderSide(color: langColor.withValues(alpha: 0.16)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -60,7 +60,7 @@ class PublicDeckCard extends StatelessWidget {
           Positioned.fill(
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Container(width: 6, color: accentColor),
+              child: Container(width: 6, color: langColor),
             ),
           ),
           InkWell(
@@ -325,10 +325,11 @@ class PublicDeckCard extends StatelessWidget {
   }
 
   Widget _buildCompactCard(BuildContext context) {
+    final langColor = DeckCardHeader.getLanguageColor(deck.sourceLanguage);
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.14)),
+        side: BorderSide(color: langColor.withValues(alpha: 0.14)),
       ),
       child: InkWell(
         onTap: onTap,

@@ -58,8 +58,8 @@ class PublicLibraryRepository {
       _libraryService.getDeck(deckId);
 
   /// Get flashcards for a public deck (preview)
-  Future<List<PublicFlashcard>> getPublicFlashcards(String publicDeckId) =>
-      _libraryService.getFlashcards(publicDeckId);
+  Future<List<PublicFlashcard>> getPublicFlashcards(String publicDeckId, {int? limit}) =>
+      _libraryService.getFlashcards(publicDeckId, limit: limit);
 
   /// Get featured decks for homepage
   Future<List<PublicDeck>> getFeaturedDecks({int limit = 10}) =>

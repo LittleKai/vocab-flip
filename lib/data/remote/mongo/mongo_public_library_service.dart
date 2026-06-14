@@ -116,10 +116,12 @@ class MongoPublicLibraryService {
     }
   }
 
-  Future<List<PublicFlashcard>> getFlashcards(String publicDeckId) async {
+  Future<List<PublicFlashcard>> getFlashcards(String publicDeckId, {int? limit}) async {
     try {
+      final queryParams = limit != null ? {'limit': limit} : null;
       final response = await _apiClient.dio.get(
         '/vocab/public-decks/$publicDeckId/flashcards',
+        queryParameters: queryParams,
       );
       final cards = unwrapApiList(response.data)
           .map(PublicFlashcard.fromMap)
@@ -297,7 +299,10 @@ class MongoPublicLibraryService {
   Map<String, dynamic> _filterParams(LibraryFilter? filter, int limit, int offset) {
     final params = <String, dynamic>{
       'limit': limit,
+      'pageSize': limit,
       'skip': offset,
+      'offset': offset,
+      'page': (offset ~/ limit) + 1,
       'sort_by': (filter?.sortBy ?? LibrarySortBy.popular).name,
       'descending': filter?.descending ?? true,
     };

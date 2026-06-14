@@ -31,9 +31,12 @@ class PublishProvider extends ChangeNotifier {
   int _imageUploadTotal = 0;
   int _imageUploadFailed = 0;
 
+  bool _hasLoadedMyDecks = false;
+
   // Getters
   PublishState get state => _state;
   List<PublicDeck> get myPublishedDecks => _myPublishedDecks;
+  bool get hasLoadedMyDecks => _hasLoadedMyDecks;
   List<Category> get categories => _categories;
   String? get selectedCategoryId => _selectedCategoryId;
   List<String> get selectedTags => _selectedTags;
@@ -80,6 +83,7 @@ class PublishProvider extends ChangeNotifier {
   Future<void> loadMyPublishedDecks() async {
     try {
       _myPublishedDecks = await _repository.getMyPublishedDecks();
+      _hasLoadedMyDecks = true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading published decks: $e');

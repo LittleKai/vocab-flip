@@ -35,6 +35,8 @@ class AppPreferences {
   static const String _keyDeckFilterLanguage = 'deck_filter_language';
   static const String _keyDeckFilterSortBy = 'deck_filter_sort_by';
 
+  static const String _keyTtsVolume = 'tts_volume';
+
   // Library filter
   static const String _keyLibFilterCategory = 'lib_filter_category';
   static const String _keyLibFilterSourceLang = 'lib_filter_source_lang';
@@ -51,9 +53,23 @@ class AppPreferences {
   static const String _keyAdminFeedbackLastRead = 'admin_feedback_last_read_at';
 
   // Default font sizes
-  static const int defaultMainFontSize = 32;
-  static const int defaultPhoneticFontSize = 20;
-  static const int defaultDetailFontSize = 16;
+  static int get defaultMainFontSize {
+    if (kIsWeb) return 48;
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return 48;
+    return 32;
+  }
+  
+  static int get defaultPhoneticFontSize {
+    if (kIsWeb) return 28;
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return 28;
+    return 20;
+  }
+  
+  static int get defaultDetailFontSize {
+    if (kIsWeb) return 20;
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return 20;
+    return 16;
+  }
 
   /// Default image max width based on platform
   static int get defaultFlashcardImageMaxWidth {
@@ -182,6 +198,11 @@ class AppPreferences {
   bool get hideTtsWarning => _prefs.getBool(_keyHideTtsWarning) ?? false;
   Future<bool> setHideTtsWarning(bool value) =>
       _prefs.setBool(_keyHideTtsWarning, value);
+
+  // TTS Volume
+  double get ttsVolume => _prefs.getDouble(_keyTtsVolume) ?? 1.0;
+  Future<bool> setTtsVolume(double value) =>
+      _prefs.setDouble(_keyTtsVolume, value);
 
   // Last update check
   DateTime? get lastUpdateCheck {

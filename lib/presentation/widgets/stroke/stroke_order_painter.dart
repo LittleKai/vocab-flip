@@ -61,7 +61,14 @@ class StrokeOrderPainter extends CustomPainter {
 
     canvas.save();
     canvas.translate(dx, dy);
-    canvas.scale(scale);
+    
+    // MakeMeAHanzi / AnimCJK có trục Y hướng lên
+    if (character.isYUp) {
+      canvas.scale(scale, -scale);
+      canvas.translate(0, -vbH);
+    } else {
+      canvas.scale(scale, scale);
+    }
 
     _drawGuidelines(canvas, vbW, vbH);
 

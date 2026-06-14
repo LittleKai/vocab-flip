@@ -68,6 +68,12 @@ class _FlipCardState extends State<FlipCard>
   @override
   void didUpdateWidget(FlipCard oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      if (oldWidget.controller?._state == this) {
+        oldWidget.controller?._state = null;
+      }
+      widget.controller?._state = this;
+    }
     if (widget.isFlipped != oldWidget.isFlipped) {
       if (widget.isFlipped) {
         _controller.forward();
@@ -79,6 +85,9 @@ class _FlipCardState extends State<FlipCard>
 
   @override
   void dispose() {
+    if (widget.controller?._state == this) {
+      widget.controller?._state = null;
+    }
     _controller.dispose();
     super.dispose();
   }

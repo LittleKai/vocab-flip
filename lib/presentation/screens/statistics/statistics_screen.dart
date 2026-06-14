@@ -531,13 +531,17 @@ class _DeckProgressCard extends StatelessWidget {
     final learned = total - deck.newCount;
     final progress = total > 0 ? learned / total : 0.0;
     final accent = deck.dueCount > 0 ? AppColors.accent : AppColors.secondary;
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+    final cardBgColor = Color.lerp(
+      surfaceColor,
+      accent,
+      Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.06,
+    )!;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: deck.dueCount > 0 ? 2 : 0,
-      color: accent.withValues(
-        alpha: Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.06,
-      ),
+      color: cardBgColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(color: accent.withValues(alpha: 0.20)),

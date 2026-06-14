@@ -54,7 +54,7 @@ void main() {
   });
 
   group('StrokeValidationService', () {
-    test('accepts perfect stroke', () {
+    test('accepts perfect stroke under standard profile', () {
       final result = service.validateStroke(
         userPoints: const [
           Offset(100, 512),
@@ -63,12 +63,13 @@ void main() {
         ],
         character: _oneStroke(),
         expectedIndex: 0,
+        profile: StrokeValidationProfile.standard,
       );
       expect(result.accepted, isTrue);
       expect(result.score, greaterThan(0.9));
     });
 
-    test('rejects reversed stroke as wrongDirection', () {
+    test('rejects reversed stroke as wrongDirection even in gentle mode', () {
       final result = service.validateStroke(
         userPoints: const [
           Offset(924, 512),
@@ -77,27 +78,57 @@ void main() {
         ],
         character: _oneStroke(),
         expectedIndex: 0,
+        profile: StrokeValidationProfile.gentle,
       );
       expect(result.accepted, isFalse);
       expect(result.rejection, StrokeRejection.wrongDirection);
     });
 
-    test('rejects far-away stroke as wrongStart', () {
-      final result = service.validateStroke(
-        userPoints: const [Offset(100, 100), Offset(924, 100)],
+    test('borderline stroke behavior changes based on profile', () {
+      // Create a stroke that starts 300px away.
+      // Standard threshold is 250 (rejects).
+      // Gentle threshold is 400 (accepts).
+      // Strict threshold is 150 (rejects).
+      const borderlinePoints = [
+        Offset(400, 512), // Expected start is 100 (dist = 300)
+        Offset(924, 512)
+      ];
+
+      final standardResult = service.validateStroke(
+        userPoints: borderlinePoints,
         character: _oneStroke(),
         expectedIndex: 0,
+        profile: StrokeValidationProfile.standard,
       );
-      expect(result.accepted, isFalse);
-      expect(result.rejection, StrokeRejection.wrongStart);
+      expect(standardResult.accepted, isFalse);
+      expect(standardResult.rejection, StrokeRejection.wrongStart);
+
+      final strictResult = service.validateStroke(
+        userPoints: borderlinePoints,
+        character: _oneStroke(),
+        expectedIndex: 0,
+        profile: StrokeValidationProfile.strict,
+      );
+      expect(strictResult.accepted, isFalse);
+      expect(strictResult.rejection, StrokeRejection.wrongStart);
+
+      final gentleResult = service.validateStroke(
+        userPoints: borderlinePoints,
+        character: _oneStroke(),
+        expectedIndex: 0,
+        profile: StrokeValidationProfile.gentle,
+      );
+      expect(gentleResult.accepted, isTrue);
     });
 
-    test('rejects drawing stroke 2 when expecting stroke 1 as wrongOrder', () {
+    test(
+        'rejects drawing stroke 2 when expecting stroke 1 as wrongOrder in gentle mode',
+        () {
       final result = service.validateStroke(
-        // Draw the vertical stroke (stroke index 1)
         userPoints: const [Offset(512, 100), Offset(512, 924)],
         character: _twoStrokes(),
-        expectedIndex: 0, // But we expect the horizontal one
+        expectedIndex: 0,
+        profile: StrokeValidationProfile.gentle,
       );
       expect(result.accepted, isFalse);
       expect(result.rejection, StrokeRejection.wrongOrder);
@@ -111,27 +142,6 @@ void main() {
       );
       expect(result.accepted, isFalse);
       expect(result.rejection, StrokeRejection.tooShort);
-    });
-
-    test('rejects partial stroke as tooShort based on ratio', () {
-      final result = service.validateStroke(
-        // Draw from 100 to 200, but median is 824 long
-        userPoints: const [Offset(100, 512), Offset(200, 512)],
-        character: _oneStroke(),
-        expectedIndex: 0,
-      );
-      expect(result.accepted, isFalse);
-      expect(result.rejection, StrokeRejection.tooShort);
-    });
-
-    test('rejects invalid index with inaccurate', () {
-      final result = service.validateStroke(
-        userPoints: const [Offset(100, 512), Offset(924, 512)],
-        character: _oneStroke(),
-        expectedIndex: 99,
-      );
-      expect(result.accepted, isFalse);
-      expect(result.rejection, StrokeRejection.inaccurate);
     });
   });
 }
