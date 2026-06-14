@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../local/daos/sync_queue_dao.dart';
 import '../models/sync_queue_item.dart';
@@ -50,16 +51,49 @@ class SyncQueueService {
   }
 
   Future<void> _processItem(SyncQueueItem item) async {
-    // In a full implementation, we'd route based on entityType and operation
-    // For now, this is the structural implementation to satisfy Phase 3 offline hardening.
-    final path = '/sync/${item.entityType}/${item.entityId}';
-    
+    String path = '';
+    dynamic dataMap;
+
+    if (item.payload != null && item.payload!.isNotEmpty) {
+      try {
+        dataMap = jsonDecode(item.payload!);
+      } catch (e) {
+        debugPrint('SyncQueueService: Failed to decode payload for item ${item.id}: $e');
+      }
+    }
+
+    if (item.entityType == 'deck') {
+      if (item.operation == 'CREATE') {
+        path = '/vocab/my-decks';
+      } else {
+        path = '/vocab/my-decks/${item.entityId}';
+      }
+    } else if (item.entityType == 'flashcard') {
+      if (item.operation == 'CREATE') {
+        final deckId = dataMap != null ? dataMap['deck_id'] : null;
+        if (deckId == null) {
+          throw Exception('Cannot create flashcard: deck_id is missing from payload');
+        }
+        path = '/vocab/my-decks/$deckId/cards';
+      } else if (item.operation == 'UPDATE') {
+        final deckId = dataMap != null ? dataMap['deck_id'] : null;
+        if (deckId == null) {
+          throw Exception('Cannot update flashcard: deck_id is missing from payload');
+        }
+        path = '/vocab/my-decks/$deckId/cards/${item.entityId}';
+      } else if (item.operation == 'DELETE') {
+        path = '/vocab/my-decks/any/cards/${item.entityId}';
+      }
+    } else {
+      throw Exception('Unknown entityType: ${item.entityType}');
+    }
+
     switch (item.operation) {
       case 'CREATE':
-        await _apiClient.dio.post(path, data: item.payload);
+        await _apiClient.dio.post(path, data: dataMap);
         break;
       case 'UPDATE':
-        await _apiClient.dio.put(path, data: item.payload);
+        await _apiClient.dio.put(path, data: dataMap);
         break;
       case 'DELETE':
         await _apiClient.dio.delete(path);

@@ -3,6 +3,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferences {
+  static final AppPreferences _instance = AppPreferences._internal();
+  factory AppPreferences() => _instance;
+  AppPreferences._internal();
+
   static const String _keyDarkMode = 'dark_mode';
   static const String _keyLocale = 'locale';
   static const String _keyAutoSync = 'auto_sync';
