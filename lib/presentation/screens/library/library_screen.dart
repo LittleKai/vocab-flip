@@ -218,20 +218,20 @@ class _NewestTabState extends State<_NewestTab> with AutomaticKeepAliveClientMix
           children: [
             RefreshIndicator(
               onRefresh: () => provider.loadNewestDecks(refresh: true),
-              child: ResponsiveGrid(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                itemCount: provider.newestDecks.length,
-                mainAxisExtent: 180,
-                trailing: provider.hasMoreNewestDecks
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    : null,
-                itemBuilder: (context, index) {
+                child: ResponsiveGrid(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  itemCount: provider.newestDecks.length,
+                  mainAxisExtent: 180,
+                  trailing: provider.isLoadingMore
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : null,
+                  itemBuilder: (context, index) {
                   final deck = provider.newestDecks[index];
                   return PublicDeckCard(
                     deck: deck,
@@ -509,20 +509,20 @@ class _BrowseTabState extends State<_BrowseTab> with AutomaticKeepAliveClientMix
 
     return RefreshIndicator(
       onRefresh: () => provider.browse(refresh: true),
-      child: ResponsiveGrid(
-        controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-        itemCount: provider.decks.length,
-        mainAxisExtent: 180,
-        trailing: provider.hasMoreDecks
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            : null,
-        itemBuilder: (context, index) {
+        child: ResponsiveGrid(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          itemCount: provider.decks.length,
+          mainAxisExtent: 180,
+          trailing: provider.isLoadingMore
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : null,
+          itemBuilder: (context, index) {
           final deck = provider.decks[index];
           return PublicDeckCard(
             deck: deck,

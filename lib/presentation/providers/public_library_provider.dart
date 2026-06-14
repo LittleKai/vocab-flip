@@ -152,7 +152,7 @@ class PublicLibraryProvider extends ChangeNotifier {
 
     try {
       final offset = refresh ? 0 : _newestDecks.length;
-      final newDecks = await _repository.getNewestDecks(limit: 10, offset: offset);
+      final newDecks = await _repository.getNewestDecks(limit: 20, offset: offset);
       
       if (refresh) {
         _newestDecks = newDecks;
@@ -166,7 +166,7 @@ class PublicLibraryProvider extends ChangeNotifier {
         }
       }
       
-      _hasMoreNewestDecks = _hasMoreNewestDecks && newDecks.length >= 10;
+      _hasMoreNewestDecks = _hasMoreNewestDecks && newDecks.length >= 20;
       _prefetchAuthorProfiles(newDecks);
     } catch (e) {
       debugPrint('Error loading newest decks: $e');
@@ -197,10 +197,10 @@ class PublicLibraryProvider extends ChangeNotifier {
 
     try {
       final offset = refresh ? 0 : _decks.length;
-      debugPrint('[PublicLibraryProvider] browse requesting API: limit=10, offset=$offset, filter=$_filter');
+      debugPrint('[PublicLibraryProvider] browse requesting API: limit=20, offset=$offset, filter=$_filter');
       final newDecks = await _repository.browse(
         filter: _filter,
-        limit: 10,
+        limit: 20,
         offset: offset,
       );
       debugPrint('[PublicLibraryProvider] browse received ${newDecks.length} decks from API');
@@ -219,7 +219,7 @@ class PublicLibraryProvider extends ChangeNotifier {
         }
       }
 
-      _hasMoreDecks = _hasMoreDecks && newDecks.length >= 10;
+      _hasMoreDecks = _hasMoreDecks && newDecks.length >= 20;
       debugPrint('[PublicLibraryProvider] browse completed. totalDecks=${_decks.length}, hasMoreDecks=$_hasMoreDecks');
       // Prefetch author profiles in background
       _prefetchAuthorProfiles(_decks);
@@ -258,24 +258,24 @@ class PublicLibraryProvider extends ChangeNotifier {
       if (query.isEmpty) {
         debugPrint('[PublicLibraryProvider] search: empty query, calling browse()');
         await browse(refresh: true);
-      } else {
-        debugPrint('[PublicLibraryProvider] search: calling repository.search("$query")');
-        final offset = refresh ? 0 : _decks.length;
-        final newDecks = await _repository.search(query, limit: 10, offset: offset);
-        
-        if (refresh) {
-          _decks = newDecks;
         } else {
-          final existingIds = _decks.map((d) => d.id).toSet();
-          final filteredNewDecks = newDecks.where((d) => !existingIds.contains(d.id)).toList();
-          if (filteredNewDecks.isEmpty && newDecks.isNotEmpty) {
-            _hasMoreDecks = false;
+          debugPrint('[PublicLibraryProvider] search: calling repository.search("$query")');
+          final offset = refresh ? 0 : _decks.length;
+          final newDecks = await _repository.search(query, limit: 20, offset: offset);
+          
+          if (refresh) {
+            _decks = newDecks;
           } else {
-            _decks = [..._decks, ...filteredNewDecks];
+            final existingIds = _decks.map((d) => d.id).toSet();
+            final filteredNewDecks = newDecks.where((d) => !existingIds.contains(d.id)).toList();
+            if (filteredNewDecks.isEmpty && newDecks.isNotEmpty) {
+              _hasMoreDecks = false;
+            } else {
+              _decks = [..._decks, ...filteredNewDecks];
+            }
           }
-        }
-        
-        _hasMoreDecks = _hasMoreDecks && newDecks.length >= 10;
+          
+          _hasMoreDecks = _hasMoreDecks && newDecks.length >= 20;
         debugPrint('[PublicLibraryProvider] search: got ${newDecks.length} results, total: ${_decks.length}');
         // Prefetch author profiles in background
         _prefetchAuthorProfiles(newDecks);

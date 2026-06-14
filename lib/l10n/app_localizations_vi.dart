@@ -1933,10 +1933,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get aiModel => 'Model AI';
 
   @override
-  String get modelPro => 'Pro (Chất lượng cao)';
+  String get modelPro => 'Pro (Gemini 3.1 Pro)';
 
   @override
-  String get modelFlash => 'Flash (Nhanh hơn)';
+  String get modelFlash => 'Flash (Gemini 3 Flash)';
 
   @override
   String freeUsesRemaining(int count) {

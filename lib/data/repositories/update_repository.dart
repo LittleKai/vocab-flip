@@ -1,30 +1,26 @@
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/app_version.dart';
-import '../remote/api/github_release_api.dart';
+import '../remote/api/update_api.dart';
 import '../services/update_download_service.dart';
 import '../services/update_install_service.dart';
 import '../local/preferences/app_preferences.dart';
 
 /// Repository for handling app updates
 class UpdateRepository {
-  final GitHubReleaseApi _api;
+  final UpdateApi _api;
   final UpdateDownloadService _downloadService;
   final UpdateInstallService _installService;
   final AppPreferences _preferences;
 
   UpdateRepository({
-    required String owner,
-    required String repo,
+    required String metadataUrl,
     required AppPreferences preferences,
-    String? metadataUrl,
-    GitHubReleaseApi? api,
+    UpdateApi? api,
     UpdateDownloadService? downloadService,
     UpdateInstallService? installService,
   })  : _api = api ??
-            GitHubReleaseApi(
-              owner: owner,
-              repo: repo,
+            UpdateApi(
               metadataUrl: metadataUrl,
             ),
         _downloadService = downloadService ?? UpdateDownloadService(),

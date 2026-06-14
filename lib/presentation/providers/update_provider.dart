@@ -77,8 +77,6 @@ class UpdateProvider extends ChangeNotifier {
 
     _preferences = preferences;
     _repository = UpdateRepository(
-      owner: 'LittleKai', // GitHub fallback owner
-      repo: 'vocab-flip', // GitHub fallback repo
       metadataUrl: _vocabReleaseMetadataUrl,
       preferences: preferences,
     );

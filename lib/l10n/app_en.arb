@@ -930,8 +930,8 @@
   "includeExamples": "Include Examples",
   "includeNotes": "Include Notes",
   "aiModel": "AI Model",
-  "modelPro": "Pro (Higher quality)",
-  "modelFlash": "Flash (Faster)",
+  "modelPro": "Pro (Gemini 3.1 Pro)",
+  "modelFlash": "Flash (Gemini 3 Flash)",
   "freeUsesRemaining": "{count} free uses remaining",
   "@freeUsesRemaining": {
     "placeholders": {

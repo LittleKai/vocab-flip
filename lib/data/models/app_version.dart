@@ -60,7 +60,7 @@ class AppVersion {
     return releaseNotes[locale] ?? releaseNotes['en'] ?? '';
   }
 
-  factory AppVersion.fromGitHubRelease(Map<String, dynamic> json) {
+  factory AppVersion.fromJson(Map<String, dynamic> json) {
     final tagName = json['tag_name'] as String? ?? 'v0.0.0';
     final body = json['body'] as String? ?? '';
 

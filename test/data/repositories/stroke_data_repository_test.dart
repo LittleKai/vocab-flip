@@ -117,20 +117,48 @@ void main() {
       expect(result, isNull);
     });
 
-    test('returns null when character not in any fallback locale', () async {
-      final result = await repo.lookupCharacter('龍', 'ja');
+    test('returns null when character not in any fallback locale and not on CDN', () async {
+      // Use a character that does not exist in Chinese/Japanese writing databases (like a basic English letter)
+      final result = await repo.lookupCharacter('X', 'ja');
       expect(result, isNull);
+    });
+
+    test('fetches from online CDN when not found in DAO (zh)', () async {
+      // '中' is not in fakeDao, so it should fetch from Hanzi Writer CDN
+      final result = await repo.lookupCharacter('中', 'zh');
+      expect(result, isNotNull);
+      expect(result!.character, '中');
+      expect(result.source, 'hanzi-writer-cdn');
+      expect(result.locale, 'zh-Hans'); // First fallback locale for 'zh'
+    });
+
+    test('fetches from online CDN when not found in DAO (ja)', () async {
+      // '私' is not in fakeDao, so it should fetch from Hanzi Writer JP CDN
+      final result = await repo.lookupCharacter('私', 'ja');
+      expect(result, isNotNull);
+      expect(result!.character, '私');
+      expect(result.source, 'hanzi-writer-cdn');
+      expect(result.locale, 'ja'); // First fallback locale for 'ja'
+    });
+
+    test('caches online fetched characters in memory', () async {
+      final result1 = await repo.lookupCharacter('中', 'zh');
+      expect(result1, isNotNull);
+
+      // Subsequent lookup should return the exact same instance from cache
+      final result2 = await repo.lookupCharacter('中', 'zh');
+      expect(identical(result1, result2), isTrue);
     });
   });
 
   group('hasStrokeData', () {
-    test('returns true when data exists', () async {
+    test('returns true when data exists in DAO', () async {
       fakeDao.addFixture(_makeFixture('一', 'ja'));
       expect(await repo.hasStrokeData('一', 'ja'), isTrue);
     });
 
-    test('returns true with zh fallback', () async {
-      fakeDao.addFixture(_makeFixture('中', 'zh-Hans'));
+    test('returns true when data exists on CDN', () async {
+      // '中' is not in DAO, but exists on CDN
       expect(await repo.hasStrokeData('中', 'zh'), isTrue);
     });
 
@@ -138,8 +166,8 @@ void main() {
       expect(await repo.hasStrokeData('hello', 'en'), isFalse);
     });
 
-    test('returns false when character missing', () async {
-      expect(await repo.hasStrokeData('龍', 'zh'), isFalse);
+    test('returns false when character missing everywhere', () async {
+      expect(await repo.hasStrokeData('X', 'zh'), isFalse);
     });
   });
 }

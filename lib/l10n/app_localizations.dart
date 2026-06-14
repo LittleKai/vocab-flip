@@ -3737,13 +3737,13 @@ abstract class AppLocalizations {
   /// No description provided for @modelPro.
   ///
   /// In en, this message translates to:
-  /// **'Pro (Higher quality)'**
+  /// **'Pro (Gemini 3.1 Pro)'**
   String get modelPro;
 
   /// No description provided for @modelFlash.
   ///
   /// In en, this message translates to:
-  /// **'Flash (Faster)'**
+  /// **'Flash (Gemini 3 Flash)'**
   String get modelFlash;
 
   /// No description provided for @freeUsesRemaining.

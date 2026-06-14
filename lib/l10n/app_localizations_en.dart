@@ -1942,10 +1942,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiModel => 'AI Model';
 
   @override
-  String get modelPro => 'Pro (Higher quality)';
+  String get modelPro => 'Pro (Gemini 3.1 Pro)';
 
   @override
-  String get modelFlash => 'Flash (Faster)';
+  String get modelFlash => 'Flash (Gemini 3 Flash)';
 
   @override
   String freeUsesRemaining(int count) {
