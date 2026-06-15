@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' as flutter;
 import 'package:uuid/uuid.dart';
 import '../models/deck.dart';
 import '../models/flashcard.dart';
@@ -31,7 +32,10 @@ class PublicLibraryRepository {
   static List<CardFieldType>? _parseFieldTypes(String? str) {
     if (str == null || str.isEmpty) return null;
     try {
-      return str.split(',').map((s) => CardFieldType.values.firstWhere((f) => f.name == s)).toList();
+      return str
+          .split(',')
+          .map((s) => CardFieldType.values.firstWhere((f) => f.name == s))
+          .toList();
     } catch (_) {
       return null;
     }
@@ -47,10 +51,12 @@ class PublicLibraryRepository {
     LibraryFilter? filter,
     int limit = 10,
     int offset = 0,
-  }) => _libraryService.browse(filter: filter, limit: limit, offset: offset);
+  }) =>
+      _libraryService.browse(filter: filter, limit: limit, offset: offset);
 
   /// Search public decks
-  Future<List<PublicDeck>> search(String query, {int limit = 10, int offset = 0}) =>
+  Future<List<PublicDeck>> search(String query,
+          {int limit = 10, int offset = 0}) =>
       _libraryService.search(query, limit: limit, offset: offset);
 
   /// Get a single public deck
@@ -58,7 +64,8 @@ class PublicLibraryRepository {
       _libraryService.getDeck(deckId);
 
   /// Get flashcards for a public deck (preview)
-  Future<List<PublicFlashcard>> getPublicFlashcards(String publicDeckId, {int? limit}) =>
+  Future<List<PublicFlashcard>> getPublicFlashcards(String publicDeckId,
+          {int? limit}) =>
       _libraryService.getFlashcards(publicDeckId, limit: limit);
 
   /// Get featured decks for homepage
@@ -97,20 +104,25 @@ class PublicLibraryRepository {
     final publicFlashcards = await _libraryService.getFlashcards(publicDeckId);
 
     // Count total images to download
-    final cardsWithImages = publicFlashcards.where((pf) =>
-      (pf.frontImageUrl != null && pf.frontImageUrl!.isNotEmpty) ||
-      (pf.backImageUrl != null && pf.backImageUrl!.isNotEmpty)
-    ).toList();
+    final cardsWithImages = publicFlashcards
+        .where((pf) =>
+            (pf.frontImageUrl != null && pf.frontImageUrl!.isNotEmpty) ||
+            (pf.backImageUrl != null && pf.backImageUrl!.isNotEmpty))
+        .toList();
 
     int totalImages = 0;
     for (final pf in cardsWithImages) {
-      if (pf.frontImageUrl != null && pf.frontImageUrl!.isNotEmpty) totalImages++;
-      if (pf.backImageUrl != null && pf.backImageUrl!.isNotEmpty) totalImages++;
+      if (pf.frontImageUrl != null && pf.frontImageUrl!.isNotEmpty) {
+        totalImages++;
+      }
+      if (pf.backImageUrl != null && pf.backImageUrl!.isNotEmpty) {
+        totalImages++;
+      }
     }
 
     // Get local image directory
     String? localImageDir;
-    if (totalImages > 0) {
+    if (!flutter.kIsWeb && totalImages > 0) {
       localImageDir = await _cloudinaryService.getImageDirectory();
     }
 
@@ -144,18 +156,28 @@ class PublicLibraryRepository {
       String? localBackImage;
 
       // Download front image
-      if (pf.frontImageUrl != null && pf.frontImageUrl!.isNotEmpty && localImageDir != null) {
-        localFrontImage = await _cloudinaryService.downloadImage(pf.frontImageUrl!, localImageDir);
+      if (pf.frontImageUrl != null && pf.frontImageUrl!.isNotEmpty) {
+        if (flutter.kIsWeb) {
+          localFrontImage = pf.frontImageUrl;
+        } else if (localImageDir != null) {
+          localFrontImage = await _cloudinaryService.downloadImage(
+              pf.frontImageUrl!, localImageDir);
+        }
         imageCompleted++;
-        if (localFrontImage == null) imageFailed++;
+        if (!flutter.kIsWeb && localFrontImage == null) imageFailed++;
         onImageProgress?.call(imageCompleted, totalImages, imageFailed);
       }
 
       // Download back image
-      if (pf.backImageUrl != null && pf.backImageUrl!.isNotEmpty && localImageDir != null) {
-        localBackImage = await _cloudinaryService.downloadImage(pf.backImageUrl!, localImageDir);
+      if (pf.backImageUrl != null && pf.backImageUrl!.isNotEmpty) {
+        if (flutter.kIsWeb) {
+          localBackImage = pf.backImageUrl;
+        } else if (localImageDir != null) {
+          localBackImage = await _cloudinaryService.downloadImage(
+              pf.backImageUrl!, localImageDir);
+        }
         imageCompleted++;
-        if (localBackImage == null) imageFailed++;
+        if (!flutter.kIsWeb && localBackImage == null) imageFailed++;
         onImageProgress?.call(imageCompleted, totalImages, imageFailed);
       }
 
@@ -223,7 +245,8 @@ class PublicLibraryRepository {
       return; // Already up to date
     }
 
-    final publicFlashcards = await _libraryService.getFlashcards(link.publicDeckId);
+    final publicFlashcards =
+        await _libraryService.getFlashcards(link.publicDeckId);
 
     // Get existing local flashcards (to preserve learning progress)
     final localFlashcards = await _flashcardDao.getByDeckId(localDeckId);
@@ -334,14 +357,14 @@ class PublicLibraryRepository {
       }
     }
 
-  // Upload images to Cloudinary if any.
-  Map<String, String?> uploadedUrls = {};
-  if (localImagePaths.isNotEmpty) {
-    uploadedUrls = await _uploadImagesToCloudinary(
-      localImagePaths.toList(),
-      onProgress: onImageProgress,
-    );
-  }
+    // Upload images to Cloudinary if any.
+    Map<String, String?> uploadedUrls = {};
+    if (localImagePaths.isNotEmpty) {
+      uploadedUrls = await _uploadImagesToCloudinary(
+        localImagePaths.toList(),
+        onProgress: onImageProgress,
+      );
+    }
 
     // Helper to resolve image path to URL
     String? resolveImageUrl(String? path) {
@@ -352,17 +375,19 @@ class PublicLibraryRepository {
     }
 
     // Convert flashcards to maps with image URLs
-    final flashcardMaps = flashcards.map((f) => {
-      'front': f.front,
-      'front_phonetic': f.frontPhonetic,
-      'back': f.back,
-      'example': f.example,
-      'notes': f.notes,
-      'tags': f.tags,
-      'front_image_url': resolveImageUrl(f.effectiveFrontImageUrl),
-      'back_image_url': resolveImageUrl(f.backImageUrl),
-      'share_image': f.shareImage,
-    }).toList();
+    final flashcardMaps = flashcards
+        .map((f) => {
+              'front': f.front,
+              'front_phonetic': f.frontPhonetic,
+              'back': f.back,
+              'example': f.example,
+              'notes': f.notes,
+              'tags': f.tags,
+              'front_image_url': resolveImageUrl(f.effectiveFrontImageUrl),
+              'back_image_url': resolveImageUrl(f.backImageUrl),
+              'share_image': f.shareImage,
+            })
+        .toList();
 
     // Upload deck cover image if local
     String? deckImageUrl;
@@ -455,17 +480,19 @@ class PublicLibraryRepository {
         return uploadedUrls[path];
       }
 
-      flashcardMaps = flashcards.map((f) => {
-        'front': f.front,
-        'front_phonetic': f.frontPhonetic,
-        'back': f.back,
-        'example': f.example,
-        'notes': f.notes,
-        'tags': f.tags,
-        'front_image_url': resolveImageUrl(f.effectiveFrontImageUrl),
-        'back_image_url': resolveImageUrl(f.backImageUrl),
-        'share_image': f.shareImage,
-      }).toList();
+      flashcardMaps = flashcards
+          .map((f) => {
+                'front': f.front,
+                'front_phonetic': f.frontPhonetic,
+                'back': f.back,
+                'example': f.example,
+                'notes': f.notes,
+                'tags': f.tags,
+                'front_image_url': resolveImageUrl(f.effectiveFrontImageUrl),
+                'back_image_url': resolveImageUrl(f.backImageUrl),
+                'share_image': f.shareImage,
+              })
+          .toList();
     }
 
     // Upload deck cover image if local
@@ -521,7 +548,8 @@ class PublicLibraryRepository {
 
     // Find and update local deck (safe partial update - only publish fields)
     final localDecks = await _deckDao.getAll();
-    final localDeck = localDecks.where((d) => d.publishedDeckId == publicDeckId).firstOrNull;
+    final localDeck =
+        localDecks.where((d) => d.publishedDeckId == publicDeckId).firstOrNull;
     if (localDeck != null) {
       await _deckDao.updateFields(localDeck.id, {
         'is_published': 0,
@@ -542,19 +570,21 @@ class PublicLibraryRepository {
     required int rating,
     String? review,
     String? nickname,
-  }) => _ratingService.rateDeck(
-    publicDeckId: publicDeckId,
-    rating: rating,
-    review: review,
-    nickname: nickname,
-  );
+  }) =>
+      _ratingService.rateDeck(
+        publicDeckId: publicDeckId,
+        rating: rating,
+        review: review,
+        nickname: nickname,
+      );
 
   /// Get user's rating for a deck
   Future<DeckRating?> getUserRating(String publicDeckId) =>
       _ratingService.getUserRating(publicDeckId);
 
   /// Get all ratings for a deck
-  Future<List<DeckRating>> getDeckRatings(String publicDeckId, {int limit = 20}) =>
+  Future<List<DeckRating>> getDeckRatings(String publicDeckId,
+          {int limit = 20}) =>
       _ratingService.getDeckRatings(publicDeckId, limit: limit);
 
   /// Delete user's rating

@@ -16,7 +16,8 @@ class CloudinaryUploadResult {
 }
 
 /// Callback for image upload/download progress
-typedef ImageProgressCallback = void Function(int completed, int total, int failed);
+typedef ImageProgressCallback = void Function(
+    int completed, int total, int failed);
 
 /// Service for uploading and downloading images via Cloudinary
 class CloudinaryService {
@@ -47,7 +48,8 @@ class CloudinaryService {
 
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
-        final request = http.MultipartRequest('POST', Uri.parse(account.uploadUrl));
+        final request =
+            http.MultipartRequest('POST', Uri.parse(account.uploadUrl));
         request.fields['upload_preset'] = account.uploadPreset;
 
         if (subfolder != null) {
@@ -64,7 +66,8 @@ class CloudinaryService {
         if (response.statusCode == 200) {
           // Parse the secure_url from response
           final body = response.body;
-          final urlMatch = RegExp(r'"secure_url"\s*:\s*"([^"]+)"').firstMatch(body);
+          final urlMatch =
+              RegExp(r'"secure_url"\s*:\s*"([^"]+)"').firstMatch(body);
           if (urlMatch != null) {
             final url = urlMatch.group(1)!.replaceAll(r'\/', '/');
             return CloudinaryUploadResult(success: true, url: url);
@@ -78,7 +81,8 @@ class CloudinaryService {
         if (attempt == _maxRetries) {
           return CloudinaryUploadResult(
             success: false,
-            error: 'Upload failed with status ${response.statusCode}: ${response.body}',
+            error:
+                'Upload failed with status ${response.statusCode}: ${response.body}',
           );
         }
 
@@ -95,7 +99,8 @@ class CloudinaryService {
       }
     }
 
-    return const CloudinaryUploadResult(success: false, error: 'Max retries exceeded');
+    return const CloudinaryUploadResult(
+        success: false, error: 'Max retries exceeded');
   }
 
   /// Upload multiple images sequentially
@@ -116,7 +121,8 @@ class CloudinaryService {
       } else {
         results[path] = null;
         failed++;
-        debugPrint('CloudinaryService: Failed to upload $path: ${result.error}');
+        debugPrint(
+            'CloudinaryService: Failed to upload $path: ${result.error}');
       }
       completed++;
       onProgress?.call(completed, paths.length, failed);
@@ -129,9 +135,16 @@ class CloudinaryService {
   /// Returns the local file path, or null if failed
   Future<String?> downloadImage(String url, String localDir) async {
     try {
+      if (kIsWeb) {
+        // Web cannot reliably fetch arbitrary remote images for local storage because of CORS.
+        // Keep the remote URL and let the web UI render it directly.
+        return url;
+      }
+
       final response = await http.get(Uri.parse(url));
       if (response.statusCode != 200) {
-        debugPrint('CloudinaryService: Download failed with status ${response.statusCode}');
+        debugPrint(
+            'CloudinaryService: Download failed with status ${response.statusCode}');
         return null;
       }
 
