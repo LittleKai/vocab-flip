@@ -67,6 +67,7 @@ class SettingsScreen extends StatelessWidget {
                                         fit: BoxFit.cover,
                                         width: 40,
                                         height: 40,
+                                        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                                         errorBuilder: (_, __, ___) => Center(
                                           child: Text(
                                             profile.avatarEmoji,
@@ -796,6 +797,7 @@ class SettingsScreen extends StatelessWidget {
                 width: 220,
                 height: 220,
                 fit: BoxFit.contain,
+                webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return SizedBox(

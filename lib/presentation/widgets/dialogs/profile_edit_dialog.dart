@@ -273,6 +273,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                                         fit: BoxFit.cover,
                                         width: 96,
                                         height: 96,
+                                        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                                         errorBuilder: (_, __, ___) => Center(
                                           child: Text(
                                             provider.avatarEmoji,
@@ -419,6 +420,7 @@ class ProfileCard extends StatelessWidget {
                                   fit: BoxFit.cover,
                                   width: 56,
                                   height: 56,
+                                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                                   errorBuilder: (_, __, ___) => Center(
                                     child: Text(
                                       profile.avatarEmoji,

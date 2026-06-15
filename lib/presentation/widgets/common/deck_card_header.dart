@@ -67,23 +67,28 @@ class DeckCardHeader extends StatelessWidget {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   if (!reverseFieldOrder) ...[
-                    buildMiniChip(context, Icons.flip_to_front, frontFieldsLabel, AppColors.primary),
-                    buildMiniChip(context, Icons.flip_to_back, backFieldsLabel, AppColors.secondary),
+                    buildMiniChip(context, Icons.flip_to_front,
+                        frontFieldsLabel, AppColors.primary),
+                    buildMiniChip(context, Icons.flip_to_back, backFieldsLabel,
+                        AppColors.secondary),
                   ] else ...[
-                    buildMiniChip(context, Icons.flip_to_back, backFieldsLabel, AppColors.secondary),
-                    buildMiniChip(context, Icons.flip_to_front, frontFieldsLabel, AppColors.primary),
+                    buildMiniChip(context, Icons.flip_to_back, backFieldsLabel,
+                        AppColors.secondary),
+                    buildMiniChip(context, Icons.flip_to_front,
+                        frontFieldsLabel, AppColors.primary),
                   ],
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       buildLanguageBadge(context, sourceLanguage),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 2),
-                          child: Icon(Icons.arrow_forward, size: 14, color: Colors.grey),
-                        ),
-                        buildLanguageBadge(context, targetLanguage),
-                      ],
-                    ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 2),
+                        child: Icon(Icons.arrow_forward,
+                            size: 14, color: Colors.grey),
+                      ),
+                      buildLanguageBadge(context, targetLanguage),
+                    ],
+                  ),
                 ],
               ),
               if (subtitle != null) ...[
@@ -133,7 +138,8 @@ class DeckCardHeader extends StatelessWidget {
 
   // --- Static helpers shared across widgets ---
 
-  static Widget buildMiniChip(BuildContext context, IconData icon, String text, Color color) {
+  static Widget buildMiniChip(
+      BuildContext context, IconData icon, String text, Color color) {
     final isAndroid = kIsWeb ? false : Platform.isAndroid;
     if (isAndroid) {
       return Tooltip(
@@ -157,7 +163,8 @@ class DeckCardHeader extends StatelessWidget {
     );
   }
 
-  static Widget buildDeckImage(BuildContext context, String? imagePath, {double size = 64}) {
+  static Widget buildDeckImage(BuildContext context, String? imagePath,
+      {double size = 64}) {
     Widget fallback = Container(
       color: AppColors.primary.withOpacity(0.1),
       child: Icon(Icons.style, color: AppColors.primary, size: 32),
@@ -167,20 +174,27 @@ class DeckCardHeader extends StatelessWidget {
     if (imagePath == null || imagePath.isEmpty) {
       imageWidget = fallback;
     } else if (imagePath.startsWith('http')) {
-      imageWidget = CachedNetworkImage(
-        imageUrl: imagePath,
-        fit: BoxFit.cover,
-        errorWidget: (_, __, ___) => fallback,
-        placeholder: (_, __) => Container(
-          color: AppColors.primary.withValues(alpha: 0.05),
-          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
-      );
+      imageWidget = kIsWeb
+          ? Image.network(
+              imagePath,
+              fit: BoxFit.cover,
+              webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+              errorBuilder: (_, __, ___) => fallback,
+            )
+          : CachedNetworkImage(
+              imageUrl: imagePath,
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => fallback,
+              placeholder: (_, __) => Container(
+                color: AppColors.primary.withValues(alpha: 0.05),
+                child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+            );
     } else if (!kIsWeb) {
       final file = File(imagePath);
-      imageWidget = file.existsSync()
-          ? Image.file(file, fit: BoxFit.cover)
-          : fallback;
+      imageWidget =
+          file.existsSync() ? Image.file(file, fit: BoxFit.cover) : fallback;
     } else {
       imageWidget = fallback;
     }

@@ -23,7 +23,7 @@ class JishoApi {
       debugPrint('[JishoApi] Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        debugPrint('[JishoApi] Response body: ${response.body}');
+        debugPrint('[JishoApi] Response body: ${response.body.length > 500 ? response.body.substring(0, 500) + '...' : response.body}');
         final Map<String, dynamic> data = jsonDecode(response.body);
         final List<dynamic> results = data['data'] as List<dynamic>? ?? [];
         debugPrint('[JishoApi] Found ${results.length} results');

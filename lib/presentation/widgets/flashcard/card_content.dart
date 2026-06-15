@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../common/safe_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/flashcard.dart';
 import '../../providers/settings_provider.dart';
@@ -56,13 +56,12 @@ class CardContent extends StatelessWidget {
                       maxHeight: maxWidth * 0.75, // 4:3 aspect ratio max
                     ),
                     child: isUrl
-                        ? CachedNetworkImage(
+                        ? SafeNetworkImage(
                             imageUrl: imageUrl,
                             fit: BoxFit.contain,
-                            errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                            placeholder: (_, __) => Container(
-                              color: AppColors.primary.withValues(alpha: 0.05),
-                              child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                            loadingBuilder: (_, __, ___) => const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                           )
                         : Image.file(

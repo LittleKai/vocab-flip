@@ -2,7 +2,7 @@ name: vocabflip
 description: "VocabFlip - Multi-language vocabulary learning flashcard app"
 publish_to: 'none'
 
-version: 1.2.0+10
+version: 1.2.1+14
 
 environment:
   sdk: ^3.5.1

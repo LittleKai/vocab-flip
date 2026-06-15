@@ -433,6 +433,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 child: Image.network(
                   _imageUrlController.text,
                   fit: BoxFit.contain,
+                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                   errorBuilder: (_, __, ___) => _buildImageError(l10n),
                   loadingBuilder: (_, child, loadingProgress) {
                     if (loadingProgress == null) return child;

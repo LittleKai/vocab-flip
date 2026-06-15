@@ -106,7 +106,11 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
                           width: 64,
                           height: 64,
                           child: _deck!.imagePath!.startsWith('http')
-                              ? Image.network(_deck!.imagePath!, fit: BoxFit.cover)
+                              ? Image.network(
+                                  _deck!.imagePath!, 
+                                  fit: BoxFit.cover,
+                                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                                )
                               : File(_deck!.imagePath!).existsSync()
                                   ? Image.file(File(_deck!.imagePath!), fit: BoxFit.cover)
                                   : Container(

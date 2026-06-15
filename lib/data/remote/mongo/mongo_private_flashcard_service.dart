@@ -1,13 +1,16 @@
+import 'package:dio/dio.dart';
 import '../../api/api_client.dart';
 import '../../models/flashcard.dart';
 import 'vocab_api_helpers.dart';
 
 class MongoPrivateFlashcardService {
-  final ApiClient _apiClient = ApiClient();
+  final Dio _dio;
+
+  MongoPrivateFlashcardService({Dio? dio}) : _dio = dio ?? ApiClient().dio;
 
   Future<List<Flashcard>> getFlashcards(String deckId) async {
     try {
-      final response = await _apiClient.dio.get('/vocab/my-decks/$deckId/cards');
+      final response = await _dio.get('/vocab/my-decks/$deckId/cards');
       final docs = unwrapApiList(response.data);
       return docs.map(Flashcard.fromMap).toList();
     } catch (e) {
@@ -18,7 +21,7 @@ class MongoPrivateFlashcardService {
 
   Future<Flashcard?> getFlashcardById(String cardId) async {
     try {
-      final response = await _apiClient.dio.get('/vocab/my-decks/cards/$cardId');
+      final response = await _dio.get('/vocab/my-decks/cards/$cardId');
       final doc = unwrapApiMap(response.data);
       if (doc == null) return null;
       return Flashcard.fromMap(doc);
@@ -30,7 +33,7 @@ class MongoPrivateFlashcardService {
 
   Future<List<Flashcard>> getDueFlashcards(String deckId) async {
     try {
-      final response = await _apiClient.dio.get('/vocab/my-decks/$deckId/due-cards');
+      final response = await _dio.get('/vocab/my-decks/$deckId/due-cards');
       final docs = unwrapApiList(response.data);
       return docs.map(Flashcard.fromMap).toList();
     } catch (e) {
@@ -41,7 +44,7 @@ class MongoPrivateFlashcardService {
 
   Future<List<Flashcard>> getNewFlashcards(String deckId) async {
     try {
-      final response = await _apiClient.dio.get('/vocab/my-decks/$deckId/new-cards');
+      final response = await _dio.get('/vocab/my-decks/$deckId/new-cards');
       final docs = unwrapApiList(response.data);
       return docs.map(Flashcard.fromMap).toList();
     } catch (e) {
@@ -52,7 +55,7 @@ class MongoPrivateFlashcardService {
 
   Future<int> getFlashcardsCount(String deckId) async {
     try {
-      final response = await _apiClient.dio.get('/vocab/my-decks/$deckId/cards/count');
+      final response = await _dio.get('/vocab/my-decks/$deckId/cards/count');
       final data = unwrapApiMap(response.data);
       return data?['count'] as int? ?? 0;
     } catch (e) {
@@ -63,7 +66,7 @@ class MongoPrivateFlashcardService {
 
   Future<Flashcard?> createFlashcard(Flashcard card) async {
     try {
-      final response = await _apiClient.dio.post(
+      final response = await _dio.post(
         '/vocab/my-decks/${card.deckId}/cards',
         data: card.toMap(),
       );
@@ -76,15 +79,27 @@ class MongoPrivateFlashcardService {
     }
   }
 
-  Future<List<Flashcard>> syncFlashcardsBatch(String deckId, List<Flashcard> cards) async {
+  Future<List<Flashcard>> syncFlashcardsBatch(
+      String deckId, List<Flashcard> cards) async {
     try {
       final data = cards.map((c) => c.toMap()).toList();
-      final response = await _apiClient.dio.post(
+      final response = await _dio.post(
         '/vocab/my-decks/$deckId/cards/batch',
         data: data,
       );
       final docs = unwrapApiList(response.data);
       return docs.map(Flashcard.fromMap).toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        final created = <Flashcard>[];
+        for (final card in cards) {
+          final result = await createFlashcard(card);
+          if (result != null) created.add(result);
+        }
+        return created;
+      }
+      logVocabApiError('syncFlashcardsBatch', e);
+      rethrow;
     } catch (e) {
       logVocabApiError('syncFlashcardsBatch', e);
       rethrow;
@@ -93,7 +108,7 @@ class MongoPrivateFlashcardService {
 
   Future<Flashcard?> updateFlashcard(Flashcard card) async {
     try {
-      final response = await _apiClient.dio.put(
+      final response = await _dio.put(
         '/vocab/my-decks/${card.deckId}/cards/${card.id}',
         data: card.toMap(),
       );
@@ -108,16 +123,17 @@ class MongoPrivateFlashcardService {
 
   Future<void> deleteFlashcard(String deckId, String cardId) async {
     try {
-      await _apiClient.dio.delete('/vocab/my-decks/$deckId/cards/$cardId');
+      await _dio.delete('/vocab/my-decks/$deckId/cards/$cardId');
     } catch (e) {
       logVocabApiError('deleteFlashcard', e);
       rethrow;
     }
   }
 
-  Future<List<Flashcard>> searchFlashcards(String query, {int limit = 50}) async {
+  Future<List<Flashcard>> searchFlashcards(String query,
+      {int limit = 50}) async {
     try {
-      final response = await _apiClient.dio.get(
+      final response = await _dio.get(
         '/vocab/my-decks/cards/search',
         queryParameters: {'q': query, 'limit': limit},
       );

@@ -58,7 +58,9 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    if (_wasAuthenticated != null && _wasAuthenticated == false && auth.isAuthenticated) {
+    if (_wasAuthenticated != null &&
+        _wasAuthenticated == false &&
+        auth.isAuthenticated) {
       // User just logged in, refresh auth-dependent data
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -91,7 +93,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
               : deck == null
                   ? _buildErrorState(context, provider.error)
                   : _buildContent(context, provider),
-          bottomNavigationBar: deck != null ? _buildBottomBar(context, provider) : null,
+          bottomNavigationBar:
+              deck != null ? _buildBottomBar(context, provider) : null,
         );
       },
     );
@@ -148,7 +151,10 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                                 children: [
                                   Text(
                                     deck.name,
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
@@ -162,14 +168,16 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                                     _buildMiniChip(
                                       context,
                                       Icons.flip_to_back,
-                                      _formatFields(deck.backFields ?? 'meaning'),
+                                      _formatFields(
+                                          deck.backFields ?? 'meaning'),
                                       AppColors.secondary,
                                     ),
                                   ] else ...[
                                     _buildMiniChip(
                                       context,
                                       Icons.flip_to_back,
-                                      _formatFields(deck.backFields ?? 'meaning'),
+                                      _formatFields(
+                                          deck.backFields ?? 'meaning'),
                                       AppColors.secondary,
                                     ),
                                     _buildMiniChip(
@@ -184,34 +192,46 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: _getLanguageColor(deck.sourceLanguage).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: _getLanguageColor(
+                                                  deck.sourceLanguage)
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                         child: Text(
                                           deck.sourceLanguage.toUpperCase(),
                                           style: TextStyle(
-                                            color: _getLanguageColor(deck.sourceLanguage),
+                                            color: _getLanguageColor(
+                                                deck.sourceLanguage),
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
                                           ),
                                         ),
                                       ),
                                       const Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 2),
-                                        child: Icon(Icons.arrow_forward, size: 14, color: Colors.grey),
+                                        padding:
+                                            EdgeInsets.symmetric(horizontal: 2),
+                                        child: Icon(Icons.arrow_forward,
+                                            size: 14, color: Colors.grey),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: _getLanguageColor(deck.targetLanguage).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: _getLanguageColor(
+                                                  deck.targetLanguage)
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                         child: Text(
                                           deck.targetLanguage.toUpperCase(),
                                           style: TextStyle(
-                                            color: _getLanguageColor(deck.targetLanguage),
+                                            color: _getLanguageColor(
+                                                deck.targetLanguage),
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
                                           ),
@@ -229,11 +249,16 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                               ],
 
                               // Description (inside header on Windows)
-                              if (!isAndroid && deck.description != null && deck.description!.isNotEmpty) ...[
+                              if (!isAndroid &&
+                                  deck.description != null &&
+                                  deck.description!.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
                                   deck.description!,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
                                         color: AppColors.textSecondary(context),
                                       ),
                                 ),
@@ -257,7 +282,9 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                     ],
 
                     // Description (outside header on Android)
-                    if (isAndroid && deck.description != null && deck.description!.isNotEmpty) ...[
+                    if (isAndroid &&
+                        deck.description != null &&
+                        deck.description!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         deck.description!,
@@ -275,16 +302,21 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                         runSpacing: 4,
                         children: deck.tags.map((tag) {
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? Colors.grey.shade700
                                   : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               '#$tag',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
                                     fontSize: 11,
                                     color: AppColors.textSecondary(context),
                                   ),
@@ -302,7 +334,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                         // Category chip
                         if (category != null) ...[
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: AppColors.secondary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
@@ -318,7 +351,10 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                                 const SizedBox(width: 4),
                                 Text(
                                   category.name,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
                                         color: AppColors.secondary,
                                         fontWeight: FontWeight.w500,
                                         fontSize: 12,
@@ -333,27 +369,31 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                         const Spacer(),
 
                         // Card count
-                        Icon(Icons.style_outlined, size: 14, color: AppColors.info),
+                        Icon(Icons.style_outlined,
+                            size: 14, color: AppColors.info),
                         const SizedBox(width: 3),
                         Text(
                           '${deck.cardCount}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.info,
-                                fontSize: 12,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.info,
+                                    fontSize: 12,
+                                  ),
                         ),
 
                         const SizedBox(width: 10),
 
                         // Download count
-                        Icon(Icons.download_outlined, size: 14, color: AppColors.secondary),
+                        Icon(Icons.download_outlined,
+                            size: 14, color: AppColors.secondary),
                         const SizedBox(width: 3),
                         Text(
                           _formatCount(deck.downloadCount),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.secondary,
-                                fontSize: 12,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.secondary,
+                                    fontSize: 12,
+                                  ),
                         ),
                       ],
                     ),
@@ -425,6 +465,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
       return Image.network(
         imageUrl,
         fit: BoxFit.cover,
+        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
         errorBuilder: (_, __, ___) => Container(
           color: AppColors.primary.withOpacity(0.1),
           child: Icon(Icons.style, color: AppColors.primary, size: 36),
@@ -473,8 +514,11 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   }
 
   Widget _buildAuthorDateRow(BuildContext context, PublicDeck deck) {
-    final authorName = context.read<PublicLibraryProvider>()
-        .getCachedAuthorProfile(deck.authorId)?.nickname ?? deck.authorName;
+    final authorName = context
+            .read<PublicLibraryProvider>()
+            .getCachedAuthorProfile(deck.authorId)
+            ?.nickname ??
+        deck.authorName;
 
     return Row(
       children: [
@@ -502,7 +546,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        Icon(Icons.calendar_today, size: 12, color: AppColors.textSecondary(context)),
+        Icon(Icons.calendar_today,
+            size: 12, color: AppColors.textSecondary(context)),
         const SizedBox(width: 3),
         Text(
           DateFormat('dd/MM/yyyy').format(deck.publishedAt ?? deck.createdAt),
@@ -515,7 +560,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
     );
   }
 
-  Widget _buildMiniChip(BuildContext context, IconData icon, String text, Color color) {
+  Widget _buildMiniChip(
+      BuildContext context, IconData icon, String text, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -534,25 +580,39 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   Color _getLanguageColor(String langCode) {
     switch (langCode.toLowerCase()) {
-      case 'en': return AppColors.englishBadge;
-      case 'ja': return AppColors.japaneseBadge;
-      case 'zh': return AppColors.chineseBadge;
-      case 'vi': return AppColors.vietnameseBadge;
-      default: return AppColors.primary;
+      case 'en':
+        return AppColors.englishBadge;
+      case 'ja':
+        return AppColors.japaneseBadge;
+      case 'zh':
+        return AppColors.chineseBadge;
+      case 'vi':
+        return AppColors.vietnameseBadge;
+      default:
+        return AppColors.primary;
     }
   }
 
   IconData _getCategoryIcon(String? iconName) {
     switch (iconName) {
-      case 'school': return Icons.school;
-      case 'translate': return Icons.translate;
-      case 'flight': return Icons.flight;
-      case 'business': return Icons.business;
-      case 'home': return Icons.home;
-      case 'menu_book': return Icons.menu_book;
-      case 'chat_bubble': return Icons.chat_bubble;
-      case 'more_horiz': return Icons.more_horiz;
-      default: return Icons.category;
+      case 'school':
+        return Icons.school;
+      case 'translate':
+        return Icons.translate;
+      case 'flight':
+        return Icons.flight;
+      case 'business':
+        return Icons.business;
+      case 'home':
+        return Icons.home;
+      case 'menu_book':
+        return Icons.menu_book;
+      case 'chat_bubble':
+        return Icons.chat_bubble;
+      case 'more_horiz':
+        return Icons.more_horiz;
+      default:
+        return Icons.category;
     }
   }
 
@@ -639,11 +699,15 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                                 );
                               },
                         icon: Icon(
-                          provider.userRating != null ? Icons.edit : Icons.star_border,
+                          provider.userRating != null
+                              ? Icons.edit
+                              : Icons.star_border,
                           size: 18,
                         ),
                         label: Text(
-                          provider.userRating != null ? l10n.editReview : l10n.rate,
+                          provider.userRating != null
+                              ? l10n.editReview
+                              : l10n.rate,
                         ),
                       );
                     },
@@ -688,8 +752,11 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
     final int maxPreviewCount = 50;
     final flashcards = allFlashcards.take(maxPreviewCount).toList();
-    final deckCardCount = provider.selectedDeck?.cardCount ?? allFlashcards.length;
-    final hiddenCount = deckCardCount > flashcards.length ? deckCardCount - flashcards.length : 0;
+    final deckCardCount =
+        provider.selectedDeck?.cardCount ?? allFlashcards.length;
+    final hiddenCount = deckCardCount > flashcards.length
+        ? deckCardCount - flashcards.length
+        : 0;
 
     return Column(
       children: [
@@ -765,7 +832,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(_isImported ? l10n.alreadyImported : l10n.importDeck),
+                    : Text(
+                        _isImported ? l10n.alreadyImported : l10n.importDeck),
               ),
             ),
           ],
@@ -789,7 +857,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
     } else {
       // Browse online — convert public flashcards to local format
       final publicDeck = provider.selectedDeck!;
-      final cards = provider.previewFlashcards.map((pf) => pf.toFlashcard()).toList();
+      final cards =
+          provider.previewFlashcards.map((pf) => pf.toFlashcard()).toList();
       if (cards.isEmpty) return;
 
       // Parse front/back fields from PublicDeck
@@ -877,8 +946,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   }
 
   void _showRatingDialog(BuildContext context, PublicLibraryProvider provider) {
-    final nickname = context.read<ProfileProvider>().nickname
-        ?? context.read<AuthProvider>().displayName;
+    final nickname = context.read<ProfileProvider>().nickname ??
+        context.read<AuthProvider>().displayName;
     showStandardDialog(
       context: context,
       title: AppLocalizations.of(context)!.rateThisDeck,
@@ -896,7 +965,8 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
     );
   }
 
-  void _showReviewsDialog(BuildContext context, PublicLibraryProvider provider) {
+  void _showReviewsDialog(
+      BuildContext context, PublicLibraryProvider provider) {
     showStandardDialog(
       context: context,
       title: AppLocalizations.of(context)!.ratingsReviews,
@@ -947,12 +1017,18 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
   String _formatFields(String fields) {
     return fields.split(',').map((f) {
       switch (f.trim()) {
-        case 'word': return 'Word';
-        case 'phonetic': return 'Phonetic';
-        case 'meaning': return 'Meaning';
-        case 'example': return 'Example';
-        case 'notes': return 'Notes';
-        default: return f.trim();
+        case 'word':
+          return 'Word';
+        case 'phonetic':
+          return 'Phonetic';
+        case 'meaning':
+          return 'Meaning';
+        case 'example':
+          return 'Example';
+        case 'notes':
+          return 'Notes';
+        default:
+          return f.trim();
       }
     }).join(', ');
   }
@@ -1001,8 +1077,8 @@ class _ReviewsDialogState extends State<_ReviewsDialog> {
                   FilterChip(
                     label: Text(l10n.nStarRating(star)),
                     selected: _filterStar == star,
-                    onSelected: (_) => setState(() =>
-                        _filterStar = _filterStar == star ? null : star),
+                    onSelected: (_) => setState(
+                        () => _filterStar = _filterStar == star ? null : star),
                   ),
                   if (star > 1) const SizedBox(width: 6),
                 ],

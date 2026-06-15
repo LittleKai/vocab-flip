@@ -38,7 +38,7 @@ class LabanApi {
 
       if (response.statusCode == 200) {
         final body = _decodeUtf8(response);
-        debugPrint('[LabanApi] Response body: $body');
+        debugPrint('[LabanApi] Response body: ${body.length > 500 ? body.substring(0, 500) + '...' : body}');
         final data = jsonDecode(body) as Map<String, dynamic>;
 
         if (data['error'] == 0) {

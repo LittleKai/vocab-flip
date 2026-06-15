@@ -7,17 +7,24 @@ import '../local/preferences/app_preferences.dart';
 
 class SyncQueueService {
   final SyncQueueDao _syncQueueDao;
-  final ApiClient _apiClient;
+  final ApiClient? _apiClient;
   final AppPreferences _prefs;
+  final bool _disableLocalQueue;
   bool _isSyncing = false;
 
-  SyncQueueService({SyncQueueDao? syncQueueDao, ApiClient? apiClient, AppPreferences? prefs})
-      : _syncQueueDao = syncQueueDao ?? SyncQueueDao(),
-        _apiClient = apiClient ?? ApiClient(),
-        _prefs = prefs ?? AppPreferences();
+  SyncQueueService({
+    SyncQueueDao? syncQueueDao,
+    ApiClient? apiClient,
+    AppPreferences? prefs,
+    bool disableLocalQueue = kIsWeb,
+  })  : _syncQueueDao = syncQueueDao ?? SyncQueueDao(),
+        _apiClient = disableLocalQueue ? apiClient : (apiClient ?? ApiClient()),
+        _prefs = prefs ?? AppPreferences(),
+        _disableLocalQueue = disableLocalQueue;
 
   /// Drain the sync queue and push changes to the backend
   Future<void> syncPendingItems() async {
+    if (_disableLocalQueue) return;
     if (_isSyncing) return;
     _isSyncing = true;
 
@@ -28,7 +35,8 @@ class SyncQueueService {
         return;
       }
 
-      debugPrint('SyncQueueService: Draining ${pendingItems.length} items from sync queue');
+      debugPrint(
+          'SyncQueueService: Draining ${pendingItems.length} items from sync queue');
 
       for (final item in pendingItems) {
         try {
@@ -39,10 +47,10 @@ class SyncQueueService {
           debugPrint('SyncQueueService: Failed to process item ${item.id}: $e');
           // Break immediately to preserve strict queue ordering.
           // We cannot process subsequent items if a prerequisite (like a parent deck creation) fails.
-          break; 
+          break;
         }
       }
-      
+
       // Update cursor after successful sync
       await _prefs.setLastSyncCursor(DateTime.now());
     } finally {
@@ -58,7 +66,8 @@ class SyncQueueService {
       try {
         dataMap = jsonDecode(item.payload!);
       } catch (e) {
-        debugPrint('SyncQueueService: Failed to decode payload for item ${item.id}: $e');
+        debugPrint(
+            'SyncQueueService: Failed to decode payload for item ${item.id}: $e');
       }
     }
 
@@ -72,13 +81,15 @@ class SyncQueueService {
       if (item.operation == 'CREATE') {
         final deckId = dataMap != null ? dataMap['deck_id'] : null;
         if (deckId == null) {
-          throw Exception('Cannot create flashcard: deck_id is missing from payload');
+          throw Exception(
+              'Cannot create flashcard: deck_id is missing from payload');
         }
         path = '/vocab/my-decks/$deckId/cards';
       } else if (item.operation == 'UPDATE') {
         final deckId = dataMap != null ? dataMap['deck_id'] : null;
         if (deckId == null) {
-          throw Exception('Cannot update flashcard: deck_id is missing from payload');
+          throw Exception(
+              'Cannot update flashcard: deck_id is missing from payload');
         }
         path = '/vocab/my-decks/$deckId/cards/${item.entityId}';
       } else if (item.operation == 'DELETE') {
@@ -90,13 +101,13 @@ class SyncQueueService {
 
     switch (item.operation) {
       case 'CREATE':
-        await _apiClient.dio.post(path, data: dataMap);
+        await _apiClient!.dio.post(path, data: dataMap);
         break;
       case 'UPDATE':
-        await _apiClient.dio.put(path, data: dataMap);
+        await _apiClient!.dio.put(path, data: dataMap);
         break;
       case 'DELETE':
-        await _apiClient.dio.delete(path);
+        await _apiClient!.dio.delete(path);
         break;
       default:
         throw Exception('Unknown operation: ${item.operation}');

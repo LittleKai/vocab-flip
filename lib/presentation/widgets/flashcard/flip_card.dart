@@ -256,6 +256,7 @@ class StructuredFlashcardFace extends StatelessWidget {
                         imageUrl,
                         width: maxWidth,
                         fit: BoxFit.contain,
+                        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
@@ -454,6 +455,7 @@ class FlashcardFace extends StatelessWidget {
                                 imageUrl!,
                                 width: maxWidth,
                                 fit: BoxFit.contain,
+                                webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                                 loadingBuilder: (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;

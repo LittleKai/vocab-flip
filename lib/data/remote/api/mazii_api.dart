@@ -193,7 +193,7 @@ class MaziiApi {
 
       if (response.statusCode == 200) {
         final body = _decodeUtf8(response);
-        debugPrint('[MaziiApi] POST Response body: $body');
+        debugPrint('[MaziiApi] POST Response body: ${body.length > 500 ? body.substring(0, 500) + '...' : body}');
         final data = jsonDecode(body) as Map<String, dynamic>;
         final status = data['status'];
 
@@ -238,7 +238,7 @@ class MaziiApi {
 
       if (response.statusCode == 200) {
         final body = _decodeUtf8(response);
-        debugPrint('[MaziiApi] GET Response body: $body');
+        debugPrint('[MaziiApi] GET Response body: ${body.length > 500 ? body.substring(0, 500) + '...' : body}');
         final data = jsonDecode(body) as Map<String, dynamic>;
         final status = data['status'];
 
