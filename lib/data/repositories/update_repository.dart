@@ -49,31 +49,12 @@ class UpdateRepository {
 
   /// Check if we should auto-check for updates
   bool get shouldAutoCheck {
-    if (!_preferences.autoCheckUpdates) {
-      debugPrint('UpdateRepository: Auto-check disabled by user');
-      return false;
-    }
-
-    final lastCheck = _preferences.lastUpdateCheck;
-    if (lastCheck == null) {
-      debugPrint('UpdateRepository: First time check, proceeding');
-      return true;
-    }
-
-    // Check every 24 hours
-    final hoursSinceCheck = DateTime.now().difference(lastCheck).inHours;
-    debugPrint('UpdateRepository: Last check was $hoursSinceCheck hours ago');
-    if (hoursSinceCheck < 24) {
-      debugPrint(
-          'UpdateRepository: Skipping check (less than 24h since last check)');
-      return false;
-    }
-    return true;
+    return _preferences.autoCheckUpdates;
   }
 
   /// Check for available updates
   /// Returns null if no update available or an error occurred
-  Future<AppVersion?> checkForUpdates() async {
+  Future<AppVersion?> checkForUpdates({bool isAutoCheck = false}) async {
     try {
       debugPrint('UpdateRepository: Checking for updates...');
 
@@ -87,9 +68,6 @@ class UpdateRepository {
         return null;
       }
 
-      // Update last check time
-      await _preferences.setLastUpdateCheck(DateTime.now());
-
       // Compare versions
       if (!latestRelease.isNewerThan(currentVer)) {
         debugPrint(
@@ -97,14 +75,36 @@ class UpdateRepository {
         return null;
       }
 
-      // Check if this version was skipped
+      // If it is mandatory, always return the update immediately
+      if (latestRelease.isMandatory) {
+        debugPrint('UpdateRepository: Mandatory update available: ${latestRelease.version}');
+        return latestRelease;
+      }
+
+      // Check if this version was skipped (for non-mandatory updates only)
       final skippedVersion = _preferences.skippedVersion;
-      if (skippedVersion == latestRelease.version &&
-          !latestRelease.isMandatory) {
+      if (skippedVersion == latestRelease.version) {
         debugPrint(
             'UpdateRepository: Version ${latestRelease.version} was skipped');
         return null;
       }
+
+      // If it is an automatic check, respect the 24-hour interval
+      if (isAutoCheck) {
+        final lastCheck = _preferences.lastUpdateCheck;
+        if (lastCheck != null) {
+          final hoursSinceCheck = DateTime.now().difference(lastCheck).inHours;
+          debugPrint('UpdateRepository: Last check/prompt was $hoursSinceCheck hours ago');
+          if (hoursSinceCheck < 24) {
+            debugPrint(
+                'UpdateRepository: Skipping prompt (less than 24h since last prompt)');
+            return null;
+          }
+        }
+      }
+
+      // Update last check time only when we actually decide to return/prompt the update
+      await _preferences.setLastUpdateCheck(DateTime.now());
 
       debugPrint(
           'UpdateRepository: Update available: ${latestRelease.version} (zip: ${latestRelease.downloadUrl.isNotEmpty}, apk: ${latestRelease.apkDownloadUrl.isNotEmpty})');

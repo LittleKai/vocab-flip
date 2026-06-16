@@ -55,37 +55,39 @@ Future<T?> showStandardDialog<T>({
     body: customContent,
     dismissOnTouchOutside: barrierDismissible,
     btnCancel: secondaryButtonText != null
-        ? SizedBox(
-            height: 52,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.5),
-                    width: 1),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(100)),
-                minimumSize: const Size(0, 52),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-                if (onSecondaryPressed != null) onSecondaryPressed();
-                if (!completer.isCompleted) completer.complete(null);
-              },
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  secondaryButtonText,
-                  maxLines: 1,
-                  textHeightBehavior: const TextHeightBehavior(
-                    applyHeightToFirstAscent: false,
-                    applyHeightToLastDescent: false,
-                  ),
-                  style: TextStyle(
-                    color: isDark ? Colors.grey[300] : Colors.grey[800],
-                    fontWeight: FontWeight.w600,
+        ? Builder(
+            builder: (dialogContext) => SizedBox(
+              height: 52,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                      color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                      width: 1),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100)),
+                  minimumSize: const Size(0, 52),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  if (onSecondaryPressed != null) onSecondaryPressed();
+                  if (!completer.isCompleted) completer.complete(null);
+                },
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    secondaryButtonText,
+                    maxLines: 1,
+                    textHeightBehavior: const TextHeightBehavior(
+                      applyHeightToFirstAscent: false,
+                      applyHeightToLastDescent: false,
+                    ),
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[300] : Colors.grey[800],
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -93,43 +95,45 @@ Future<T?> showStandardDialog<T>({
           )
         : null,
     btnOk: primaryButtonText != null
-        ? SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isDestructive ? Colors.red : theme.colorScheme.primary,
-                foregroundColor:
-                    isDestructive ? Colors.white : theme.colorScheme.onPrimary,
-                side: BorderSide(
-                  color: isDestructive
-                      ? Colors.red[700]!
-                      : theme.colorScheme.primary.withValues(alpha: 0.8),
-                  width: 1,
-                ),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(100)),
-                minimumSize: const Size(0, 52),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-                if (onPrimaryPressed != null) onPrimaryPressed();
-                if (!completer.isCompleted) completer.complete(true as T?);
-              },
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  primaryButtonText,
-                  maxLines: 1,
-                  textHeightBehavior: const TextHeightBehavior(
-                    applyHeightToFirstAscent: false,
-                    applyHeightToLastDescent: false,
+        ? Builder(
+            builder: (dialogContext) => SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDestructive ? Colors.red : theme.colorScheme.primary,
+                  foregroundColor:
+                      isDestructive ? Colors.white : theme.colorScheme.onPrimary,
+                  side: BorderSide(
+                    color: isDestructive
+                        ? Colors.red[700]!
+                        : theme.colorScheme.primary.withValues(alpha: 0.8),
+                    width: 1,
                   ),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100)),
+                  minimumSize: const Size(0, 52),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  if (onPrimaryPressed != null) onPrimaryPressed();
+                  if (!completer.isCompleted) completer.complete(true as T?);
+                },
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    primaryButtonText,
+                    maxLines: 1,
+                    textHeightBehavior: const TextHeightBehavior(
+                      applyHeightToFirstAscent: false,
+                      applyHeightToLastDescent: false,
+                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ),

@@ -29,25 +29,38 @@ class MongoSyncService {
       throw Exception('User must be signed in to import decks');
     }
 
-    final response = await _apiClient.dio.post('/vocab/imports', data: {
-      'public_deck_id': publicDeckId,
-      'local_deck_id': localDeckId,
-      'imported_version': importedVersion,
-    });
+    try {
+      final response = await _apiClient.dio.post('/vocab/imports', data: {
+        'public_deck_id': publicDeckId,
+        'local_deck_id': localDeckId,
+        'imported_version': importedVersion,
+      });
 
-    final doc = unwrapApiMap(response.data);
-    final link = doc != null
-        ? ImportedDeckLink.fromMap(doc)
-        : ImportedDeckLink(
-            id: const Uuid().v4(),
-            publicDeckId: publicDeckId,
-            localDeckId: localDeckId,
-            userId: userId,
-            importedVersion: importedVersion,
-          );
+      final doc = unwrapApiMap(response.data);
+      final link = doc != null
+          ? ImportedDeckLink.fromMap(doc)
+          : ImportedDeckLink(
+              id: const Uuid().v4(),
+              publicDeckId: publicDeckId,
+              localDeckId: localDeckId,
+              userId: userId,
+              importedVersion: importedVersion,
+            );
 
-    await _saveLocalLink(link);
-    return link;
+      await _saveLocalLink(link);
+      return link;
+    } on DioException catch (e) {
+      logVocabApiError('recordImport', e);
+      final link = ImportedDeckLink(
+        id: const Uuid().v4(),
+        publicDeckId: publicDeckId,
+        localDeckId: localDeckId,
+        userId: userId,
+        importedVersion: importedVersion,
+      );
+      await _saveLocalLink(link);
+      return link;
+    }
   }
 
   Future<ImportedDeckLink?> getImportLink(String localDeckId) async {

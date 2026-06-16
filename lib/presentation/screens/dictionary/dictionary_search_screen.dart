@@ -44,32 +44,30 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     final isNarrow = MediaQuery.of(context).size.width < 450;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.dictionary),
-      ),
-      body: Consumer<DictionaryProvider>(
-        builder: (context, provider, child) {
-          return Column(
-            children: [
-              // Search bar and options
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.14),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
+      body: SafeArea(
+        child: Consumer<DictionaryProvider>(
+          builder: (context, provider, child) {
+            return Column(
+              children: [
+                // Search bar and options
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.14),
                       ),
-                    ],
-                  ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                   child: Column(
                     children: [
                       // Language selector + conversion buttons + settings
@@ -304,7 +302,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
           );
         },
       ),
-    );
+    ));
   }
 
   void _search(DictionaryProvider provider) {

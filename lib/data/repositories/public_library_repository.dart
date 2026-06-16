@@ -212,10 +212,10 @@ class PublicLibraryRepository {
   }
 
   /// Check if a public deck is already imported
-  Future<bool> isImported(String publicDeckId) async {
-    final link = await _syncService.getImportLinkByPublicDeck(publicDeckId);
-    return link != null;
-  }
+    Future<bool> isImported(String publicDeckId) async {
+      final decks = await _deckDao.getAll();
+      return decks.any((d) => d.linkedPublicDeckId == publicDeckId);
+    }
 
   /// Get import link for a local deck
   Future<ImportedDeckLink?> getImportLink(String localDeckId) =>

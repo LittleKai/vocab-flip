@@ -190,13 +190,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  void openTopupWallet() async {
-    final url = Uri.parse('https://alphastudio.vercel.app/workflow');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint('Could not open Alpha Studio topup page');
-    }
-  }
-
   Future<void> signOut() async {
     _status = AuthStatus.loading;
     notifyListeners();

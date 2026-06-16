@@ -20,6 +20,7 @@ import 'presentation/providers/profile_provider.dart';
 import 'presentation/providers/admin_feedback_provider.dart';
 import 'presentation/providers/ai_provider.dart';
 import 'presentation/providers/stroke_practice_provider.dart';
+import 'presentation/providers/payment_provider.dart';
 import 'data/local/database/stroke_data_dao.dart';
 import 'data/repositories/stroke_data_repository.dart';
 import 'data/services/stroke_validation_service.dart';
@@ -114,6 +115,7 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
             validationService: StrokeValidationService(),
           ),
         ),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, child) {

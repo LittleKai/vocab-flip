@@ -22,6 +22,8 @@ import '../../widgets/dialogs/standard_dialog.dart';
 import '../../providers/admin_feedback_provider.dart';
 import 'backup_screen.dart';
 
+import '../../widgets/payment/topup_bottom_sheet.dart';
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -30,24 +32,15 @@ class SettingsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.settings),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            tooltip: l10n.helper,
-            onPressed: () => HelperDialog.show(context),
-          ),
-        ],
-      ),
-      body: Consumer3<SettingsProvider, AuthProvider, UpdateProvider>(
-        builder: (context, settings, auth, updateProvider, child) {
-          // Always init to load version info (idempotent)
-          updateProvider.init(settings.preferences);
-          return ListView(
-            padding: const EdgeInsets.only(bottom: 100),
-            children: [
-              _SettingsHero(settings: settings, auth: auth),
+      body: SafeArea(
+        child: Consumer3<SettingsProvider, AuthProvider, UpdateProvider>(
+          builder: (context, settings, auth, updateProvider, child) {
+            // Always init to load version info (idempotent)
+            updateProvider.init(settings.preferences);
+            return ListView(
+              padding: const EdgeInsets.only(bottom: 100, top: 16),
+              children: [
+                _SettingsHero(settings: settings, auth: auth),
               
               // Account & Profile section
               Consumer<ProfileProvider>(
@@ -118,7 +111,7 @@ class SettingsScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          onTap: () => auth.openTopupWallet(),
+                          onTap: () => TopupBottomSheet.show(context),
                         ),
                         const Divider(height: 1, indent: 70),
                         _SettingsTile(
@@ -346,6 +339,13 @@ class SettingsScreen extends StatelessWidget {
                 title: l10n.about,
                 children: [
                   _SettingsTile(
+                    leading: const Icon(Icons.help_outline, color: AppColors.primary, size: 22),
+                    title: l10n.helper,
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => HelperDialog.show(context),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
                     leading: const Icon(Icons.info, color: AppColors.primary, size: 22),
                     title: l10n.version,
                     subtitle: updateProvider.currentVersion,
@@ -457,7 +457,7 @@ class SettingsScreen extends StatelessWidget {
           );
         },
       ),
-    );
+    ));
   }
 
   void _showDeckClickActionDialog(BuildContext context, SettingsProvider settings) {

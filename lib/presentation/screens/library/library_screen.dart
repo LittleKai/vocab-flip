@@ -72,103 +72,101 @@ class _LibraryScreenState extends State<LibraryScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    if (_hasError) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.library)),
-        body: Center(
-          child: Text('${l10n.error}: $_errorMessage'),
-        ),
-      );
-    }
-
-    if (_tabController == null) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.library)),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    try {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.library),
-          actions: [
-            Consumer<SyncProvider>(
-              builder: (context, syncProvider, _) {
-                return SyncNotificationBadge(
-                  unreadCount: syncProvider.unreadCount,
-                  onTap: () => _showSyncNotifications(context),
-                );
-              },
+    Widget build(BuildContext context) {
+      final l10n = AppLocalizations.of(context)!;
+  
+      if (_hasError) {
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Text('${l10n.error}: $_errorMessage'),
             ),
-          ],
-          bottom: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            tabs: [
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.explore_rounded,
-                        color: Colors.blue, size: 18),
-                    const SizedBox(width: 6),
-                    Text(l10n.browse),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.new_releases_rounded,
-                        color: Colors.orange, size: 18),
-                    const SizedBox(width: 6),
-                    Text(l10n.newDecks),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.cloud_done_rounded,
-                        color: Colors.green, size: 18),
-                    const SizedBox(width: 6),
-                    Text(l10n.myPublishedDecks),
-                  ],
-                ),
-              ),
-            ],
           ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _BrowseTab(),
-            _NewestTab(),
-            _MyDecksTab(),
-          ],
-        ),
-      );
-    } catch (e) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.library)),
-        body: Center(
-          child: Text('${l10n.error}: $e'),
-        ),
-      );
+        );
+      }
+  
+      if (_tabController == null) {
+        return Scaffold(
+          body: const SafeArea(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        );
+      }
+
+      try {
+        return Scaffold(
+          body: SafeArea(
+            child: Column(
+              children: [
+                TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  tabs: [
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.explore_rounded,
+                              color: Colors.blue, size: 18),
+                          const SizedBox(width: 6),
+                          Text(l10n.browse),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.new_releases_rounded,
+                              color: Colors.orange, size: 18),
+                          const SizedBox(width: 6),
+                          Text(l10n.newDecks),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.cloud_done_rounded,
+                              color: Colors.green, size: 18),
+                          const SizedBox(width: 6),
+                          Text(l10n.myPublishedDecks),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _BrowseTab(),
+                      _NewestTab(),
+                      _MyDecksTab(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } catch (e) {
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Text('${l10n.error}: $e'),
+            ),
+          ),
+        );
+      }
+    }
+
+    void _showSyncNotifications(BuildContext context) {
+      Navigator.pushNamed(context, '/sync-notifications');
     }
   }
-
-  void _showSyncNotifications(BuildContext context) {
-    Navigator.pushNamed(context, '/sync-notifications');
-  }
-}
 
 class _NewestTab extends StatefulWidget {
   @override

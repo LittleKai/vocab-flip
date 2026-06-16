@@ -70,10 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
     await updateProvider.init(settings.preferences);
     if (!mounted) return;
 
-    // Check if should auto-check (respects 24h interval and user preference)
+    // Check if should auto-check (respects user preference and platform support)
     if (!updateProvider.shouldAutoCheckOnStartup) return;
 
-    await updateProvider.checkForUpdates(silent: true);
+    await updateProvider.checkForUpdates(silent: true, isAutoCheck: true);
 
     if (updateProvider.hasUpdate && mounted) {
       // Show update dialog

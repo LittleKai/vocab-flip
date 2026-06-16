@@ -93,7 +93,7 @@ class UpdateProvider extends ChangeNotifier {
   bool get shouldAutoCheckOnStartup {
     if (!_initialized) return false;
     if (!isAutoUpdateSupported) return false;
-    return _repository.shouldAutoCheck;
+    return autoCheckUpdates;
   }
 
   /// Set auto-check preference
@@ -104,7 +104,7 @@ class UpdateProvider extends ChangeNotifier {
   }
 
   /// Check for updates
-  Future<void> checkForUpdates({bool silent = false}) async {
+  Future<void> checkForUpdates({bool silent = false, bool isAutoCheck = false}) async {
     if (!_initialized) return;
     if (_state == UpdateState.checking) return;
 
@@ -113,7 +113,7 @@ class UpdateProvider extends ChangeNotifier {
     if (!silent) notifyListeners();
 
     try {
-      _availableUpdate = await _repository.checkForUpdates();
+      _availableUpdate = await _repository.checkForUpdates(isAutoCheck: isAutoCheck);
 
       if (_availableUpdate != null) {
         _state = UpdateState.updateAvailable;

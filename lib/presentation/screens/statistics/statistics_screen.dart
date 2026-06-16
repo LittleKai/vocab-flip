@@ -19,26 +19,24 @@ class StatisticsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.stats),
-      ),
-      body: Consumer2<DeckProvider, SettingsProvider>(
-        builder: (context, deckProvider, settingsProvider, child) {
-          return RefreshIndicator(
-            onRefresh: () async {
-              await deckProvider.loadDecks();
-              settingsProvider.refreshStats();
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _StatsHero(
-                    deckProvider: deckProvider,
-                    settingsProvider: settingsProvider,
-                  ),
+      body: SafeArea(
+        child: Consumer2<DeckProvider, SettingsProvider>(
+          builder: (context, deckProvider, settingsProvider, child) {
+            return RefreshIndicator(
+              onRefresh: () async {
+                await deckProvider.loadDecks();
+                settingsProvider.refreshStats();
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _StatsHero(
+                      deckProvider: deckProvider,
+                      settingsProvider: settingsProvider,
+                    ),
                   const SizedBox(height: 18),
                   _SummarySection(
                     deckProvider: deckProvider,
@@ -58,7 +56,7 @@ class StatisticsScreen extends StatelessWidget {
           );
         },
       ),
-    );
+    ));
   }
 }
 

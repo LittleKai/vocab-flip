@@ -67,56 +67,86 @@ class _DeckListScreenState extends State<DeckListScreen> {
 
     return Consumer<DeckProvider>(
       builder: (context, provider, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: _isSearching
-                ? TextField(
-                    controller: _searchController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: l10n.searchDecks,
-                      border: InputBorder.none,
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => _toggleSearch(provider),
+          return Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  if (_isSearching || provider.searchQuery.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(alpha: 0.14),
+                                ),
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                autofocus: true,
+                                decoration: InputDecoration(
+                                  hintText: l10n.searchDecks,
+                                  border: InputBorder.none,
+                                  prefixIcon: const Icon(Icons.search, size: 20),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                ),
+                                onChanged: (value) => provider.setSearchQuery(value),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => _toggleSearch(provider),
+                            tooltip: 'Close search',
+                          ),
+                        ],
                       ),
                     ),
-                    onChanged: (value) => provider.setSearchQuery(value),
-                  )
-                : Text(l10n.myDecks),
-            actions: [
-              if (!_isSearching)
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () => _toggleSearch(provider),
-                ),
-            ],
-          ),
-          body: _buildBody(context, provider, l10n),
-          floatingActionButton: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (kIsWeb ||
-                  (!kIsWeb &&
-                      (Platform.isWindows ||
-                          Platform.isMacOS ||
-                          Platform.isLinux))) ...[
-                FloatingActionButton.small(
-                  heroTag: 'refreshDecks',
-                  onPressed: () => provider.loadDecks(),
-                  tooltip: 'Refresh',
-                  child: const Icon(Icons.refresh),
-                ),
-                const SizedBox(height: 8),
-              ],
-              FloatingActionButton(
-                heroTag: 'deck_list_fab',
-                onPressed: () => _navigateToCreateDeck(context),
-                child: const Icon(Icons.add),
+                  Expanded(
+                    child: _buildBody(context, provider, l10n),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
+            ),
+            floatingActionButton: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!_isSearching && provider.searchQuery.isEmpty && provider.decks.isNotEmpty) ...[
+                  FloatingActionButton.small(
+                    heroTag: 'searchDecks',
+                    onPressed: () => _toggleSearch(provider),
+                    tooltip: l10n.searchDecks,
+                    child: const Icon(Icons.search),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (kIsWeb ||
+                    (!kIsWeb &&
+                        (Platform.isWindows ||
+                            Platform.isMacOS ||
+                            Platform.isLinux))) ...[
+                  FloatingActionButton.small(
+                    heroTag: 'refreshDecks',
+                    onPressed: () => provider.loadDecks(),
+                    tooltip: 'Refresh',
+                    child: const Icon(Icons.refresh),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                FloatingActionButton(
+                  heroTag: 'deck_list_fab',
+                  onPressed: () => _navigateToCreateDeck(context),
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
+          );
       },
     );
   }
