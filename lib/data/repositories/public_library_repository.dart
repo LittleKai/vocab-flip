@@ -128,7 +128,7 @@ class PublicLibraryRepository {
 
     // Create local deck
     final localDeck = Deck(
-      id: const Uuid().v4(),
+      id: const Uuid().v4().toUpperCase(),
       name: publicDeck.name,
       description: publicDeck.description,
       sourceLanguage: publicDeck.sourceLanguage,

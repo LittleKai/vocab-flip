@@ -75,7 +75,16 @@ class GoogleDriveService {
 
   /// Connect using mobile OAuth (google_sign_in)
   Future<bool> _connectMobile({bool silentOnly = false}) async {
-    _googleSignIn ??= GoogleSignIn(scopes: _scopes);
+    final clientId = _clientId?.identifier;
+    if (kIsWeb && clientId == null) {
+      debugPrint('Google OAuth Client ID not configured. Add GOOGLE_OAUTH_CLIENT_ID to .env file.');
+      throw Exception('Google Drive backup not configured. Please add GOOGLE_OAUTH_CLIENT_ID to .env file.');
+    }
+
+    _googleSignIn ??= GoogleSignIn(
+      scopes: _scopes,
+      clientId: clientId,
+    );
 
     // Try silent sign in first
     GoogleSignInAccount? account = await _googleSignIn!.signInSilently();

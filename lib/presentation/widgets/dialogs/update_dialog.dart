@@ -48,138 +48,153 @@ class UpdateDialog extends StatelessWidget {
 
     return PopScope(
       canPop: !isMandatory,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Version info
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.currentVersion,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        Text(
-                          context.read<UpdateProvider>().currentVersion,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward, color: AppColors.primary),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.newVersion,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        Text(
-                          version.version,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+      child: SafeArea(
+        top: false,
+        left: false,
+        right: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.72,
             ),
-
-            if (releaseNotes.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text(
-                l10n.whatsNew,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Version info
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                constraints: const BoxConstraints(maxHeight: 200),
-                child: SingleChildScrollView(
-                  child: Text(
-                    releaseNotes,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.currentVersion,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              Text(
+                                context.read<UpdateProvider>().currentVersion,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward,
+                            color: AppColors.primary),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.newVersion,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              Text(
+                                version.version,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
 
-            if (isMandatory) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.warning),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.warning, color: AppColors.warning),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        l10n.updateRequired,
-                        style: const TextStyle(color: AppColors.warning),
+                  if (releaseNotes.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.whatsNew,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      child: SingleChildScrollView(
+                        child: Text(
+                          releaseNotes,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-            ],
 
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (!isMandatory) ...[
-                  TextButton(
-                    onPressed: () {
-                      context.read<UpdateProvider>().skipVersion();
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(l10n.skipVersion),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      context.read<UpdateProvider>().dismissUpdate();
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(l10n.updateLater),
+                  if (isMandatory) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.warning),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning, color: AppColors.warning),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.updateRequired,
+                              style: const TextStyle(color: AppColors.warning),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (!isMandatory)
+                        TextButton(
+                          onPressed: () {
+                            context.read<UpdateProvider>().skipVersion();
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(l10n.skipVersion),
+                        ),
+                      if (!isMandatory)
+                        TextButton(
+                          onPressed: () {
+                            context.read<UpdateProvider>().dismissUpdate();
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(l10n.updateLater),
+                        ),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _startDownload(context);
+                        },
+                        icon: const Icon(Icons.download),
+                        label: Text(l10n.downloadUpdate),
+                      ),
+                    ],
                   ),
                 ],
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _startDownload(context);
-                  },
-                  icon: const Icon(Icons.download),
-                  label: Text(l10n.downloadUpdate),
-                ),
-              ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );

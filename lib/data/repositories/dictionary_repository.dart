@@ -8,6 +8,7 @@ import '../remote/api/chinese_dict_api.dart';
 import '../local/database/offline_dict_dao.dart';
 import '../remote/api/offline_stardict_api.dart';
 import '../../core/constants/supported_languages.dart';
+import '../remote/api/web_proxy_http_client.dart';
 
 /// Result wrapper that includes fallback information
 class DictionaryLookupResult {
@@ -39,10 +40,10 @@ class DictionaryRepository {
     LabanApi? labanApi,
     MaziiApi? maziiApi,
     ChineseDictApi? chineseDictApi,
-  })  : _freeDictionaryApi = freeDictionaryApi ?? FreeDictionaryApi(),
-        _jishoApi = jishoApi ?? JishoApi(),
-        _labanApi = labanApi ?? LabanApi(),
-        _maziiApi = maziiApi ?? MaziiApi(),
+  })  : _freeDictionaryApi = freeDictionaryApi ?? FreeDictionaryApi(client: kIsWeb ? WebProxyHttpClient() : null),
+        _jishoApi = jishoApi ?? JishoApi(client: kIsWeb ? WebProxyHttpClient() : null),
+        _labanApi = labanApi ?? LabanApi(client: kIsWeb ? WebProxyHttpClient() : null),
+        _maziiApi = maziiApi ?? MaziiApi(client: kIsWeb ? WebProxyHttpClient() : null),
         _chineseDictApi = chineseDictApi ?? ChineseDictApi(),
         _offlineEnApi = OfflineStardictApi(
             dao: OfflineDictDao(
@@ -58,7 +59,6 @@ class DictionaryRepository {
             sourceLanguage: 'ja');
 
   static String effectiveFetchMode(String fetchMode, {required bool isWeb}) {
-    if (isWeb && fetchMode == 'both') return 'offline';
     return fetchMode;
   }
 
@@ -432,7 +432,6 @@ class DictionaryRepository {
       {int limit = 10}) async {
     debugPrint(
         '[DictionaryRepository] searchKanjiSuggestions: "$query" (limit: $limit)');
-    if (kIsWeb) return [];
 
     try {
       // Use Jisho's searchKanjiWords which extracts all kanji variants

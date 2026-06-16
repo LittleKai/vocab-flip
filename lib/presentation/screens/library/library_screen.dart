@@ -114,7 +114,8 @@ class _LibraryScreenState extends State<LibraryScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.explore_rounded, color: Colors.blue, size: 18),
+                    const Icon(Icons.explore_rounded,
+                        color: Colors.blue, size: 18),
                     const SizedBox(width: 6),
                     Text(l10n.browse),
                   ],
@@ -124,7 +125,8 @@ class _LibraryScreenState extends State<LibraryScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.new_releases_rounded, color: Colors.orange, size: 18),
+                    const Icon(Icons.new_releases_rounded,
+                        color: Colors.orange, size: 18),
                     const SizedBox(width: 6),
                     Text(l10n.newDecks),
                   ],
@@ -134,7 +136,8 @@ class _LibraryScreenState extends State<LibraryScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.cloud_done_rounded, color: Colors.green, size: 18),
+                    const Icon(Icons.cloud_done_rounded,
+                        color: Colors.green, size: 18),
                     const SizedBox(width: 6),
                     Text(l10n.myPublishedDecks),
                   ],
@@ -172,7 +175,8 @@ class _NewestTab extends StatefulWidget {
   State<_NewestTab> createState() => _NewestTabState();
 }
 
-class _NewestTabState extends State<_NewestTab> with AutomaticKeepAliveClientMixin {
+class _NewestTabState extends State<_NewestTab>
+    with AutomaticKeepAliveClientMixin {
   final _scrollController = ScrollController();
 
   @override
@@ -191,9 +195,12 @@ class _NewestTabState extends State<_NewestTab> with AutomaticKeepAliveClientMix
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       final provider = context.read<PublicLibraryProvider>();
-      if (!provider.isLoading && !provider.isLoadingMore && provider.hasMoreNewestDecks) {
+      if (!provider.isLoading &&
+          !provider.isLoadingMore &&
+          provider.hasMoreNewestDecks) {
         provider.loadNewestDecks();
       }
     }
@@ -218,20 +225,20 @@ class _NewestTabState extends State<_NewestTab> with AutomaticKeepAliveClientMix
           children: [
             RefreshIndicator(
               onRefresh: () => provider.loadNewestDecks(refresh: true),
-                child: ResponsiveGrid(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  itemCount: provider.newestDecks.length,
-                  mainAxisExtent: 180,
-                  trailing: provider.isLoadingMore
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: CircularProgressIndicator(),
-                          ),
-                        )
-                      : null,
-                  itemBuilder: (context, index) {
+              child: ResponsiveGrid(
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                itemCount: provider.newestDecks.length,
+                mainAxisExtent: 180,
+                trailing: provider.isLoadingMore
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : null,
+                itemBuilder: (context, index) {
                   final deck = provider.newestDecks[index];
                   return PublicDeckCard(
                     deck: deck,
@@ -242,11 +249,15 @@ class _NewestTabState extends State<_NewestTab> with AutomaticKeepAliveClientMix
               ),
             ),
             // Floating Refresh Button for Web/Desktop
-              if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)))
-                Positioned(
-                  right: 16,
-                  bottom: 88,
-                  child: FloatingActionButton.small(
+            if (kIsWeb ||
+                (!kIsWeb &&
+                    (Platform.isWindows ||
+                        Platform.isMacOS ||
+                        Platform.isLinux)))
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: FloatingActionButton.small(
                   heroTag: 'refreshNewest',
                   onPressed: () => provider.loadNewestDecks(refresh: true),
                   tooltip: 'Refresh',
@@ -265,7 +276,8 @@ class _BrowseTab extends StatefulWidget {
   State<_BrowseTab> createState() => _BrowseTabState();
 }
 
-class _BrowseTabState extends State<_BrowseTab> with AutomaticKeepAliveClientMixin {
+class _BrowseTabState extends State<_BrowseTab>
+    with AutomaticKeepAliveClientMixin {
   final _scrollController = ScrollController();
   final _searchController = TextEditingController();
 
@@ -295,7 +307,8 @@ class _BrowseTabState extends State<_BrowseTab> with AutomaticKeepAliveClientMix
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final provider = context.read<PublicLibraryProvider>();
-      debugPrint('[_BrowseTab] onScroll triggered near bottom. isLoading: ${provider.isLoading}, isLoadingMore: ${provider.isLoadingMore}, hasMoreDecks: ${provider.hasMoreDecks}');
+      debugPrint(
+          '[_BrowseTab] onScroll triggered near bottom. isLoading: ${provider.isLoading}, isLoadingMore: ${provider.isLoadingMore}, hasMoreDecks: ${provider.hasMoreDecks}');
       if (!provider.isLoading &&
           !provider.isLoadingMore &&
           provider.hasMoreDecks) {
@@ -328,14 +341,18 @@ class _BrowseTabState extends State<_BrowseTab> with AutomaticKeepAliveClientMix
                 ),
               ],
             ),
-              // Import by ID FAB
-              Positioned(
-                right: 16,
-                bottom: 88,
-                child: Column(
+            // Import by ID FAB
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))) ...[
+                  if (kIsWeb ||
+                      (!kIsWeb &&
+                          (Platform.isWindows ||
+                              Platform.isMacOS ||
+                              Platform.isLinux))) ...[
                     FloatingActionButton.small(
                       heroTag: 'refreshBrowse',
                       onPressed: () => provider.browse(refresh: true),
@@ -509,20 +526,20 @@ class _BrowseTabState extends State<_BrowseTab> with AutomaticKeepAliveClientMix
 
     return RefreshIndicator(
       onRefresh: () => provider.browse(refresh: true),
-        child: ResponsiveGrid(
-          controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          itemCount: provider.decks.length,
-          mainAxisExtent: 180,
-          trailing: provider.isLoadingMore
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              : null,
-          itemBuilder: (context, index) {
+      child: ResponsiveGrid(
+        controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        itemCount: provider.decks.length,
+        mainAxisExtent: 180,
+        trailing: provider.isLoadingMore
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : null,
+        itemBuilder: (context, index) {
           final deck = provider.decks[index];
           return PublicDeckCard(
             deck: deck,
@@ -540,7 +557,8 @@ class _MyDecksTab extends StatefulWidget {
   State<_MyDecksTab> createState() => _MyDecksTabState();
 }
 
-class _MyDecksTabState extends State<_MyDecksTab> with AutomaticKeepAliveClientMixin {
+class _MyDecksTabState extends State<_MyDecksTab>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -589,29 +607,34 @@ class _MyDecksTabState extends State<_MyDecksTab> with AutomaticKeepAliveClientM
             );
           },
         ),
-          Positioned(
-            right: 16,
-            bottom: 88,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))) ...[
-                  FloatingActionButton.small(
-                    heroTag: 'refreshPublished',
-                    onPressed: () => context.read<PublishProvider>().loadMyPublishedDecks(),
-                    tooltip: 'Refresh',
-                    child: const Icon(Icons.refresh),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                FloatingActionButton(
-                  onPressed: () => _showPublishDeckPicker(context),
-                  tooltip: l10n.publishToLibrary,
-                  child: const Icon(Icons.cloud_upload),
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (kIsWeb ||
+                  (!kIsWeb &&
+                      (Platform.isWindows ||
+                          Platform.isMacOS ||
+                          Platform.isLinux))) ...[
+                FloatingActionButton.small(
+                  heroTag: 'refreshPublished',
+                  onPressed: () =>
+                      context.read<PublishProvider>().loadMyPublishedDecks(),
+                  tooltip: 'Refresh',
+                  child: const Icon(Icons.refresh),
                 ),
+                const SizedBox(height: 8),
               ],
-            ),
+              FloatingActionButton(
+                onPressed: () => _showPublishDeckPicker(context),
+                tooltip: l10n.publishToLibrary,
+                child: const Icon(Icons.cloud_upload),
+              ),
+            ],
           ),
+        ),
       ],
     );
   }
@@ -867,8 +890,10 @@ class _MyDecksTabState extends State<_MyDecksTab> with AutomaticKeepAliveClientM
       primaryButtonText: l10n.unpublish,
       onPrimaryPressed: () async {
         final localDeckExists = context.read<DeckProvider>().decks.any(
-          (d) => d.publishedDeckId == publicDeckId || d.linkedPublicDeckId == publicDeckId,
-        );
+              (d) =>
+                  d.publishedDeckId == publicDeckId ||
+                  d.linkedPublicDeckId == publicDeckId,
+            );
 
         if (!localDeckExists) {
           // Show second confirmation dialog warning the user they will lose the deck permanently
@@ -880,7 +905,8 @@ class _MyDecksTabState extends State<_MyDecksTab> with AutomaticKeepAliveClientM
             secondaryButtonText: l10n.cancel,
             primaryButtonText: l10n.unpublish,
             onPrimaryPressed: () async {
-              final success = await publishProvider.unpublishByPublicId(publicDeckId);
+              final success =
+                  await publishProvider.unpublishByPublicId(publicDeckId);
               messenger.showSnackBar(
                 SnackBar(
                   content: Text(success
@@ -892,7 +918,8 @@ class _MyDecksTabState extends State<_MyDecksTab> with AutomaticKeepAliveClientM
           );
         } else {
           // Local copy exists, proceed normally
-          final success = await publishProvider.unpublishByPublicId(publicDeckId);
+          final success =
+              await publishProvider.unpublishByPublicId(publicDeckId);
           messenger.showSnackBar(
             SnackBar(
               content: Text(success

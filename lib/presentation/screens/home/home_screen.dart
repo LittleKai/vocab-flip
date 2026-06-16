@@ -132,107 +132,145 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
     final isNarrow = screenWidth < 450;
-    
+
     final navBarHeight = isNarrow ? 62.0 : 70.0;
     final iconSize = isNarrow ? 22.0 : 26.0;
     final double fontSize = isNarrow ? 9.5 : 12.0;
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    final bodyBottomPadding = navBarHeight + bottomInset;
 
     return Scaffold(
       extendBody: true,
-      body: _buildScreen(_currentIndex),
-      bottomNavigationBar: CurvedNavigationBar(
-        height: navBarHeight,
-        index: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: Colors.transparent,
-        color: Color.lerp(
-          Theme.of(context).colorScheme.surface,
-          _getTabColor(_currentIndex),
-          Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.06,
-        )!,
-        buttonBackgroundColor: _getTabColor(_currentIndex),
-        animationCurve: Curves.easeOutQuart,
-        animationDuration: const Duration(milliseconds: 300),
-        items: [
-          CurvedNavigationBarItem(
-            child: Icon(
-              _currentIndex == 0 ? Icons.home_rounded : Icons.home_outlined,
-              color: _currentIndex == 0 ? Colors.white : _getTabColor(0),
-              size: iconSize,
+      body: Padding(
+        padding: EdgeInsets.only(bottom: bodyBottomPadding),
+        child: _buildScreen(_currentIndex),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        left: false,
+        right: false,
+        child: CurvedNavigationBar(
+          height: navBarHeight,
+          index: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          backgroundColor: Colors.transparent,
+          color: Color.lerp(
+            Theme.of(context).colorScheme.surface,
+            _getTabColor(_currentIndex),
+            Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.06,
+          )!,
+          buttonBackgroundColor: _getTabColor(_currentIndex),
+          animationCurve: Curves.easeOutQuart,
+          animationDuration: const Duration(milliseconds: 300),
+          items: [
+            CurvedNavigationBarItem(
+              child: Icon(
+                _currentIndex == 0 ? Icons.home_rounded : Icons.home_outlined,
+                color: _currentIndex == 0 ? Colors.white : _getTabColor(0),
+                size: iconSize,
+              ),
+              label: l10n.home.toUpperCase(),
+              labelStyle: TextStyle(
+                color: _currentIndex == 0
+                    ? _getTabColor(0)
+                    : AppColors.textSecondary(context),
+                fontSize: fontSize,
+                fontWeight:
+                    _currentIndex == 0 ? FontWeight.w800 : FontWeight.w600,
+              ),
             ),
-            label: l10n.home.toUpperCase(),
-            labelStyle: TextStyle(
-              color: _currentIndex == 0 ? _getTabColor(0) : AppColors.textSecondary(context),
-              fontSize: fontSize,
-              fontWeight: _currentIndex == 0 ? FontWeight.w800 : FontWeight.w600,
+            CurvedNavigationBarItem(
+              child: Icon(
+                _currentIndex == 1
+                    ? Icons.folder_rounded
+                    : Icons.folder_outlined,
+                color: _currentIndex == 1 ? Colors.white : _getTabColor(1),
+                size: iconSize,
+              ),
+              label: l10n.decks.toUpperCase(),
+              labelStyle: TextStyle(
+                color: _currentIndex == 1
+                    ? _getTabColor(1)
+                    : AppColors.textSecondary(context),
+                fontSize: fontSize,
+                fontWeight:
+                    _currentIndex == 1 ? FontWeight.w800 : FontWeight.w600,
+              ),
             ),
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(
-              _currentIndex == 1 ? Icons.folder_rounded : Icons.folder_outlined,
-              color: _currentIndex == 1 ? Colors.white : _getTabColor(1),
-              size: iconSize,
+            CurvedNavigationBarItem(
+              child: Icon(
+                _currentIndex == 2
+                    ? Icons.public_rounded
+                    : Icons.public_outlined,
+                color: _currentIndex == 2 ? Colors.white : _getTabColor(2),
+                size: iconSize,
+              ),
+              label: l10n.library.toUpperCase(),
+              labelStyle: TextStyle(
+                color: _currentIndex == 2
+                    ? _getTabColor(2)
+                    : AppColors.textSecondary(context),
+                fontSize: fontSize,
+                fontWeight:
+                    _currentIndex == 2 ? FontWeight.w800 : FontWeight.w600,
+              ),
             ),
-            label: l10n.decks.toUpperCase(),
-            labelStyle: TextStyle(
-              color: _currentIndex == 1 ? _getTabColor(1) : AppColors.textSecondary(context),
-              fontSize: fontSize,
-              fontWeight: _currentIndex == 1 ? FontWeight.w800 : FontWeight.w600,
+            CurvedNavigationBarItem(
+              child: Icon(
+                _currentIndex == 3
+                    ? Icons.search_rounded
+                    : Icons.search_outlined,
+                color: _currentIndex == 3 ? Colors.white : _getTabColor(3),
+                size: iconSize,
+              ),
+              label: l10n.dictionary.toUpperCase(),
+              labelStyle: TextStyle(
+                color: _currentIndex == 3
+                    ? _getTabColor(3)
+                    : AppColors.textSecondary(context),
+                fontSize: fontSize,
+                fontWeight:
+                    _currentIndex == 3 ? FontWeight.w800 : FontWeight.w600,
+              ),
             ),
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(
-              _currentIndex == 2 ? Icons.public_rounded : Icons.public_outlined,
-              color: _currentIndex == 2 ? Colors.white : _getTabColor(2),
-              size: iconSize,
+            CurvedNavigationBarItem(
+              child: Icon(
+                _currentIndex == 4
+                    ? Icons.bar_chart_rounded
+                    : Icons.bar_chart_outlined,
+                color: _currentIndex == 4 ? Colors.white : _getTabColor(4),
+                size: iconSize,
+              ),
+              label: l10n.stats.toUpperCase(),
+              labelStyle: TextStyle(
+                color: _currentIndex == 4
+                    ? _getTabColor(4)
+                    : AppColors.textSecondary(context),
+                fontSize: fontSize,
+                fontWeight:
+                    _currentIndex == 4 ? FontWeight.w800 : FontWeight.w600,
+              ),
             ),
-            label: l10n.library.toUpperCase(),
-            labelStyle: TextStyle(
-              color: _currentIndex == 2 ? _getTabColor(2) : AppColors.textSecondary(context),
-              fontSize: fontSize,
-              fontWeight: _currentIndex == 2 ? FontWeight.w800 : FontWeight.w600,
+            CurvedNavigationBarItem(
+              child: Icon(
+                _currentIndex == 5
+                    ? Icons.settings_rounded
+                    : Icons.settings_outlined,
+                color: _currentIndex == 5 ? Colors.white : _getTabColor(5),
+                size: iconSize,
+              ),
+              label: l10n.settings.toUpperCase(),
+              labelStyle: TextStyle(
+                color: _currentIndex == 5
+                    ? _getTabColor(5)
+                    : AppColors.textSecondary(context),
+                fontSize: fontSize,
+                fontWeight:
+                    _currentIndex == 5 ? FontWeight.w800 : FontWeight.w600,
+              ),
             ),
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(
-              _currentIndex == 3 ? Icons.search_rounded : Icons.search_outlined,
-              color: _currentIndex == 3 ? Colors.white : _getTabColor(3),
-              size: iconSize,
-            ),
-            label: l10n.dictionary.toUpperCase(),
-            labelStyle: TextStyle(
-              color: _currentIndex == 3 ? _getTabColor(3) : AppColors.textSecondary(context),
-              fontSize: fontSize,
-              fontWeight: _currentIndex == 3 ? FontWeight.w800 : FontWeight.w600,
-            ),
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(
-              _currentIndex == 4 ? Icons.bar_chart_rounded : Icons.bar_chart_outlined,
-              color: _currentIndex == 4 ? Colors.white : _getTabColor(4),
-              size: iconSize,
-            ),
-            label: l10n.stats.toUpperCase(),
-            labelStyle: TextStyle(
-              color: _currentIndex == 4 ? _getTabColor(4) : AppColors.textSecondary(context),
-              fontSize: fontSize,
-              fontWeight: _currentIndex == 4 ? FontWeight.w800 : FontWeight.w600,
-            ),
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(
-              _currentIndex == 5 ? Icons.settings_rounded : Icons.settings_outlined,
-              color: _currentIndex == 5 ? Colors.white : _getTabColor(5),
-              size: iconSize,
-            ),
-            label: l10n.settings.toUpperCase(),
-            labelStyle: TextStyle(
-              color: _currentIndex == 5 ? _getTabColor(5) : AppColors.textSecondary(context),
-              fontSize: fontSize,
-              fontWeight: _currentIndex == 5 ? FontWeight.w800 : FontWeight.w600,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -297,7 +335,7 @@ class _HomeTab extends StatelessWidget {
             // Recent decks (vertical list)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 32, 20, 100),
+                padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
                 child: _buildRecentDecks(context, deckProvider),
               ),
             ),
@@ -357,8 +395,7 @@ class _HomeTab extends StatelessWidget {
 
   Widget _buildHeroCard(BuildContext context, DeckProvider provider) {
     final l10n = AppLocalizations.of(context)!;
-    final dueDecks =
-        provider.decks.where((deck) => deck.dueCount > 0).toList();
+    final dueDecks = provider.decks.where((deck) => deck.dueCount > 0).toList();
     final primaryDeck = dueDecks.isNotEmpty ? dueDecks.first : null;
     final hasDue = provider.totalDueCards > 0 && primaryDeck != null;
 
@@ -486,7 +523,8 @@ class _HomeTab extends StatelessWidget {
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF7C3AED), // Violet match
+                        foregroundColor:
+                            const Color(0xFF7C3AED), // Violet match
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18),
@@ -570,9 +608,7 @@ class _HomeTab extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  hasDue
-                      ? Icons.schedule_rounded
-                      : Icons.check_circle_rounded,
+                  hasDue ? Icons.schedule_rounded : Icons.check_circle_rounded,
                   color: hasDue ? AppColors.accent : AppColors.success,
                   size: 22,
                 ),
@@ -582,8 +618,7 @@ class _HomeTab extends StatelessWidget {
                 '${deckProvider.totalDueCards}',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
-                      color:
-                          hasDue ? AppColors.accentDark : AppColors.success,
+                      color: hasDue ? AppColors.accentDark : AppColors.success,
                     ),
               ),
               const SizedBox(width: 8),
@@ -605,8 +640,7 @@ class _HomeTab extends StatelessWidget {
 
   Widget _buildDueTodaySection(BuildContext context, DeckProvider provider) {
     final l10n = AppLocalizations.of(context)!;
-    final dueDecks =
-        provider.decks.where((d) => d.dueCount > 0).toList();
+    final dueDecks = provider.decks.where((d) => d.dueCount > 0).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -748,7 +782,8 @@ class _HomeTab extends StatelessWidget {
             deck: deck,
             cardCountLabel: l10n.nCards(deck.cardCount),
             dueLabel: deck.dueCount > 0 ? l10n.cardsDue(deck.dueCount) : null,
-            onTap: () => DeckNavigation.navigateBasedOnPreference(context, deck.id),
+            onTap: () =>
+                DeckNavigation.navigateBasedOnPreference(context, deck.id),
             trailing: Icon(
               Icons.chevron_right,
               color: AppColors.textSecondary(context),
@@ -923,8 +958,7 @@ class _DueDeckCard extends StatelessWidget {
                   size: 40,
                 ),
                 const Spacer(),
-                DeckCardHeader.buildLanguageBadge(
-                    context, deck.sourceLanguage),
+                DeckCardHeader.buildLanguageBadge(context, deck.sourceLanguage),
               ],
             ),
             const SizedBox(height: 12),

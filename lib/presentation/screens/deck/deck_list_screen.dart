@@ -93,27 +93,28 @@ class _DeckListScreenState extends State<DeckListScreen> {
             ],
           ),
           body: _buildBody(context, provider, l10n),
-          floatingActionButton: Padding(
-            padding: const EdgeInsets.only(bottom: 72.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))) ...[
-                  FloatingActionButton.small(
-                    heroTag: 'refreshDecks',
-                    onPressed: () => provider.loadDecks(),
-                    tooltip: 'Refresh',
-                    child: const Icon(Icons.refresh),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                FloatingActionButton(
-                  heroTag: 'deck_list_fab',
-                  onPressed: () => _navigateToCreateDeck(context),
-                  child: const Icon(Icons.add),
+          floatingActionButton: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (kIsWeb ||
+                  (!kIsWeb &&
+                      (Platform.isWindows ||
+                          Platform.isMacOS ||
+                          Platform.isLinux))) ...[
+                FloatingActionButton.small(
+                  heroTag: 'refreshDecks',
+                  onPressed: () => provider.loadDecks(),
+                  tooltip: 'Refresh',
+                  child: const Icon(Icons.refresh),
                 ),
+                const SizedBox(height: 8),
               ],
-            ),
+              FloatingActionButton(
+                heroTag: 'deck_list_fab',
+                onPressed: () => _navigateToCreateDeck(context),
+                child: const Icon(Icons.add),
+              ),
+            ],
           ),
         );
       },
@@ -254,7 +255,8 @@ class _DeckListScreenState extends State<DeckListScreen> {
               : RefreshIndicator(
                   onRefresh: () => provider.loadDecks(),
                   child: ResponsiveGrid(
-                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 100),
+                    padding:
+                        const EdgeInsets.only(left: 16, right: 16, bottom: 100),
                     itemCount: filtered.length,
                     mainAxisExtent: 216,
                     itemBuilder: (context, index) {
@@ -309,9 +311,9 @@ class _DeckCard extends StatelessWidget {
               child: Container(width: 6, color: langColor),
             ),
           ),
-            InkWell(
-              onTap: () => _navigateBasedOnPref(context),
-              borderRadius: borderRadius,
+          InkWell(
+            onTap: () => _navigateBasedOnPref(context),
+            borderRadius: borderRadius,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 8, 10),
               child: Column(
@@ -377,7 +379,8 @@ class _DeckCard extends StatelessWidget {
                               value: 'info',
                               child: Row(
                                 children: [
-                                  const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                                  const Icon(Icons.info_outline,
+                                      color: AppColors.primary, size: 20),
                                   const SizedBox(width: 12),
                                   Text(l10n.deckDetails),
                                 ],
@@ -387,7 +390,8 @@ class _DeckCard extends StatelessWidget {
                               value: 'edit',
                               child: Row(
                                 children: [
-                                  const Icon(Icons.edit_outlined, color: AppColors.secondary, size: 20),
+                                  const Icon(Icons.edit_outlined,
+                                      color: AppColors.secondary, size: 20),
                                   const SizedBox(width: 12),
                                   Text(l10n.edit),
                                 ],
@@ -398,11 +402,13 @@ class _DeckCard extends StatelessWidget {
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                                  const Icon(Icons.delete_outline,
+                                      color: AppColors.error, size: 20),
                                   const SizedBox(width: 12),
                                   Text(
                                     l10n.delete,
-                                    style: const TextStyle(color: AppColors.error),
+                                    style:
+                                        const TextStyle(color: AppColors.error),
                                   ),
                                 ],
                               ),
