@@ -254,7 +254,8 @@ class _NewestTabState extends State<_NewestTab>
                         Platform.isLinux)))
               Positioned(
                 right: 16,
-                bottom: 16,
+                bottom: 16 + (MediaQuery.of(context).size.width < 450 ? 62.0 : 70.0) +
+                    MediaQuery.viewPaddingOf(context).bottom,
                 child: FloatingActionButton.small(
                   heroTag: 'refreshNewest',
                   onPressed: () => provider.loadNewestDecks(refresh: true),
@@ -342,7 +343,8 @@ class _BrowseTabState extends State<_BrowseTab>
             // Import by ID FAB
             Positioned(
               right: 16,
-              bottom: 16,
+              bottom: 16 + (MediaQuery.of(context).size.width < 450 ? 62.0 : 70.0) +
+                  MediaQuery.viewPaddingOf(context).bottom,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -607,7 +609,8 @@ class _MyDecksTabState extends State<_MyDecksTab>
         ),
         Positioned(
           right: 16,
-          bottom: 16,
+          bottom: 16 + (MediaQuery.of(context).size.width < 450 ? 62.0 : 70.0) +
+              MediaQuery.viewPaddingOf(context).bottom,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

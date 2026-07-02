@@ -114,37 +114,43 @@ class _DeckListScreenState extends State<DeckListScreen> {
                 ],
               ),
             ),
-            floatingActionButton: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!_isSearching && provider.searchQuery.isEmpty && provider.decks.isNotEmpty) ...[
-                  FloatingActionButton.small(
-                    heroTag: 'searchDecks',
-                    onPressed: () => _toggleSearch(provider),
-                    tooltip: l10n.searchDecks,
-                    child: const Icon(Icons.search),
+            floatingActionButton: Padding(
+              padding: EdgeInsets.only(
+                bottom: (MediaQuery.of(context).size.width < 450 ? 62.0 : 70.0) +
+                    MediaQuery.viewPaddingOf(context).bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!_isSearching && provider.searchQuery.isEmpty && provider.decks.isNotEmpty) ...[
+                    FloatingActionButton.small(
+                      heroTag: 'searchDecks',
+                      onPressed: () => _toggleSearch(provider),
+                      tooltip: l10n.searchDecks,
+                      child: const Icon(Icons.search),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (kIsWeb ||
+                      (!kIsWeb &&
+                          (Platform.isWindows ||
+                              Platform.isMacOS ||
+                              Platform.isLinux))) ...[
+                    FloatingActionButton.small(
+                      heroTag: 'refreshDecks',
+                      onPressed: () => provider.loadDecks(),
+                      tooltip: 'Refresh',
+                      child: const Icon(Icons.refresh),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  FloatingActionButton(
+                    heroTag: 'deck_list_fab',
+                    onPressed: () => _navigateToCreateDeck(context),
+                    child: const Icon(Icons.add),
                   ),
-                  const SizedBox(height: 8),
                 ],
-                if (kIsWeb ||
-                    (!kIsWeb &&
-                        (Platform.isWindows ||
-                            Platform.isMacOS ||
-                            Platform.isLinux))) ...[
-                  FloatingActionButton.small(
-                    heroTag: 'refreshDecks',
-                    onPressed: () => provider.loadDecks(),
-                    tooltip: 'Refresh',
-                    child: const Icon(Icons.refresh),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                FloatingActionButton(
-                  heroTag: 'deck_list_fab',
-                  onPressed: () => _navigateToCreateDeck(context),
-                  child: const Icon(Icons.add),
-                ),
-              ],
+              ),
             ),
           );
       },

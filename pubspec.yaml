@@ -2,7 +2,7 @@ name: vocabflip
 description: "VocabFlip - Multi-language vocabulary learning flashcard app"
 publish_to: 'none'
 
-version: 1.2.3+18
+version: 1.2.4+20
 
 environment:
   sdk: ^3.5.1
@@ -36,7 +36,7 @@ dependencies:
   infinite_scroll_pagination: ^4.0.0
 
   # Audio
-  flutter_tts: ^3.8.5
+  flutter_tts: ^4.2.5
 
   # File handling
   file_picker: ^8.0.0
@@ -67,6 +67,7 @@ dependencies:
   cached_network_image: ^3.4.1
   path_drawing: ^1.0.1
   lpinyin: ^2.0.3
+  android_intent_plus: ^6.0.0
 
 dev_dependencies:
   flutter_test:

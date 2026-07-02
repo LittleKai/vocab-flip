@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../dialogs/standard_dialog.dart';
+import '../common/selectable_radio_tile.dart';
 import '../../../data/repositories/backup_repository.dart';
 
 /// Dialog showing backup/restore progress
@@ -149,36 +150,26 @@ class RestoreConfirmDialog {
                 ),
               ),
               const SizedBox(height: 16),
-              RadioListTile<RestoreMode>(
-              title: Text(l10n.restoreModeMerge),
-              subtitle: Text(l10n.restoreModeMergeDesc),
-              value: RestoreMode.merge,
-              groupValue: selectedMode,
-              onChanged: (value) => setState(() => selectedMode = value!),
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-              activeColor: AppColors.primary,
-            ),
-            RadioListTile<RestoreMode>(
-              title: Text(l10n.restoreModeReplace),
-              subtitle: Text(l10n.restoreModeReplaceDesc),
-              value: RestoreMode.replace,
-              groupValue: selectedMode,
-              onChanged: (value) => setState(() => selectedMode = value!),
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-              activeColor: AppColors.primary,
-            ),
-            RadioListTile<RestoreMode>(
-              title: Text(l10n.restoreModeRename),
-              subtitle: Text(l10n.restoreModeRenameDesc),
-              value: RestoreMode.rename,
-              groupValue: selectedMode,
-              onChanged: (value) => setState(() => selectedMode = value!),
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-              activeColor: AppColors.primary,
-            ),
+              SelectableRadioTile(
+                title: l10n.restoreModeMerge,
+                subtitle: l10n.restoreModeMergeDesc,
+                selected: selectedMode == RestoreMode.merge,
+                onTap: () => setState(() => selectedMode = RestoreMode.merge),
+              ),
+              const SizedBox(height: 8),
+              SelectableRadioTile(
+                title: l10n.restoreModeReplace,
+                subtitle: l10n.restoreModeReplaceDesc,
+                selected: selectedMode == RestoreMode.replace,
+                onTap: () => setState(() => selectedMode = RestoreMode.replace),
+              ),
+              const SizedBox(height: 8),
+              SelectableRadioTile(
+                title: l10n.restoreModeRename,
+                subtitle: l10n.restoreModeRenameDesc,
+                selected: selectedMode == RestoreMode.rename,
+                onTap: () => setState(() => selectedMode = RestoreMode.rename),
+              ),
           ],
         ),
       ),

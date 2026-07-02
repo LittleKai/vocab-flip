@@ -139,12 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     final bodyBottomPadding = navBarHeight + bottomInset;
 
+    final body = _buildScreen(_currentIndex);
+
     return Scaffold(
       extendBody: true,
-      body: Padding(
-        padding: EdgeInsets.only(bottom: bodyBottomPadding),
-        child: _buildScreen(_currentIndex),
-      ),
+      body: _currentIndex == 0
+          ? Padding(
+              padding: EdgeInsets.only(bottom: bodyBottomPadding),
+              child: body,
+            )
+          : body,
       bottomNavigationBar: SafeArea(
         top: false,
         left: false,

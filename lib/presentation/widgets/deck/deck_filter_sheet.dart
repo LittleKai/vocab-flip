@@ -9,7 +9,8 @@ class DeckFilterSheet extends StatefulWidget {
   final String? currentCategory;
   final String? currentLanguage;
   final DeckSortBy currentSortBy;
-  final void Function(String? category, String? language, DeckSortBy sortBy) onApply;
+  final void Function(String? category, String? language, DeckSortBy sortBy)
+      onApply;
 
   const DeckFilterSheet({
     super.key,
@@ -24,7 +25,9 @@ class DeckFilterSheet extends StatefulWidget {
     required String? currentCategory,
     required String? currentLanguage,
     required DeckSortBy currentSortBy,
-    required void Function(String? category, String? language, DeckSortBy sortBy) onApply,
+    required void Function(
+            String? category, String? language, DeckSortBy sortBy)
+        onApply,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -63,162 +66,173 @@ class _DeckFilterSheetState extends State<DeckFilterSheet> {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.65,
-      minChildSize: 0.4,
-      maxChildSize: 0.85,
-      expand: false,
-      builder: (context, scrollController) {
-        return Column(
-          children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    l10n.filter,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  TextButton(
-                    onPressed: _resetFilters,
-                    child: Text(l10n.reset),
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(),
-
-            // Filter options
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.all(16),
-                children: [
-                  // Sort by
-                  _buildSectionTitle(l10n.sortBy),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: DeckSortBy.values.map((sort) {
-                      return ChoiceChip(
-                        label: Text(_getSortLabel(sort, l10n)),
-                        selected: _sortBy == sort,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _sortBy = sort);
-                          }
-                        },
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Category
-                  _buildSectionTitle(l10n.category),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ChoiceChip(
-                        label: Text(l10n.all),
-                        selected: _categoryId == null,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _categoryId = null);
-                          }
-                        },
-                      ),
-                      ...Category.forLanguage(_sourceLanguage).map((category) {
-                        return ChoiceChip(
-                          label: Text(category.getLocalizedName(locale)),
-                          selected: _categoryId == category.id,
-                          onSelected: (selected) {
-                            setState(() {
-                              _categoryId = selected ? category.id : null;
-                            });
-                          },
-                        );
-                      }),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Source language
-                  _buildSectionTitle(l10n.sourceLanguage),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ChoiceChip(
-                        label: Text(l10n.all),
-                        selected: _sourceLanguage == null,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _sourceLanguage = null);
-                          }
-                        },
-                      ),
-                      ...SupportedLanguage.values
-                          .where((lang) => lang != SupportedLanguage.vietnamese)
-                          .map((lang) {
-                        return ChoiceChip(
-                          label: Text('${lang.flag} ${lang.getName(locale)}'),
-                          selected: _sourceLanguage == lang.code,
-                          onSelected: (selected) {
-                            setState(() {
-                              _sourceLanguage = selected ? lang.code : null;
-                              // Clear category if not valid for the new language
-                              if (_categoryId != null) {
-                                final cat = Category.getById(_categoryId!);
-                                if (cat != null && cat.language != null && cat.language != _sourceLanguage) {
-                                  _categoryId = null;
-                                }
-                              }
-                            });
-                          },
-                        );
-                      }),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Apply button
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _applyFilters,
-                  child: Text(l10n.filter),
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.65,
+        minChildSize: 0.4,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-          ],
-        );
-      },
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.filter,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    TextButton(
+                      onPressed: _resetFilters,
+                      child: Text(l10n.reset),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Divider(),
+
+              // Filter options
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // Sort by
+                    _buildSectionTitle(l10n.sortBy),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: DeckSortBy.values.map((sort) {
+                        return ChoiceChip(
+                          label: Text(_getSortLabel(sort, l10n)),
+                          selected: _sortBy == sort,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() => _sortBy = sort);
+                            }
+                          },
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Category
+                    _buildSectionTitle(l10n.category),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: Text(l10n.all),
+                          selected: _categoryId == null,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() => _categoryId = null);
+                            }
+                          },
+                        ),
+                        ...Category.forLanguage(_sourceLanguage)
+                            .map((category) {
+                          return ChoiceChip(
+                            label: Text(category.getLocalizedName(locale)),
+                            selected: _categoryId == category.id,
+                            onSelected: (selected) {
+                              setState(() {
+                                _categoryId = selected ? category.id : null;
+                              });
+                            },
+                          );
+                        }),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Source language
+                    _buildSectionTitle(l10n.sourceLanguage),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: Text(l10n.all),
+                          selected: _sourceLanguage == null,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() => _sourceLanguage = null);
+                            }
+                          },
+                        ),
+                        ...SupportedLanguage.values
+                            .where(
+                                (lang) => lang != SupportedLanguage.vietnamese)
+                            .map((lang) {
+                          return ChoiceChip(
+                            label: Text('${lang.flag} ${lang.getName(locale)}'),
+                            selected: _sourceLanguage == lang.code,
+                            onSelected: (selected) {
+                              setState(() {
+                                _sourceLanguage = selected ? lang.code : null;
+                                // Clear category if not valid for the new language
+                                if (_categoryId != null) {
+                                  final cat = Category.getById(_categoryId!);
+                                  if (cat != null &&
+                                      cat.language != null &&
+                                      cat.language != _sourceLanguage) {
+                                    _categoryId = null;
+                                  }
+                                }
+                              });
+                            },
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Apply button
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _applyFilters,
+                    child: Text(l10n.filter),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

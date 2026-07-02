@@ -20,7 +20,10 @@ Future<T?> showStandardDialog<T>({
   final isDark = theme.brightness == Brightness.dark;
   final completer = Completer<T?>();
   final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-  final dialogBottomPadding = 16.0 + bottomInset;
+  final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+  final effectiveBottomInset =
+      keyboardInset > bottomInset ? keyboardInset : bottomInset;
+  final dialogBottomPadding = 16.0 + effectiveBottomInset;
 
   // Trên web, awesome_dialog không render được icon từ asset Flare/Rive,
   // nên dùng customHeader với Material Icon thay thế.
@@ -102,8 +105,9 @@ Future<T?> showStandardDialog<T>({
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       isDestructive ? Colors.red : theme.colorScheme.primary,
-                  foregroundColor:
-                      isDestructive ? Colors.white : theme.colorScheme.onPrimary,
+                  foregroundColor: isDestructive
+                      ? Colors.white
+                      : theme.colorScheme.onPrimary,
                   side: BorderSide(
                     color: isDestructive
                         ? Colors.red[700]!

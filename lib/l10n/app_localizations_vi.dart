@@ -1226,10 +1226,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get autoPlayTtsDesc => 'Tự động phát âm khi lật thẻ';
 
   @override
-  String get ttsVolume => 'Âm lượng phát âm';
+  String get ttsSpeechRate => 'Tốc độ đọc';
 
   @override
-  String get ttsVolumeDesc => 'Điều chỉnh âm lượng giọng đọc tự động';
+  String get ttsSpeechRateDesc =>
+      'Điều chỉnh tốc độ đọc của giọng phát âm tự động';
+
+  @override
+  String get ttsVoice => 'Giọng đọc';
+
+  @override
+  String get ttsVoiceDesc => 'Chọn giọng đã cài để đọc cho từng ngôn ngữ';
+
+  @override
+  String get ttsVoiceAddMore => 'Cài thêm giọng đọc…';
+
+  @override
+  String get ttsVoiceNoneAvailable => 'Chưa có giọng đọc nào cho ngôn ngữ này';
 
   @override
   String get ttsHelp => 'Hướng dẫn cài đặt TTS';
@@ -1940,24 +1953,52 @@ class AppLocalizationsVi extends AppLocalizations {
   String get includeExamples => 'Thêm ví dụ';
 
   @override
+  String get includeExamplesDesc =>
+      'Tự động tạo câu ví dụ kèm dịch nghĩa cho mỗi từ vựng';
+
+  @override
   String get includeNotes => 'Thêm ghi chú';
+
+  @override
+  String get includeNotesDesc =>
+      'Thêm giải thích ngữ pháp, từ loại hoặc thông tin bổ sung';
+
+  @override
+  String get appTypographySettings => 'Phông chữ & cỡ chữ';
+
+  @override
+  String get appFontFamily => 'Phông chữ';
+
+  @override
+  String get appFontSize => 'Kích cỡ chữ';
 
   @override
   String get aiModel => 'Model AI';
 
   @override
-  String get modelPro => 'Pro (Gemini 3.1 Pro)';
+  String get modelPro => 'Gemini 3.1 Pro';
 
   @override
-  String get modelFlash => 'Flash (Gemini 3 Flash)';
+  String get modelFlash => 'Gemini 3 Flash';
+
+  @override
+  String get modelFlash35 => 'Gemini 3.5 Flash';
+
+  @override
+  String get dailyFreeFlash => '1 lượt miễn phí mỗi ngày';
 
   @override
   String freeUsesRemaining(int count) {
-    return 'Còn $count lượt miễn phí';
+    return 'Còn $count lượt miễn phí hôm nay cho Gemini 3 Flash';
   }
 
   @override
   String get costsOneCredit => 'Tốn 1 credit mỗi lần dùng';
+
+  @override
+  String creditsPerUse(int count) {
+    return 'Tốn $count credit/lần';
+  }
 
   @override
   String get noFreeUsesLeft => 'Đã hết lượt miễn phí';

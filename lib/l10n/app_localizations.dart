@@ -2426,17 +2426,41 @@ abstract class AppLocalizations {
   /// **'Automatically play pronunciation when flipping cards'**
   String get autoPlayTtsDesc;
 
-  /// No description provided for @ttsVolume.
+  /// No description provided for @ttsSpeechRate.
   ///
   /// In en, this message translates to:
-  /// **'Pronunciation Volume'**
-  String get ttsVolume;
+  /// **'Reading Speed'**
+  String get ttsSpeechRate;
 
-  /// No description provided for @ttsVolumeDesc.
+  /// No description provided for @ttsSpeechRateDesc.
   ///
   /// In en, this message translates to:
-  /// **'Adjust text-to-speech reading volume'**
-  String get ttsVolumeDesc;
+  /// **'Adjust how fast text-to-speech reads words aloud'**
+  String get ttsSpeechRateDesc;
+
+  /// No description provided for @ttsVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get ttsVoice;
+
+  /// No description provided for @ttsVoiceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which installed voice reads each language'**
+  String get ttsVoiceDesc;
+
+  /// No description provided for @ttsVoiceAddMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Install more voices…'**
+  String get ttsVoiceAddMore;
+
+  /// No description provided for @ttsVoiceNoneAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No voices installed for this language'**
+  String get ttsVoiceNoneAvailable;
 
   /// No description provided for @ttsHelp.
   ///
@@ -3746,11 +3770,41 @@ abstract class AppLocalizations {
   /// **'Include Examples'**
   String get includeExamples;
 
+  /// No description provided for @includeExamplesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically generate example sentences with translations for each word'**
+  String get includeExamplesDesc;
+
   /// No description provided for @includeNotes.
   ///
   /// In en, this message translates to:
   /// **'Include Notes'**
   String get includeNotes;
+
+  /// No description provided for @includeNotesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add grammar explanations, parts of speech, or extra details'**
+  String get includeNotesDesc;
+
+  /// No description provided for @appTypographySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App Font & Size'**
+  String get appTypographySettings;
+
+  /// No description provided for @appFontFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Family'**
+  String get appFontFamily;
+
+  /// No description provided for @appFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Size'**
+  String get appFontSize;
 
   /// No description provided for @aiModel.
   ///
@@ -3761,19 +3815,31 @@ abstract class AppLocalizations {
   /// No description provided for @modelPro.
   ///
   /// In en, this message translates to:
-  /// **'Pro (Gemini 3.1 Pro)'**
+  /// **'Gemini 3.1 Pro'**
   String get modelPro;
 
   /// No description provided for @modelFlash.
   ///
   /// In en, this message translates to:
-  /// **'Flash (Gemini 3 Flash)'**
+  /// **'Gemini 3 Flash'**
   String get modelFlash;
+
+  /// No description provided for @modelFlash35.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini 3.5 Flash'**
+  String get modelFlash35;
+
+  /// No description provided for @dailyFreeFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'1 free use daily'**
+  String get dailyFreeFlash;
 
   /// No description provided for @freeUsesRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count} free uses remaining'**
+  /// **'{count} free use today for Gemini 3 Flash'**
   String freeUsesRemaining(int count);
 
   /// No description provided for @costsOneCredit.
@@ -3781,6 +3847,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Costs 1 credit per use'**
   String get costsOneCredit;
+
+  /// No description provided for @creditsPerUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} credits/use'**
+  String creditsPerUse(int count);
 
   /// No description provided for @noFreeUsesLeft.
   ///

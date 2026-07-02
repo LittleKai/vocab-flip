@@ -19,6 +19,8 @@ import '../../widgets/dialogs/profile_edit_dialog.dart';
 import '../../widgets/dialogs/feedback_dialog.dart';
 import '../../widgets/dialogs/login_dialog.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
+import '../../widgets/dialogs/tts_voice_picker_dialog.dart';
+import '../../widgets/common/selectable_radio_tile.dart';
 import '../../providers/admin_feedback_provider.dart';
 import 'backup_screen.dart';
 
@@ -188,6 +190,14 @@ class SettingsScreen extends StatelessWidget {
                     onChanged: (value) => settings.setDarkMode(value),
                   ),
                   const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.text_fields_rounded, color: Colors.indigo, size: 22),
+                    title: l10n.appTypographySettings,
+                    subtitle: '${settings.getAppFontFamilyDisplayName(settings.locale)} • ${_getAppFontSizeSubtitle(settings.appTextScaleFactor, l10n, settings.locale)}',
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => _showTypographyDialog(context, settings, l10n),
+                  ),
+                  const Divider(height: 1, indent: 70),
                     _SettingsTile(
                       leading: const Icon(Icons.language, color: Colors.teal, size: 22),
                       title: l10n.language,
@@ -255,14 +265,14 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsTile(
-                    leading: const Icon(Icons.volume_up, color: Colors.cyan, size: 22),
-                    title: l10n.ttsVolume,
-                    subtitle: l10n.ttsVolumeDesc,
+                    leading: const Icon(Icons.speed, color: Colors.cyan, size: 22),
+                    title: l10n.ttsSpeechRate,
+                    subtitle: l10n.ttsSpeechRateDesc,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${(settings.ttsVolume * 100).round()}%',
+                          '${(settings.ttsSpeechRate * 100).round()}%',
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
@@ -272,7 +282,15 @@ class SettingsScreen extends StatelessWidget {
                         const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
                       ],
                     ),
-                    onTap: () => _showTtsVolumePicker(context, settings, l10n),
+                    onTap: () => _showTtsSpeechRatePicker(context, settings, l10n),
+                  ),
+                  const Divider(height: 1, indent: 70),
+                  _SettingsTile(
+                    leading: const Icon(Icons.record_voice_over_outlined, color: Colors.cyan, size: 22),
+                    title: l10n.ttsVoice,
+                    subtitle: l10n.ttsVoiceDesc,
+                    trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                    onTap: () => TtsVoicePickerDialog.show(context),
                   ),
                   const Divider(height: 1, indent: 70),
                   _SettingsSwitchTile(
@@ -469,26 +487,20 @@ class SettingsScreen extends StatelessWidget {
       customContent: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          RadioListTile<String>(
-            title: Text(l10n.deckClickActionDetail),
-            value: 'detail',
-            groupValue: settings.deckClickAction,
-            onChanged: (value) {
-              if (value != null) {
-                settings.setDeckClickAction(value);
-                Navigator.of(context, rootNavigator: true).pop();
-              }
+          SelectableRadioTile(
+            title: l10n.deckClickActionDetail,
+            selected: settings.deckClickAction == 'detail',
+            onTap: () {
+              settings.setDeckClickAction('detail');
+              Navigator.of(context, rootNavigator: true).pop();
             },
           ),
-          RadioListTile<String>(
-            title: Text(l10n.deckClickActionBrowse),
-            value: 'browse',
-            groupValue: settings.deckClickAction,
-            onChanged: (value) {
-              if (value != null) {
-                settings.setDeckClickAction(value);
-                Navigator.of(context, rootNavigator: true).pop();
-              }
+          SelectableRadioTile(
+            title: l10n.deckClickActionBrowse,
+            selected: settings.deckClickAction == 'browse',
+            onTap: () {
+              settings.setDeckClickAction('browse');
+              Navigator.of(context, rootNavigator: true).pop();
             },
           ),
         ],
@@ -506,42 +518,181 @@ class SettingsScreen extends StatelessWidget {
       customContent: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: settings.locale == 'vi' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: RadioListTile<String>(
-              title: const Text('Tiếng Việt', style: TextStyle(fontWeight: FontWeight.w600)),
-              value: 'vi',
-              groupValue: settings.locale,
-              activeColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              onChanged: (value) {
-                settings.setLocale(value!);
-                Navigator.pop(context);
-              },
-            ),
+          SelectableRadioTile(
+            title: 'Tiếng Việt',
+            selected: settings.locale == 'vi',
+            onTap: () {
+              settings.setLocale('vi');
+              Navigator.of(context, rootNavigator: true).pop();
+            },
           ),
           const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: settings.locale == 'en' ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: RadioListTile<String>(
-              title: const Text('English', style: TextStyle(fontWeight: FontWeight.w600)),
-              value: 'en',
-              groupValue: settings.locale,
-              activeColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              onChanged: (value) {
-                settings.setLocale(value!);
-                Navigator.pop(context);
-              },
-            ),
+          SelectableRadioTile(
+            title: 'English',
+            selected: settings.locale == 'en',
+            onTap: () {
+              settings.setLocale('en');
+              Navigator.of(context, rootNavigator: true).pop();
+            },
           ),
         ],
+      ),
+    );
+  }
+
+  String _getFontDisplayName(String font, String localeCode) {
+    final isVi = localeCode == 'vi';
+    switch (font) {
+      case 'System':
+        return isVi ? 'Mặc định hệ thống' : 'System Default';
+      case 'Segoe UI':
+        return 'Segoe UI';
+      case 'Arial':
+        return 'Arial';
+      case 'Trebuchet MS':
+        return 'Trebuchet MS';
+      case 'Georgia':
+        return 'Georgia';
+      case 'Times New Roman':
+        return 'Times New Roman';
+      case 'Consolas':
+        return 'Consolas';
+      case 'Courier New':
+        return 'Courier New';
+      case 'Comic Sans MS':
+        return 'Comic Sans MS';
+      case 'Impact':
+        return 'Impact';
+      // Backward compatibility / generic names
+      case 'Sans-Serif':
+        return 'Segoe UI';
+      case 'Serif':
+        return 'Georgia';
+      case 'Monospace':
+        return 'Consolas';
+      default:
+        return font;
+    }
+  }
+
+  String _getAppFontSizeLabel(double scale, String localeCode) {
+    final isVi = localeCode == 'vi';
+    if (scale <= 0.85) return isVi ? 'Nhỏ' : 'Small';
+    if (scale <= 1.05) return isVi ? 'Mặc định' : 'Default';
+    if (scale <= 1.25) return isVi ? 'Lớn' : 'Large';
+    if (scale <= 1.45) return isVi ? 'Rất lớn' : 'Extra Large';
+    return isVi ? 'Khổng lồ' : 'Huge';
+  }
+
+  String _getAppFontSizeSubtitle(double scale, AppLocalizations l10n, String localeCode) {
+    return '${_getAppFontSizeLabel(scale, localeCode)} (${scale}x)';
+  }
+
+  void _showTypographyDialog(BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
+    showStandardDialog(
+      context: context,
+      title: l10n.appTypographySettings,
+      primaryButtonText: l10n.done,
+      customContent: StatefulBuilder(
+        builder: (context, setState) {
+          final fonts = [
+            'System',
+            'Segoe UI',
+            'Arial',
+            'Trebuchet MS',
+            'Georgia',
+            'Times New Roman',
+            'Consolas',
+            'Courier New',
+            'Comic Sans MS',
+            'Impact'
+          ];
+          return SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                // Font Family Dropdown
+                Text(
+                  l10n.appFontFamily,
+                  style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: settings.appFontFamily,
+                  borderRadius: BorderRadius.circular(16),
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
+                  ),
+                  items: fonts.map((font) {
+                    return DropdownMenuItem<String>(
+                      value: font,
+                      child: Text(
+                        _getFontDisplayName(font, settings.locale),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontFamily: font == 'System' ? null : font,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      settings.setAppFontFamily(value);
+                      setState(() {});
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Font Size Slider
+                Row(
+                  children: [
+                    Text(
+                      l10n.appFontSize,
+                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
+                    ),
+                    const Spacer(),
+                    Text(
+                      _getAppFontSizeSubtitle(settings.appTextScaleFactor, l10n, settings.locale),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Slider(
+                  value: settings.appTextScaleFactor,
+                  min: 0.8,
+                  max: 1.6,
+                  divisions: 8,
+                  activeColor: AppColors.primary,
+                  onChanged: (value) {
+                    final alignedValue = double.parse(value.toStringAsFixed(1));
+                    settings.setAppTextScaleFactor(alignedValue);
+                    setState(() {});
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -558,21 +709,17 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: sizes.map((size) {
-            return RadioListTile<int>(
-              title: Text('${size}px', style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: Text(size <= 600
+            return SelectableRadioTile(
+              title: '${size}px',
+              subtitle: size <= 600
                   ? l10n.recommendedForMobile
                   : size >= 1000
                       ? l10n.recommendedForDesktop
-                      : l10n.balanced),
-              value: size,
-              groupValue: settings.flashcardImageMaxWidth,
-              activeColor: AppColors.primary,
-              onChanged: (value) {
-                if (value != null) {
-                  settings.setFlashcardImageMaxWidth(value);
-                  Navigator.pop(context);
-                }
+                      : l10n.balanced,
+              selected: size == settings.flashcardImageMaxWidth,
+              onTap: () {
+                settings.setFlashcardImageMaxWidth(size);
+                Navigator.of(context, rootNavigator: true).pop();
               },
             );
           }).toList(),
@@ -581,11 +728,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showTtsVolumePicker(
+  void _showTtsSpeechRatePicker(
       BuildContext context, SettingsProvider settings, AppLocalizations l10n) {
     showStandardDialog(
       context: context,
-      title: l10n.ttsVolume,
+      title: l10n.ttsSpeechRate,
       primaryButtonText: l10n.done,
       customContent: StatefulBuilder(
         builder: (context, setState) => Column(
@@ -593,34 +740,34 @@ class SettingsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.ttsVolumeDesc,
+              l10n.ttsSpeechRateDesc,
               style: TextStyle(color: AppColors.textSecondary(context), fontSize: 13),
             ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.volume_mute, size: 24, color: AppColors.textSecondary(context)),
+                Icon(Icons.slow_motion_video, size: 24, color: AppColors.textSecondary(context)),
                 Text(
-                  '${(settings.ttsVolume * 100).round()}%',
+                  '${(settings.ttsSpeechRate * 100).round()}%',
                   style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
                 ),
-                Icon(Icons.volume_up, size: 24, color: AppColors.primary),
+                Icon(Icons.fast_forward, size: 24, color: AppColors.primary),
               ],
             ),
             const SizedBox(height: 8),
             Slider(
-              value: settings.ttsVolume,
-              min: 0.0,
-              max: 2.0,
-              divisions: 40, // 5% steps
+              value: settings.ttsSpeechRate,
+              min: 0.1,
+              max: 1.0,
+              divisions: 18, // 5% steps
               activeColor: AppColors.primary,
               onChanged: (value) {
-                settings.setTtsVolume(value);
+                settings.setTtsSpeechRate(value);
                 setState(() {});
               },
             ),
@@ -636,7 +783,6 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       title: l10n.flashcardFontSize,
       primaryButtonText: l10n.done,
-      onPrimaryPressed: () => Navigator.pop(context), // Though standard dialog pops on button press anyway, but wait, showStandardDialog already completes the future and dismisses the dialog on button press. If we pop, it might pop the screen behind. Let's omit onPrimaryPressed or just let showStandardDialog handle it. Wait! `showStandardDialog` in AwesomeDialog automatically dismisses on button press! If we pop again, it's double pop. We should just set primaryButtonText and omit onPrimaryPressed.
       customContent: StatefulBuilder(
         builder: (context, setState) => SingleChildScrollView(
           child: Column(
@@ -648,7 +794,7 @@ class SettingsScreen extends StatelessWidget {
               _FontSizeSlider(
                 value: settings.flashcardMainFontSize,
                 min: 20,
-                max: 80,
+                max: 120,
                 onChanged: (value) {
                   settings.setFlashcardMainFontSize(value);
                   setState(() {});
@@ -660,8 +806,8 @@ class SettingsScreen extends StatelessWidget {
               Text(l10n.phoneticTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
               _FontSizeSlider(
                 value: settings.flashcardPhoneticFontSize,
-                min: 14,
-                max: 48,
+                min: 12,
+                max: 72,
                 onChanged: (value) {
                   settings.setFlashcardPhoneticFontSize(value);
                   setState(() {});
@@ -673,8 +819,8 @@ class SettingsScreen extends StatelessWidget {
               Text(l10n.detailTextSize, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
               _FontSizeSlider(
                 value: settings.flashcardDetailFontSize,
-                min: 12,
-                max: 32,
+                min: 10,
+                max: 50,
                 onChanged: (value) {
                   settings.setFlashcardDetailFontSize(value);
                   setState(() {});

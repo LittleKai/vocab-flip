@@ -42,7 +42,13 @@ class AppPreferences {
   // Deck click action
   static const String _keyDeckClickAction = 'deck_click_action';
 
-  static const String _keyTtsVolume = 'tts_volume';
+  // TTS speech rate & per-language voice selection
+  static const String _keyTtsSpeechRate = 'tts_speech_rate';
+  static const String _keyTtsVoicePrefix = 'tts_voice_';
+
+  // App font family & text scale factor
+  static const String _keyAppFontFamily = 'app_font_family';
+  static const String _keyAppTextScaleFactor = 'app_text_scale_factor';
 
   // Library filter
   static const String _keyLibFilterCategory = 'lib_filter_category';
@@ -77,6 +83,9 @@ class AppPreferences {
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return 20;
     return 16;
   }
+
+  /// Default TTS speech rate (flutter_tts scale 0.0-1.0, 0.5 = normal speed)
+  static const double defaultTtsSpeechRate = 0.35;
 
   /// Default image max width based on platform
   static int get defaultFlashcardImageMaxWidth {
@@ -206,10 +215,21 @@ class AppPreferences {
   Future<bool> setHideTtsWarning(bool value) =>
       _prefs.setBool(_keyHideTtsWarning, value);
 
-  // TTS Volume
-  double get ttsVolume => _prefs.getDouble(_keyTtsVolume) ?? 1.0;
-  Future<bool> setTtsVolume(double value) =>
-      _prefs.setDouble(_keyTtsVolume, value);
+  // TTS speech rate
+  double get ttsSpeechRate =>
+      _prefs.getDouble(_keyTtsSpeechRate) ?? defaultTtsSpeechRate;
+  Future<bool> setTtsSpeechRate(double value) =>
+      _prefs.setDouble(_keyTtsSpeechRate, value);
+
+  // TTS voice per language (stored as "name|locale"), null = system default
+  String? getTtsVoice(String languageCode) =>
+      _prefs.getString('$_keyTtsVoicePrefix$languageCode');
+  Future<bool> setTtsVoice(String languageCode, String? nameAndLocale) {
+    if (nameAndLocale == null) {
+      return _prefs.remove('$_keyTtsVoicePrefix$languageCode');
+    }
+    return _prefs.setString('$_keyTtsVoicePrefix$languageCode', nameAndLocale);
+  }
 
   // Last update check
   DateTime? get lastUpdateCheck {
@@ -368,6 +388,14 @@ class AppPreferences {
 
     await setLastStudyDate(today);
   }
+
+  // App font family
+  String get appFontFamily => _prefs.getString(_keyAppFontFamily) ?? 'System';
+  Future<bool> setAppFontFamily(String value) => _prefs.setString(_keyAppFontFamily, value);
+
+  // App text scale factor
+  double get appTextScaleFactor => _prefs.getDouble(_keyAppTextScaleFactor) ?? 1.0;
+  Future<bool> setAppTextScaleFactor(double value) => _prefs.setDouble(_keyAppTextScaleFactor, value);
 
   // Clear all preferences
   Future<bool> clear() => _prefs.clear();

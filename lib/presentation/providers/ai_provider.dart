@@ -7,7 +7,8 @@ enum AiState { idle, generating, success, error }
 class AiProvider extends ChangeNotifier {
   final AiRepository _repository;
 
-  AiProvider({AiRepository? repository}) : _repository = repository ?? AiRepository();
+  AiProvider({AiRepository? repository})
+      : _repository = repository ?? AiRepository();
 
   AiState _state = AiState.idle;
   AiState get state => _state;
@@ -18,7 +19,7 @@ class AiProvider extends ChangeNotifier {
   List<Flashcard> _draftCards = [];
   List<Flashcard> get draftCards => _draftCards;
 
-  int _freeUsesRemaining = 3;
+  int _freeUsesRemaining = 1;
   int get freeUsesRemaining => _freeUsesRemaining;
 
   int _creditBalance = 0;
@@ -47,7 +48,7 @@ class AiProvider extends ChangeNotifier {
     }
   }
 
-  /// Load AI usage info (free uses remaining + credit balance).
+  /// Load AI usage info (daily free use remaining + credit balance).
   Future<void> loadUsageInfo() async {
     if (_usageLoaded) return;
     try {
@@ -67,10 +68,10 @@ class AiProvider extends ChangeNotifier {
     await loadUsageInfo();
   }
 
-  /// Check if the user can generate (has free uses or credits).
-  bool get canGenerate => _freeUsesRemaining > 0 || _creditBalance > 0;
+  /// Check if the user can generate with the default Gemini 3 Flash model.
+  bool get canGenerate => _freeUsesRemaining > 0 || _creditBalance >= 5;
 
-  /// Whether this generation will cost credits (no free uses left).
+  /// Whether the default Gemini 3 Flash generation will cost credits.
   bool get willCostCredit => _freeUsesRemaining <= 0;
 
   /// Generate flashcards via AI with full options.
@@ -82,7 +83,7 @@ class AiProvider extends ChangeNotifier {
     bool includeExamples = true,
     bool includeNotes = false,
     String? noteInstructions,
-    String model = 'flash',
+    String model = 'gemini-3-flash',
     String? deckId,
   }) async {
     _state = AiState.generating;

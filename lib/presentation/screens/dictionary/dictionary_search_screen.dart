@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
+import '../../widgets/common/selectable_radio_tile.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
@@ -1562,14 +1563,11 @@ class _FilterOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RadioListTile<String>(
-      title: Text(title, style: const TextStyle(fontSize: 14)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-      value: value,
-      groupValue: groupValue,
-      onChanged: onChanged,
-      contentPadding: EdgeInsets.zero,
-      dense: true,
+    return SelectableRadioTile(
+      title: title,
+      subtitle: subtitle,
+      selected: value == groupValue,
+      onTap: () => onChanged(value),
     );
   }
 }

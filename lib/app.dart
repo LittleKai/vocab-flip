@@ -122,8 +122,8 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
           return MaterialApp(
             title: 'VocabFlip',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme(settings.appFontFamily),
+            darkTheme: AppTheme.darkTheme(settings.appFontFamily),
             themeMode: settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
             scrollBehavior: const MaterialScrollBehavior().copyWith(
               dragDevices: {
@@ -132,6 +132,14 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
                 PointerDeviceKind.trackpad,
               },
             ),
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(settings.appTextScaleFactor),
+                ),
+                child: child!,
+              );
+            },
             // Localization setup
             locale: Locale(settings.locale),
             supportedLocales: const [

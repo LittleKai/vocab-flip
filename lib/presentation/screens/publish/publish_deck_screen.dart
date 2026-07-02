@@ -420,7 +420,7 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
 
   Future<String?> _showSetDisplayNameDialog(BuildContext context, AppLocalizations l10n) async {
     final controller = TextEditingController();
-    await showStandardDialog(
+    final result = await showStandardDialog<bool>(
       context: context,
       barrierDismissible: false,
       title: l10n.setDisplayName,
@@ -429,21 +429,22 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
         children: [
           Text(l10n.displayNameRequired),
           const SizedBox(height: 16),
-          TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: l10n.displayNameHint,
-              border: const OutlineInputBorder(),
+          Builder(
+            builder: (dialogCtx) => TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: l10n.displayNameHint,
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (value) => Navigator.of(dialogCtx).pop(true),
             ),
-            onSubmitted: (value) => Navigator.pop(context, value),
           ),
         ],
       ),
       secondaryButtonText: l10n.cancel,
       primaryButtonText: l10n.save,
-      onPrimaryPressed: () => Navigator.pop(context, controller.text),
     );
-    return controller.text.isNotEmpty ? controller.text : null;
+    return result == true && controller.text.trim().isNotEmpty ? controller.text.trim() : null;
   }
 }

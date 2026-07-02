@@ -33,11 +33,11 @@ class AiRepository {
   /// [count] - desired number of cards (max 100)
   /// [includeExamples] / [includeNotes] - optional fields
   /// [noteInstructions] - optional instructions for what kind of notes to generate
-  /// [model] - 'pro' or 'flash'
+  /// [model] - backend AI model id, e.g. 'gemini-3-flash'
   ///
   /// Returns a map with keys:
   ///   'cards' - List<Flashcard>
-  ///   'freeUsesRemaining' - int
+  ///   'freeUsesRemaining' - int, daily free Gemini 3 Flash uses
   ///   'creditBalance' - int
   Future<Map<String, dynamic>> generateCards({
     required String prompt,
@@ -47,7 +47,7 @@ class AiRepository {
     bool includeExamples = true,
     bool includeNotes = false,
     String? noteInstructions,
-    String model = 'flash',
+    String model = 'gemini-3-flash',
   }) async {
     try {
       final timeoutSeconds = ((count * 3) + 30).clamp(90, 300);
@@ -60,7 +60,9 @@ class AiRepository {
           'count': count,
           'includeExamples': includeExamples,
           'includeNotes': includeNotes,
-          if (includeNotes && noteInstructions != null && noteInstructions.isNotEmpty)
+          if (includeNotes &&
+              noteInstructions != null &&
+              noteInstructions.isNotEmpty)
             'noteInstructions': noteInstructions,
           'model': model,
         },
@@ -71,14 +73,16 @@ class AiRepository {
 
       final data = response.data;
       final List<dynamic> cardsData = data['cards'] ?? [];
-      final cards = cardsData.map((json) => Flashcard(
-        deckId: 'draft',
-        front: json['word'] ?? json['front'] ?? '',
-        frontPhonetic: json['phonetic'] ?? json['front_phonetic'] ?? '',
-        back: json['meaning'] ?? json['back'] ?? '',
-        example: json['example'] ?? json['examples']?.toString(),
-        notes: json['note'] ?? json['notes'],
-      )).toList();
+      final cards = cardsData
+          .map((json) => Flashcard(
+                deckId: 'draft',
+                front: json['word'] ?? json['front'] ?? '',
+                frontPhonetic: json['phonetic'] ?? json['front_phonetic'] ?? '',
+                back: json['meaning'] ?? json['back'] ?? '',
+                example: json['example'] ?? json['examples']?.toString(),
+                notes: json['note'] ?? json['notes'],
+              ))
+          .toList();
 
       return {
         'cards': cards,
@@ -99,9 +103,9 @@ class AiRepository {
         'creditBalance': response.data['creditBalance'] ?? 0,
       };
     } catch (e) {
-      // Default: assume 3 free uses if endpoint not available yet
+      // Default: assume one daily Gemini 3 Flash free use if endpoint is unavailable.
       return {
-        'freeUsesRemaining': 3,
+        'freeUsesRemaining': 1,
         'creditBalance': 0,
       };
     }

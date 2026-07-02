@@ -41,5 +41,10 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Required to open the system Text-to-speech settings screen so users
+             can install additional TTS voices, see TtsVoicePickerDialog. -->
+        <intent>
+            <action android:name="android.settings.TTS_SETTINGS"/>
+        </intent>
     </queries>
 </manifest>

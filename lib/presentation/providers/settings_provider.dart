@@ -18,8 +18,10 @@ class SettingsProvider extends ChangeNotifier {
   int _flashcardMainFontSize = AppPreferences.defaultMainFontSize;
   int _flashcardPhoneticFontSize = AppPreferences.defaultPhoneticFontSize;
   int _flashcardDetailFontSize = AppPreferences.defaultDetailFontSize;
-  double _ttsVolume = 1.0;
   String _deckClickAction = 'detail';
+  String _appFontFamily = 'System';
+  double _appTextScaleFactor = 1.0;
+  double _ttsSpeechRate = AppPreferences.defaultTtsSpeechRate;
 
   SettingsProvider({AppPreferences? preferences})
       : _preferences = preferences ?? AppPreferences();
@@ -41,8 +43,50 @@ class SettingsProvider extends ChangeNotifier {
   int get flashcardMainFontSize => _flashcardMainFontSize;
   int get flashcardPhoneticFontSize => _flashcardPhoneticFontSize;
   int get flashcardDetailFontSize => _flashcardDetailFontSize;
-  double get ttsVolume => _ttsVolume;
   String get deckClickAction => _deckClickAction;
+  String get appFontFamily {
+    if (_appFontFamily == 'Monospace') return 'Consolas';
+    if (_appFontFamily == 'Serif') return 'Georgia';
+    if (_appFontFamily == 'Sans-Serif') return 'Segoe UI';
+    return _appFontFamily;
+  }
+  double get appTextScaleFactor => _appTextScaleFactor;
+  double get ttsSpeechRate => _ttsSpeechRate;
+
+  String getAppFontFamilyDisplayName(String localeCode) {
+    final isVi = localeCode == 'vi';
+    switch (_appFontFamily) {
+      case 'System':
+        return isVi ? 'Mặc định hệ thống' : 'System Default';
+      case 'Segoe UI':
+        return 'Segoe UI';
+      case 'Arial':
+        return 'Arial';
+      case 'Trebuchet MS':
+        return 'Trebuchet MS';
+      case 'Georgia':
+        return 'Georgia';
+      case 'Times New Roman':
+        return 'Times New Roman';
+      case 'Consolas':
+        return 'Consolas';
+      case 'Courier New':
+        return 'Courier New';
+      case 'Comic Sans MS':
+        return 'Comic Sans MS';
+      case 'Impact':
+        return 'Impact';
+      // Fallbacks
+      case 'Sans-Serif':
+        return 'Segoe UI';
+      case 'Serif':
+        return 'Georgia';
+      case 'Monospace':
+        return 'Consolas';
+      default:
+        return _appFontFamily;
+    }
+  }
 
   String get formattedStudyTime {
     final hours = _totalStudyTime ~/ 3600;
@@ -70,8 +114,19 @@ class SettingsProvider extends ChangeNotifier {
     _flashcardMainFontSize = _preferences.flashcardMainFontSize;
     _flashcardPhoneticFontSize = _preferences.flashcardPhoneticFontSize;
     _flashcardDetailFontSize = _preferences.flashcardDetailFontSize;
-    _ttsVolume = _preferences.ttsVolume;
     _deckClickAction = _preferences.deckClickAction;
+    final savedFont = _preferences.appFontFamily;
+    if (savedFont == 'Monospace') {
+      _appFontFamily = 'Consolas';
+    } else if (savedFont == 'Serif') {
+      _appFontFamily = 'Georgia';
+    } else if (savedFont == 'Sans-Serif') {
+      _appFontFamily = 'Segoe UI';
+    } else {
+      _appFontFamily = savedFont;
+    }
+    _appTextScaleFactor = _preferences.appTextScaleFactor;
+    _ttsSpeechRate = _preferences.ttsSpeechRate;
 
     notifyListeners();
   }
@@ -148,15 +203,27 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setTtsVolume(double value) async {
-    _ttsVolume = value;
-    await _preferences.setTtsVolume(value);
-    notifyListeners();
-  }
-
   Future<void> setDeckClickAction(String value) async {
     _deckClickAction = value;
     await _preferences.setDeckClickAction(value);
+    notifyListeners();
+  }
+
+  Future<void> setAppFontFamily(String value) async {
+    _appFontFamily = value;
+    await _preferences.setAppFontFamily(value);
+    notifyListeners();
+  }
+
+  Future<void> setAppTextScaleFactor(double value) async {
+    _appTextScaleFactor = value;
+    await _preferences.setAppTextScaleFactor(value);
+    notifyListeners();
+  }
+
+  Future<void> setTtsSpeechRate(double value) async {
+    _ttsSpeechRate = value;
+    await _preferences.setTtsSpeechRate(value);
     notifyListeners();
   }
 

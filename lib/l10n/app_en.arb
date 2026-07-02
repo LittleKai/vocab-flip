@@ -551,8 +551,12 @@
   "lockedField": "Locked",
   "autoPlayTts": "Auto-play Pronunciation",
   "autoPlayTtsDesc": "Automatically play pronunciation when flipping cards",
-  "ttsVolume": "Pronunciation Volume",
-  "ttsVolumeDesc": "Adjust text-to-speech reading volume",
+  "ttsSpeechRate": "Reading Speed",
+  "ttsSpeechRateDesc": "Adjust how fast text-to-speech reads words aloud",
+  "ttsVoice": "Voice",
+  "ttsVoiceDesc": "Choose which installed voice reads each language",
+  "ttsVoiceAddMore": "Install more voices…",
+  "ttsVoiceNoneAvailable": "No voices installed for this language",
   "ttsHelp": "TTS Installation Guide",
   "ttsLanguagesMissing": "Missing TTS Languages",
   "ttsLanguagesMissingDesc": "The following languages are not available for text-to-speech:",
@@ -935,11 +939,18 @@
     }
   },
   "includeExamples": "Include Examples",
+  "includeExamplesDesc": "Automatically generate example sentences with translations for each word",
   "includeNotes": "Include Notes",
+  "includeNotesDesc": "Add grammar explanations, parts of speech, or extra details",
+  "appTypographySettings": "App Font & Size",
+  "appFontFamily": "Font Family",
+  "appFontSize": "Font Size",
   "aiModel": "AI Model",
-  "modelPro": "Pro (Gemini 3.1 Pro)",
-  "modelFlash": "Flash (Gemini 3 Flash)",
-  "freeUsesRemaining": "{count} free uses remaining",
+  "modelPro": "Gemini 3.1 Pro",
+  "modelFlash": "Gemini 3 Flash",
+  "modelFlash35": "Gemini 3.5 Flash",
+  "dailyFreeFlash": "1 free use daily",
+  "freeUsesRemaining": "{count} free use today for Gemini 3 Flash",
   "@freeUsesRemaining": {
     "placeholders": {
       "count": {
@@ -948,6 +959,14 @@
     }
   },
   "costsOneCredit": "Costs 1 credit per use",
+  "creditsPerUse": "{count} credits/use",
+  "@creditsPerUse": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "noFreeUsesLeft": "No free uses left",
   "insufficientCredits": "Insufficient credits",
   "generate": "Generate",

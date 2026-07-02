@@ -1231,10 +1231,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Automatically play pronunciation when flipping cards';
 
   @override
-  String get ttsVolume => 'Pronunciation Volume';
+  String get ttsSpeechRate => 'Reading Speed';
 
   @override
-  String get ttsVolumeDesc => 'Adjust text-to-speech reading volume';
+  String get ttsSpeechRateDesc =>
+      'Adjust how fast text-to-speech reads words aloud';
+
+  @override
+  String get ttsVoice => 'Voice';
+
+  @override
+  String get ttsVoiceDesc => 'Choose which installed voice reads each language';
+
+  @override
+  String get ttsVoiceAddMore => 'Install more voices…';
+
+  @override
+  String get ttsVoiceNoneAvailable => 'No voices installed for this language';
 
   @override
   String get ttsHelp => 'TTS Installation Guide';
@@ -1948,24 +1961,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get includeExamples => 'Include Examples';
 
   @override
+  String get includeExamplesDesc =>
+      'Automatically generate example sentences with translations for each word';
+
+  @override
   String get includeNotes => 'Include Notes';
+
+  @override
+  String get includeNotesDesc =>
+      'Add grammar explanations, parts of speech, or extra details';
+
+  @override
+  String get appTypographySettings => 'App Font & Size';
+
+  @override
+  String get appFontFamily => 'Font Family';
+
+  @override
+  String get appFontSize => 'Font Size';
 
   @override
   String get aiModel => 'AI Model';
 
   @override
-  String get modelPro => 'Pro (Gemini 3.1 Pro)';
+  String get modelPro => 'Gemini 3.1 Pro';
 
   @override
-  String get modelFlash => 'Flash (Gemini 3 Flash)';
+  String get modelFlash => 'Gemini 3 Flash';
+
+  @override
+  String get modelFlash35 => 'Gemini 3.5 Flash';
+
+  @override
+  String get dailyFreeFlash => '1 free use daily';
 
   @override
   String freeUsesRemaining(int count) {
-    return '$count free uses remaining';
+    return '$count free use today for Gemini 3 Flash';
   }
 
   @override
   String get costsOneCredit => 'Costs 1 credit per use';
+
+  @override
+  String creditsPerUse(int count) {
+    return '$count credits/use';
+  }
 
   @override
   String get noFreeUsesLeft => 'No free uses left';

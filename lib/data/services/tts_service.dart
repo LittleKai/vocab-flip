@@ -55,11 +55,11 @@ class TtsService {
         debugPrint('[TTS] getVoices failed: $e');
       }
 
-      await _flutterTts.setSpeechRate(0.5);
       final prefs = await SharedPreferences.getInstance();
-      final volume = prefs.getDouble('tts_volume') ?? 1.0;
-      await _flutterTts.setVolume(volume);
+      final speechRate = prefs.getDouble('tts_speech_rate') ?? 0.35;
+      await _flutterTts.setSpeechRate(speechRate);
       await _flutterTts.setPitch(1.0);
+      await _applyVoiceOverridesFromPrefs();
 
       _isInitialized = true;
     } catch (e) {
@@ -110,6 +110,62 @@ class TtsService {
     }
 
     return null;
+  }
+
+  /// Overlay any user-selected voices (persisted per language) onto the
+  /// auto-picked voice cache built from the device's installed voices.
+  Future<void> _applyVoiceOverridesFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      for (final lang in SupportedLanguage.values) {
+        final saved = prefs.getString('tts_voice_${lang.code}');
+        if (saved == null) continue;
+        final parts = saved.split('::');
+        if (parts.length != 2) continue;
+        Map<String, String>? match;
+        for (final voice in _availableVoices) {
+          if (voice['name'] == parts[0] && voice['locale'] == parts[1]) {
+            match = voice;
+            break;
+          }
+        }
+        if (match != null) {
+          _voiceCache[lang.code] = match;
+        }
+      }
+    } catch (e) {
+      debugPrint('[TTS] applyVoiceOverridesFromPrefs failed: $e');
+    }
+  }
+
+  /// List of installed voices usable for [language], for a voice picker UI.
+  List<Map<String, String>> getVoicesForLanguage(SupportedLanguage language) {
+    final shortCode = language.code;
+    return _availableVoices.where((voice) {
+      final locale = (voice['locale'] ?? '').toLowerCase();
+      return locale == shortCode ||
+          locale.startsWith('$shortCode-') ||
+          locale.startsWith('${shortCode}_');
+    }).toList();
+  }
+
+  /// Currently selected voice for [language] (auto-picked or user-chosen).
+  Map<String, String>? getSelectedVoice(SupportedLanguage language) =>
+      _voiceCache[language.code];
+
+  /// Persist and apply the user's chosen voice for [language].
+  /// Pass `null` to clear the override and fall back to the auto-picked voice.
+  Future<void> setPreferredVoice(
+      SupportedLanguage language, Map<String, String>? voice) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'tts_voice_${language.code}';
+    if (voice == null) {
+      await prefs.remove(key);
+    } else {
+      await prefs.setString(key, '${voice['name']}::${voice['locale']}');
+    }
+    _buildVoiceCache();
+    await _applyVoiceOverridesFromPrefs();
   }
 
   Future<bool> _setVoiceForLanguage(SupportedLanguage language) async {
@@ -235,10 +291,10 @@ class TtsService {
     }
 
     try {
-      // Always get latest volume preference before speaking
+      // Always get latest speech rate preference before speaking
       final prefs = await SharedPreferences.getInstance();
-      final volume = prefs.getDouble('tts_volume') ?? 1.0;
-      await _flutterTts.setVolume(volume);
+      final speechRate = prefs.getDouble('tts_speech_rate') ?? 0.35;
+      await _flutterTts.setSpeechRate(speechRate);
 
       if (language != null) {
         final success = await _setVoiceForLanguage(language);

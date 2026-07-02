@@ -4,9 +4,92 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get lightTheme {
+  static Map<String, dynamic> _getFontInfo(String? fontFamily) {
+    if (fontFamily == null || fontFamily == 'System') {
+      return {
+        'fontFamily': null,
+        'fontFamilyFallback': null,
+      };
+    }
+
+    switch (fontFamily) {
+      case 'Segoe UI':
+        return {
+          'fontFamily': 'Segoe UI',
+          'fontFamilyFallback': const ['sans-serif', 'Arial', 'Helvetica'],
+        };
+      case 'Arial':
+        return {
+          'fontFamily': 'Arial',
+          'fontFamilyFallback': const ['sans-serif', 'Helvetica'],
+        };
+      case 'Trebuchet MS':
+        return {
+          'fontFamily': 'Trebuchet MS',
+          'fontFamilyFallback': const ['sans-serif', 'Arial'],
+        };
+      case 'Georgia':
+        return {
+          'fontFamily': 'Georgia',
+          'fontFamilyFallback': const ['serif', 'Times New Roman'],
+        };
+      case 'Times New Roman':
+        return {
+          'fontFamily': 'Times New Roman',
+          'fontFamilyFallback': const ['serif', 'Georgia'],
+        };
+      case 'Consolas':
+        return {
+          'fontFamily': 'Consolas',
+          'fontFamilyFallback': const ['monospace', 'Courier New'],
+        };
+      case 'Courier New':
+        return {
+          'fontFamily': 'Courier New',
+          'fontFamilyFallback': const ['monospace', 'Courier'],
+        };
+      case 'Comic Sans MS':
+        return {
+          'fontFamily': 'Comic Sans MS',
+          'fontFamilyFallback': const ['sans-serif'],
+        };
+      case 'Impact':
+        return {
+          'fontFamily': 'Impact',
+          'fontFamilyFallback': const ['sans-serif'],
+        };
+      // Backward compatibility for generic names:
+      case 'Sans-Serif':
+        return {
+          'fontFamily': 'Segoe UI',
+          'fontFamilyFallback': const ['sans-serif', 'Arial', 'Helvetica'],
+        };
+      case 'Serif':
+        return {
+          'fontFamily': 'Georgia',
+          'fontFamilyFallback': const ['serif', 'Times New Roman'],
+        };
+      case 'Monospace':
+        return {
+          'fontFamily': 'Consolas',
+          'fontFamilyFallback': const ['monospace', 'Courier New'],
+        };
+      default:
+        return {
+          'fontFamily': fontFamily,
+          'fontFamilyFallback': const ['sans-serif'],
+        };
+    }
+  }
+
+  static ThemeData lightTheme([String? fontFamily]) {
+    final fontInfo = _getFontInfo(fontFamily);
+    final font = fontInfo['fontFamily'] as String?;
+    final fallback = fontInfo['fontFamilyFallback'] as List<String>?;
     return ThemeData(
       useMaterial3: true,
+      fontFamily: font,
+      fontFamilyFallback: fallback,
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
         primary: AppColors.primary,
@@ -112,9 +195,14 @@ class AppTheme {
     );
   }
 
-  static ThemeData get darkTheme {
+  static ThemeData darkTheme([String? fontFamily]) {
+    final fontInfo = _getFontInfo(fontFamily);
+    final font = fontInfo['fontFamily'] as String?;
+    final fallback = fontInfo['fontFamilyFallback'] as List<String>?;
     return ThemeData(
       useMaterial3: true,
+      fontFamily: font,
+      fontFamilyFallback: fallback,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
         primary: AppColors.primaryLight,
