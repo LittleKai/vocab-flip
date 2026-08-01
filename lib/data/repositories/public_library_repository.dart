@@ -15,7 +15,6 @@ import '../remote/mongo/mongo_sync_service.dart';
 import '../local/database/deck_dao.dart';
 import '../local/database/flashcard_dao.dart';
 import '../services/cloudinary_service.dart';
-import '../services/image_service.dart';
 
 /// Repository for public library operations
 /// Coordinates between remote MongoDB/B2 services and local database.
@@ -26,7 +25,6 @@ class PublicLibraryRepository {
   final DeckDao _deckDao = DeckDao();
   final FlashcardDao _flashcardDao = FlashcardDao();
   final CloudinaryService _cloudinaryService = CloudinaryService();
-  final ImageService _imageService = ImageService();
 
   /// Parse comma-separated field types string to List<CardFieldType>
   static List<CardFieldType>? _parseFieldTypes(String? str) {

@@ -50,8 +50,6 @@ class GoogleDriveService {
     return auth.ClientId(clientIdString, clientSecret);
   }
 
-  String? get _clientSecret => dotenv.env['GOOGLE_OAUTH_CLIENT_SECRET'];
-
   /// Check if we should use desktop OAuth flow
   bool get _useDesktopAuth {
     if (kIsWeb) return false;

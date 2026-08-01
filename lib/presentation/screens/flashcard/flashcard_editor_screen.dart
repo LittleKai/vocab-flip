@@ -296,7 +296,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                     : IconButton(
                         icon: const Icon(Icons.bolt, color: AppColors.primary),
                         onPressed: () => _generateMnemonic(aiProvider, context),
-                        tooltip: l10n.generateMnemonic ?? 'Generate Mnemonic',
+                        tooltip: l10n.generateMnemonic,
                       ),
               ),
               maxLines: 3,

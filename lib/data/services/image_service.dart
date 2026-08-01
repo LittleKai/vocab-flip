@@ -6,7 +6,6 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:image/image.dart' as img;
 import '../services/cloudinary_service.dart';
-import 'package:http/http.dart' as http;
 
 /// Service for handling flashcard images
 class ImageService {

@@ -9,7 +9,6 @@ import '../../providers/study_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/flashcard/flip_card.dart';
 import '../../widgets/flashcard/multiple_choice_card.dart';
-import '../../widgets/flashcard/type_answer_card.dart';
 import '../../widgets/flashcard/writing_practice_card.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
 import '../../providers/stroke_practice_provider.dart';

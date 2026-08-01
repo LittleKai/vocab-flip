@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/api/api_client.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 enum AuthStatus {
   initial,

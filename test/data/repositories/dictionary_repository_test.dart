@@ -2,10 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vocabflip/data/repositories/dictionary_repository.dart';
 
 void main() {
-  test('effectiveFetchMode keeps web both lookups offline', () {
+  test('effectiveFetchMode preserves fetch mode on all platforms', () {
     expect(
       DictionaryRepository.effectiveFetchMode('both', isWeb: true),
-      'offline',
+      'both',
     );
     expect(
       DictionaryRepository.effectiveFetchMode('online', isWeb: true),

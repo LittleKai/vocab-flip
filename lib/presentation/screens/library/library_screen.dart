@@ -12,7 +12,6 @@ import '../../providers/sync_provider.dart';
 import '../../../data/local/database/deck_dao.dart';
 import '../../widgets/library/public_deck_card.dart';
 import '../../widgets/library/filter_sheet.dart';
-import '../../widgets/sync/sync_badge.dart';
 import '../../widgets/common/responsive_grid.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
 import 'public_deck_detail_screen.dart';
@@ -161,10 +160,6 @@ class _LibraryScreenState extends State<LibraryScreen>
           ),
         );
       }
-    }
-
-    void _showSyncNotifications(BuildContext context) {
-      Navigator.pushNamed(context, '/sync-notifications');
     }
   }
 

@@ -8,7 +8,6 @@ class TtsService {
   final FlutterTts _flutterTts = FlutterTts();
   bool _isInitialized = false;
   bool _isAvailable = true;
-  String _currentLanguage = 'en-US';
   bool _isSpeaking = false;
   Set<String> _availableLanguages = {};
   List<Map<String, String>> _availableVoices = [];
@@ -180,8 +179,6 @@ class TtsService {
       final result = await _flutterTts.setLanguage(languageCode);
       print('[TTS] setLanguage result: $result');
       if (result == 1) {
-        _currentLanguage = languageCode;
-
         // Also try to set voice for better quality
         final cachedVoice = _voiceCache[langCode];
         if (cachedVoice != null) {
@@ -208,7 +205,6 @@ class TtsService {
       try {
         print('[TTS] Fallback: trying setVoice directly: ${voice['name']}');
         await _flutterTts.setVoice(voice);
-        _currentLanguage = voice['locale'] ?? languageCode;
         _voiceCache[langCode] = voice;
         print('[TTS] setVoice succeeded');
         return true;

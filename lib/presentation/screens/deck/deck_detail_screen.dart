@@ -1203,7 +1203,6 @@ class _FlashcardListItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _FlashcardListItem({
-    super.key,
     required this.flashcard,
     required this.index,
     this.onDoubleTap,
