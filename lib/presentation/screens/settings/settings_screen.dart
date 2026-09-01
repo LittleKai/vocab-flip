@@ -1,9 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:io' show File;
+import 'dart:io' show Directory, File, Platform;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -921,7 +924,7 @@ class SettingsScreen extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 15),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -979,13 +982,63 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            l10n.donateBank,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary(context),
-                  fontWeight: FontWeight.w500,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'Vietcombank (VCB)',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                 ),
-            textAlign: TextAlign.center,
+                const SizedBox(height: 4),
+                Text(
+                  '${l10n.bankAccountNumber} • ${l10n.bankAccountHolder}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () async {
+                    await Clipboard.setData(const ClipboardData(text: '0071000718658'));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.accountNumberCopied)),
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.copy_rounded, size: 15, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.copyAccountNumber,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -999,7 +1052,7 @@ class SettingsScreen extends StatelessWidget {
     try {
       final response = await http.get(
         Uri.parse('https://img.vietqr.io/image/VCB-0071000718658-compact.png'),
-      );
+      ).timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1009,14 +1062,53 @@ class SettingsScreen extends StatelessWidget {
         return;
       }
 
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/vocabflip_donate_qr.png');
-      await file.writeAsBytes(response.bodyBytes);
+      final bytes = response.bodyBytes;
+      String? savedPath;
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: l10n.donate,
-      );
+      if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
+        savedPath = await FilePicker.platform.saveFile(
+          dialogTitle: l10n.saveQrImage,
+          fileName: 'vocabflip_donate_qr.png',
+          type: FileType.custom,
+          allowedExtensions: ['png'],
+        );
+        if (savedPath != null) {
+          final file = File(savedPath);
+          await file.writeAsBytes(bytes);
+        } else {
+          return;
+        }
+      } else if (!kIsWeb) {
+        Directory? targetDir;
+        try {
+          targetDir = await getDownloadsDirectory();
+        } catch (_) {}
+        targetDir ??= await getApplicationDocumentsDirectory();
+
+        final filePath = p.join(targetDir.path, 'vocabflip_donate_qr.png');
+        final file = File(filePath);
+        await file.writeAsBytes(bytes);
+        savedPath = filePath;
+
+        try {
+          await Share.shareXFiles(
+            [XFile(file.path)],
+            text: l10n.donate,
+          );
+        } catch (_) {}
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              savedPath != null
+                  ? '${l10n.qrSaved}: ${p.basename(savedPath)}'
+                  : l10n.qrSaved,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       debugPrint('Save QR failed: $e');
       if (context.mounted) {
