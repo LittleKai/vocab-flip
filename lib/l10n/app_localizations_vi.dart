@@ -1382,6 +1382,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get donateBank => 'Vietcombank - Quét mã QR để ủng hộ';
 
   @override
+  String get bankAccountNumber => 'Số TK: 0071000718658';
+
+  @override
+  String get bankAccountHolder => 'Chủ TK: NGUYEN ANH DUC';
+
+  @override
+  String get copyAccountNumber => 'Sao chép STK';
+
+  @override
+  String get accountNumberCopied => 'Đã sao chép số tài khoản vào bộ nhớ tạm';
+
+  @override
   String get saveQrImage => 'Lưu ảnh QR';
 
   @override

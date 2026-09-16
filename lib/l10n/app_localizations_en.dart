@@ -1387,6 +1387,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get donateBank => 'Vietcombank - Scan QR to donate';
 
   @override
+  String get bankAccountNumber => 'Acc No: 0071000718658';
+
+  @override
+  String get bankAccountHolder => 'Holder: NGUYEN ANH DUC';
+
+  @override
+  String get copyAccountNumber => 'Copy Account No.';
+
+  @override
+  String get accountNumberCopied => 'Account number copied to clipboard';
+
+  @override
   String get saveQrImage => 'Save QR Image';
 
   @override

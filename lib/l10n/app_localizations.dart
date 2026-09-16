@@ -2714,6 +2714,30 @@ abstract class AppLocalizations {
   /// **'Vietcombank - Scan QR to donate'**
   String get donateBank;
 
+  /// No description provided for @bankAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Acc No: 0071000718658'**
+  String get bankAccountNumber;
+
+  /// No description provided for @bankAccountHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Holder: NGUYEN ANH DUC'**
+  String get bankAccountHolder;
+
+  /// No description provided for @copyAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Account No.'**
+  String get copyAccountNumber;
+
+  /// No description provided for @accountNumberCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Account number copied to clipboard'**
+  String get accountNumberCopied;
+
   /// No description provided for @saveQrImage.
   ///
   /// In en, this message translates to:
