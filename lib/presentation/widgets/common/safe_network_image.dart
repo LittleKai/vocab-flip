@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../data/services/cloudinary_service.dart';
 
-/// A wrapper that safely displays remote images.
+/// A wrapper that safely displays remote images with automatic WebP/Auto compression for Cloudinary.
 /// On Web, it uses `Image.network` with `webHtmlElementStrategy` to bypass CORS.
 /// On Mobile/Desktop, it uses `CachedNetworkImage`.
 class SafeNetworkImage extends StatelessWidget {
@@ -25,9 +26,13 @@ class SafeNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Automatically apply WebP format, auto quality and optional resize on Cloudinary CDN
+    final targetMaxWidth = width != null && width! > 0 ? (width! * 2).round() : null;
+    final optimizedUrl = CloudinaryService.optimizeUrl(imageUrl, maxWidth: targetMaxWidth);
+
     if (kIsWeb) {
       return Image.network(
-        imageUrl,
+        optimizedUrl,
         fit: fit,
         width: width,
         height: height,
@@ -37,7 +42,7 @@ class SafeNetworkImage extends StatelessWidget {
       );
     } else {
       return CachedNetworkImage(
-        imageUrl: imageUrl,
+        imageUrl: optimizedUrl,
         fit: fit,
         width: width,
         height: height,

@@ -18,6 +18,7 @@ import '../../providers/public_library_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/library/rating_widget.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
+import '../../widgets/common/safe_network_image.dart';
 import '../flashcard/flashcard_viewer_screen.dart';
 
 /// Screen showing public deck details with preview and import option
@@ -462,13 +463,12 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
 
   Widget _buildImageWidget(String imageUrl) {
     if (imageUrl.startsWith('http')) {
-      return Image.network(
-        imageUrl,
+      return SafeNetworkImage(
+        imageUrl: imageUrl,
         fit: BoxFit.cover,
-        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
         errorBuilder: (_, __, ___) => Container(
-          color: AppColors.primary.withOpacity(0.1),
-          child: Icon(Icons.style, color: AppColors.primary, size: 36),
+          color: AppColors.primary.withValues(alpha: 0.1),
+          child: const Icon(Icons.style, color: AppColors.primary, size: 36),
         ),
       );
     }

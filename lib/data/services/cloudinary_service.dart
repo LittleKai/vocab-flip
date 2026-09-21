@@ -194,4 +194,52 @@ class CloudinaryService {
     if (path == null || path.isEmpty) return false;
     return path.startsWith('http://') || path.startsWith('https://');
   }
+
+  /// Transforms a Cloudinary URL to automatically deliver WebP/AVIF format
+  /// with dynamic quality compression and optional width/height constraints.
+  ///
+  /// Example:
+  /// `https://res.cloudinary.com/demo/image/upload/v1234/sample.jpg`
+  /// becomes:
+  /// `https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_400,c_limit/v1234/sample.jpg`
+  static String optimizeUrl(
+    String? url, {
+    int? maxWidth,
+    int? maxHeight,
+    bool autoFormat = true,
+    bool autoQuality = true,
+  }) {
+    if (url == null || url.isEmpty) return '';
+    if (!url.contains('res.cloudinary.com') || !url.contains('/upload/')) {
+      return url;
+    }
+
+    final transformations = <String>[];
+    if (autoFormat) transformations.add('f_auto');
+    if (autoQuality) transformations.add('q_auto');
+    if (maxWidth != null && maxWidth > 0) {
+      transformations.add('w_$maxWidth');
+      transformations.add('c_limit');
+    } else if (maxHeight != null && maxHeight > 0) {
+      transformations.add('h_$maxHeight');
+      transformations.add('c_limit');
+    }
+
+    if (transformations.isEmpty) return url;
+
+    final transformStr = transformations.join(',');
+
+    final uploadIndex = url.indexOf('/upload/');
+    if (uploadIndex == -1) return url;
+
+    final prefix = url.substring(0, uploadIndex + 8); // includes '/upload/'
+    final suffix = url.substring(uploadIndex + 8);
+
+    // If suffix already has f_auto or q_auto, avoid duplicate injection
+    if (suffix.startsWith('f_auto') || suffix.contains('/f_auto')) {
+      return url;
+    }
+
+    return '$prefix$transformStr/$suffix';
+  }
 }

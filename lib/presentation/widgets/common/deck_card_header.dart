@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
+import 'safe_network_image.dart';
 
 /// Shared header widget for deck cards (used by both DeckCard and PublicDeckCard).
 /// Displays: [Image 56x56] [Name + chips + lang badges] [trailing]
@@ -174,23 +174,13 @@ class DeckCardHeader extends StatelessWidget {
     if (imagePath == null || imagePath.isEmpty) {
       imageWidget = fallback;
     } else if (imagePath.startsWith('http')) {
-      imageWidget = kIsWeb
-          ? Image.network(
-              imagePath,
-              fit: BoxFit.cover,
-              webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
-              errorBuilder: (_, __, ___) => fallback,
-            )
-          : CachedNetworkImage(
-              imageUrl: imagePath,
-              fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => fallback,
-              placeholder: (_, __) => Container(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
-            );
+      imageWidget = SafeNetworkImage(
+        imageUrl: imagePath,
+        fit: BoxFit.cover,
+        width: size,
+        height: size,
+        errorBuilder: (_, __, ___) => fallback,
+      );
     } else if (!kIsWeb) {
       final file = File(imagePath);
       imageWidget =

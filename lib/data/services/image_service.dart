@@ -82,29 +82,33 @@ class ImageService {
       }
 
       final imageDir = await _imageDirectory;
-      final extension = p.extension(sourcePath).toLowerCase();
-      final fileName = '${const Uuid().v4()}$extension';
-      final destPath = p.join(imageDir.path, fileName);
 
       if (maxWidth != null) {
-        // Resize and save
+        // Resize and save as optimized JPG
         final resizedBytes = await resizeImage(sourcePath, maxWidth);
         if (resizedBytes != null) {
+          final fileName = '${const Uuid().v4()}.jpg';
+          final destPath = p.join(imageDir.path, fileName);
           final destFile = File(destPath);
           await destFile.writeAsBytes(resizedBytes);
           debugPrint('ImageService: Resized image saved to: $destPath');
           return destPath;
         } else {
           // Fallback to copying original if resize fails
+          final extension = p.extension(sourcePath).toLowerCase();
+          final fileName = '${const Uuid().v4()}$extension';
+          final destPath = p.join(imageDir.path, fileName);
           await sourceFile.copy(destPath);
           debugPrint('ImageService: Original image copied to: $destPath (resize failed)');
           return destPath;
         }
       } else {
         // Just copy without resizing
+        final extension = p.extension(sourcePath).toLowerCase();
+        final fileName = '${const Uuid().v4()}$extension';
+        final destPath = p.join(imageDir.path, fileName);
         await sourceFile.copy(destPath);
         debugPrint('ImageService: Image saved to: $destPath');
-        return destPath;
       }
     } catch (e) {
       debugPrint('ImageService: Error saving image: $e');
@@ -250,9 +254,13 @@ Uint8List? _resizeImageIsolate(_ResizeParams params) {
     final image = img.decodeImage(params.bytes);
     if (image == null) return null;
 
-    // Only resize if image is larger than maxWidth
+    // If image is already smaller than maxWidth
     if (image.width <= params.maxWidth) {
-      return params.bytes; // Return original if already small enough
+      // If original image size is large (> 300KB), re-encode with JPEG to compress
+      if (params.bytes.length > 300 * 1024) {
+        return Uint8List.fromList(img.encodeJpg(image, quality: 85));
+      }
+      return params.bytes; // Return original if already small and compact
     }
 
     // Calculate new height to maintain aspect ratio

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart' as flutter;
 import 'package:uuid/uuid.dart';
 import '../models/deck.dart';
@@ -15,6 +16,7 @@ import '../remote/mongo/mongo_sync_service.dart';
 import '../local/database/deck_dao.dart';
 import '../local/database/flashcard_dao.dart';
 import '../services/cloudinary_service.dart';
+import '../services/image_service.dart';
 
 /// Repository for public library operations
 /// Coordinates between remote MongoDB/B2 services and local database.
@@ -25,6 +27,7 @@ class PublicLibraryRepository {
   final DeckDao _deckDao = DeckDao();
   final FlashcardDao _flashcardDao = FlashcardDao();
   final CloudinaryService _cloudinaryService = CloudinaryService();
+  final ImageService _imageService = ImageService();
 
   /// Parse comma-separated field types string to List<CardFieldType>
   static List<CardFieldType>? _parseFieldTypes(String? str) {
@@ -616,7 +619,21 @@ class PublicLibraryRepository {
     var failed = 0;
 
     for (final path in paths) {
-      final uploadResult = await _cloudinaryService.uploadImage(path);
+      String pathToUpload = path;
+      try {
+        final file = File(path);
+        if (await file.exists() && await file.length() > 250 * 1024) {
+          // Pre-compress large local images (over 250KB) to maxWidth 800 before upload
+          final compressed = await _imageService.saveImageLocally(path, maxWidth: 800);
+          if (compressed != null) {
+            pathToUpload = compressed;
+          }
+        }
+      } catch (e) {
+        flutter.debugPrint('PublicLibraryRepository: Error optimizing image before upload: $e');
+      }
+
+      final uploadResult = await _cloudinaryService.uploadImage(pathToUpload);
       final url = uploadResult.success ? uploadResult.url : null;
       result[path] = url;
       completed++;

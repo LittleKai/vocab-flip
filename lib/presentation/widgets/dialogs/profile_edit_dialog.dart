@@ -7,6 +7,7 @@ import '../../../data/models/user_profile.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../common/safe_network_image.dart';
 import 'standard_dialog.dart';
 
 /// Dialog for editing user profile
@@ -268,12 +269,11 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                               )
                             : hasCustom
                                 ? (avatarUrl!.startsWith('http')
-                                    ? Image.network(
-                                        avatarUrl,
+                                    ? SafeNetworkImage(
+                                        imageUrl: avatarUrl,
                                         fit: BoxFit.cover,
                                         width: 96,
                                         height: 96,
-                                        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                                         errorBuilder: (_, __, ___) => Center(
                                           child: Text(
                                             provider.avatarEmoji,
@@ -415,12 +415,11 @@ class ProfileCard extends StatelessWidget {
                     child: ClipOval(
                       child: hasAvatar
                           ? (avatarUrl!.startsWith('http')
-                              ? Image.network(
-                                  avatarUrl,
+                              ? SafeNetworkImage(
+                                  imageUrl: avatarUrl,
                                   fit: BoxFit.cover,
                                   width: 56,
                                   height: 56,
-                                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                                   errorBuilder: (_, __, ___) => Center(
                                     child: Text(
                                       profile.avatarEmoji,
