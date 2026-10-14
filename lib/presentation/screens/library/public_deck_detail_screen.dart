@@ -11,6 +11,7 @@ import '../../../data/models/category.dart';
 import '../../../data/models/deck.dart';
 import '../../../data/models/deck_rating.dart';
 import '../../../data/models/public_deck.dart';
+import '../../../_kit/formatters.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/profile_provider.dart';
@@ -389,7 +390,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                             size: 14, color: AppColors.secondary),
                         const SizedBox(width: 3),
                         Text(
-                          _formatCount(deck.downloadCount),
+                          formatCompactCount(deck.downloadCount),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.secondary,
@@ -614,15 +615,6 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
       default:
         return Icons.category;
     }
-  }
-
-  String _formatCount(int count) {
-    if (count >= 1000000) {
-      return '${(count / 1000000).toStringAsFixed(1)}M';
-    } else if (count >= 1000) {
-      return '${(count / 1000).toStringAsFixed(1)}K';
-    }
-    return count.toString();
   }
 
   Widget _buildRatingSection(

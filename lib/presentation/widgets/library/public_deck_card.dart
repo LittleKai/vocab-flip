@@ -6,6 +6,7 @@ import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/public_deck.dart';
 import '../../../data/models/category.dart';
+import '../../../_kit/formatters.dart';
 import '../../providers/public_library_provider.dart';
 import '../common/deck_card_header.dart';
 
@@ -227,7 +228,7 @@ class PublicDeckCard extends StatelessWidget {
                           size: 13, color: AppColors.secondary),
                       const SizedBox(width: 2),
                       Text(
-                        _formatCount(deck.downloadCount),
+                        formatCompactCount(deck.downloadCount),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.secondary,
                               fontSize: 12,
@@ -381,15 +382,6 @@ class PublicDeckCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatCount(int count) {
-    if (count >= 1000000) {
-      return '${(count / 1000000).toStringAsFixed(1)}M';
-    } else if (count >= 1000) {
-      return '${(count / 1000).toStringAsFixed(1)}K';
-    }
-    return count.toString();
   }
 
   String _formatDate(DateTime date) {
