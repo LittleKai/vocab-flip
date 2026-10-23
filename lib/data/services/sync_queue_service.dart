@@ -6,6 +6,7 @@ import '../models/sync_queue_item.dart';
 import '../api/api_client.dart';
 import '../local/preferences/app_preferences.dart';
 import '../auth/alpha_auth_session.dart';
+import '../remote/mongo/vocab_api_helpers.dart';
 
 class SyncQueueService {
   final SyncQueueDao _syncQueueDao;
@@ -121,11 +122,42 @@ class SyncQueueService {
     if (AlphaAuthSession().userId != owner) {
       throw StateError('Sync account changed');
     }
-    final options = Options(extra: {'syncOwnerUserId': owner});
+    final version = ApiClient().sessionVersion;
+    final options = Options(extra: {
+      'syncOwnerUserId': owner,
+      'sessionVersion': version,
+    });
     final dio = _dio ?? _apiClient!.dio;
     switch (item.operation) {
       case 'CREATE':
-        await dio.post(path, data: dataMap, options: options);
+        // These API fields test against false, whereas SQLite stores 0/1.
+        for (final key in ['share_image', 'auto_play_tts_on_flip']) {
+          if (dataMap is Map && dataMap[key] is num) {
+            dataMap[key] = dataMap[key] != 0;
+          }
+        }
+        try {
+          await dio.post(path, data: dataMap, options: options);
+        } on DioException catch (e) {
+          if (e.response?.statusCode != 409) rethrow;
+          if (AlphaAuthSession().userId != owner ||
+              ApiClient().sessionVersion != version) {
+            rethrow;
+          }
+          final lookup = item.entityType == 'deck'
+              ? '/vocab/my-decks/${item.entityId}'
+              : '/vocab/my-decks/cards/${item.entityId}';
+          final response = await dio.get(lookup, options: options);
+          final remote = unwrapApiMap(response.data);
+          // ponytail: only identical persisted creates are acknowledged; actual
+          // conflicts stay queued until a server idempotency contract exists.
+          if (AlphaAuthSession().userId != owner ||
+              ApiClient().sessionVersion != version ||
+              remote == null ||
+              !_matchesCreate(item, dataMap as Map, remote)) {
+            rethrow;
+          }
+        }
         break;
       case 'UPDATE':
         await dio.put(path, data: dataMap, options: options);
@@ -136,5 +168,54 @@ class SyncQueueService {
       default:
         throw Exception('Unknown operation: ${item.operation}');
     }
+  }
+
+  bool _matchesCreate(SyncQueueItem item, Map payload, Map remote) {
+    Object? comparable(String key, Object? value) {
+      if (key == 'name' && item.entityType == 'deck') {
+        return (value as String?)?.trim();
+      }
+      if (key == 'tags' && value is String && value.isNotEmpty) {
+        return value.split(',').map((tag) => tag.trim()).join(',');
+      }
+      if (key == 'deck_id' || (key == 'id' && item.entityType == 'deck')) {
+        return (value as String?)?.toUpperCase();
+      }
+      if (key == 'next_review_date' || key == 'last_review_date') {
+        return value == null
+            ? null
+            : DateTime.parse(value as String).millisecondsSinceEpoch;
+      }
+      if (value is bool) return value ? 1 : 0;
+      // Optional strings are persisted as null by the CREATE endpoints.
+      if (value == '' &&
+          const {
+            'description',
+            'front_phonetic',
+            'example',
+            'notes',
+            'image_url',
+            'front_image_url',
+            'back_image_url',
+            'image_path',
+            'category',
+            'tags',
+            'linked_public_deck_id',
+            'published_deck_id',
+            'front_fields',
+            'back_fields',
+          }.contains(key)) {
+        return null;
+      }
+      return value;
+    }
+
+    if (payload['id'] != item.entityId || remote['id'] == null) return false;
+    return payload.entries.every((entry) {
+      final key = entry.key as String;
+      if (key == 'created_at' || key == 'updated_at') return true;
+      return remote.containsKey(key) &&
+          comparable(key, entry.value) == comparable(key, remote[key]);
+    });
   }
 }

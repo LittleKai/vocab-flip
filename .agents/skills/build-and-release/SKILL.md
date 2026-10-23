@@ -22,6 +22,7 @@ Skill này tự động hóa quy trình: build Windows + Android + Web → copy 
 - Cùng **bộ file APK + Windows ZIP** đi lên cả GitHub Release và B2 (`vocabflip-v<version>.apk`, `vocabflip-windows-v<version>.zip`).
 - Bỏ bước B2 → cả trang `/studio/vocab` lẫn trình cập nhật tự động trong app (`UpdateProvider`) vẫn đọc bản cũ.
 - Bỏ bước copy/commit `alpha-studio/public/vocab` → bản web nhúng trên Studio vẫn là bản cũ.
+- `-Draft` / `-Prerelease` tự bỏ qua B2 stable, kể cả release có sẵn trên GitHub. Chỉ upload B2 sau khi release đã được chuyển sang bản chính thức; chạy lại `release.ps1 -SkipBuild` không kèm hai cờ này.
 
 ## Yêu cầu trước khi chạy
 

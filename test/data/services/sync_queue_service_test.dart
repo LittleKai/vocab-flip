@@ -10,6 +10,8 @@ import 'package:vocabflip/data/auth/alpha_auth_session.dart';
 import 'package:vocabflip/data/local/preferences/app_preferences.dart';
 import 'package:vocabflip/data/local/daos/sync_queue_dao.dart';
 import 'package:vocabflip/data/models/sync_queue_item.dart';
+import 'package:vocabflip/data/models/deck.dart';
+import 'package:vocabflip/data/models/flashcard.dart';
 import 'package:vocabflip/data/services/sync_queue_service.dart';
 import 'package:vocabflip/presentation/providers/sync_provider.dart';
 
@@ -151,6 +153,116 @@ void main() {
     expect(AppPreferences().lastSyncCursor, isNull);
   });
 
+  for (final type in ['deck', 'flashcard']) {
+    test(
+        '$type CREATE with lost response reconciles before draining later work',
+        () async {
+      AlphaAuthSession().setUser(userId: 'A');
+      final item = _createItem(type);
+      final queue = _Queue([item, _item('later', owner: 'A')]);
+      final adapter = _LostResponseAdapter();
+      final service = SyncQueueService(
+          syncQueueDao: queue, dio: Dio()..httpClientAdapter = adapter);
+
+      await service.syncPendingItems();
+      expect(queue.deleted, isEmpty);
+      expect(AppPreferences().lastSyncCursor, isNull);
+      await service.syncPendingItems();
+
+      expect(queue.deleted, [item.id, 'later']);
+      expect(adapter.creates, 2); // One entity plus the subsequent deck.
+      expect(adapter.requests.map((r) => r.method),
+          ['POST', 'POST', 'GET', 'POST']);
+      expect(
+          adapter.requests[2].path,
+          type == 'deck'
+              ? '/vocab/my-decks/deck'
+              : '/vocab/my-decks/cards/card');
+      expect(adapter.requests.every((r) => r.extra['syncOwnerUserId'] == 'A'),
+          isTrue);
+      expect(AppPreferences().lastSyncCursor, isNotNull);
+    });
+  }
+
+  for (final mismatch in [
+    {'id': 'other'},
+    {'deck_id': 'other'},
+    {'back': 'different'},
+    {'fsrs_step': 1},
+    {'share_image': 1},
+    {'notes': 'different'},
+    {'last_review_date': '2025-01-02T00:00:00Z'},
+  ]) {
+    test('conflicting CREATE retains queue when remote differs: $mismatch',
+        () async {
+      AlphaAuthSession().setUser(userId: 'A');
+      final queue =
+          _Queue([_createItem('flashcard'), _item('later', owner: 'A')]);
+      final adapter = _LostResponseAdapter(remoteChanges: mismatch);
+      final service = SyncQueueService(
+          syncQueueDao: queue, dio: Dio()..httpClientAdapter = adapter);
+      await service.syncPendingItems();
+      await service.syncPendingItems();
+      expect(queue.deleted, isEmpty);
+      expect(adapter.creates, 1);
+      expect(AppPreferences().lastSyncCursor, isNull);
+    });
+  }
+
+  for (final status in [404, 503]) {
+    test('failed CREATE reconciliation ($status) retains prerequisite',
+        () async {
+      AlphaAuthSession().setUser(userId: 'A');
+      final queue = _Queue([_createItem('deck'), _item('later', owner: 'A')]);
+      final adapter = _LostResponseAdapter(getStatus: status);
+      final service = SyncQueueService(
+          syncQueueDao: queue, dio: Dio()..httpClientAdapter = adapter);
+      await service.syncPendingItems();
+      await service.syncPendingItems();
+      expect(queue.deleted, isEmpty);
+      expect(adapter.creates, 1);
+      expect(AppPreferences().lastSyncCursor, isNull);
+    });
+  }
+
+  test('account change during reconciliation does not acknowledge or continue',
+      () async {
+    AlphaAuthSession().setUser(userId: 'A');
+    final queue = _Queue([_createItem('deck'), _item('later', owner: 'A')]);
+    final adapter = _LostResponseAdapter(
+        onGet: () => AlphaAuthSession().setUser(userId: 'B'));
+    final service = SyncQueueService(
+        syncQueueDao: queue, dio: Dio()..httpClientAdapter = adapter);
+    await service.syncPendingItems();
+    await service.syncPendingItems();
+    expect(queue.deleted, isEmpty);
+    expect(adapter.creates, 1);
+    expect(AppPreferences().lastSyncCursor, isNull);
+  });
+
+  test('same-account token replacement invalidates in-flight reconciliation',
+      () async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final client = ApiClient();
+    await client.setToken('dummy-A');
+    AlphaAuthSession().setUser(userId: 'A');
+    addTearDown(client.clearToken);
+    Future<void>? rotating;
+    final queue = _Queue([_createItem('deck'), _item('later', owner: 'A')]);
+    final adapter = _LostResponseAdapter(onGet: () {
+      rotating = client.setToken('dummy-new-A');
+      AlphaAuthSession().setUser(userId: 'A');
+    });
+    final service = SyncQueueService(
+        syncQueueDao: queue, dio: Dio()..httpClientAdapter = adapter);
+    await service.syncPendingItems();
+    await service.syncPendingItems();
+    await rotating;
+    expect(queue.deleted, isEmpty);
+    expect(adapter.creates, 1);
+    expect(AppPreferences().lastSyncCursor, isNull);
+  });
+
   test('SyncProvider.syncAll never stamps successful cursor after failed drain',
       () async {
     AlphaAuthSession().setUser(userId: 'A');
@@ -175,6 +287,103 @@ SyncQueueItem _item(String id, {String? owner}) => SyncQueueItem(
     operation: 'CREATE',
     payload: jsonEncode(
         {'id': id, if (id != 'legacy') SyncQueueDao.ownerKey: owner}));
+
+SyncQueueItem _createItem(String type) => SyncQueueItem(
+    id: 'create-$type',
+    entityType: type,
+    entityId: type == 'deck' ? 'deck' : 'card',
+    operation: 'CREATE',
+    payload: jsonEncode({
+      ...(type == 'deck'
+          ? Deck(
+                  id: 'deck',
+                  name: ' Deck ',
+                  sourceLanguage: 'en',
+                  tags: [' alpha ', 'beta'],
+                  autoPlayTtsOnFlip: false)
+              .toMap()
+          : Flashcard(
+                  id: 'card',
+                  deckId: 'deck',
+                  front: 'word',
+                  back: 'meaning',
+                  shareImage: false,
+                  notes: '',
+                  tags: [' alpha ', 'beta'],
+                  fsrsState: 2,
+                  fsrsStep: null,
+                  lastReviewDate: DateTime.parse('2025-01-01T07:00:00+07:00'))
+              .toMap()),
+      SyncQueueDao.ownerKey: 'A',
+    }));
+
+/// Stores POST before losing its response, like a server-side committed timeout.
+class _LostResponseAdapter implements HttpClientAdapter {
+  final Map<String, dynamic> remoteChanges;
+  final int getStatus;
+  final void Function()? onGet;
+  final requests = <RequestOptions>[];
+  Map<String, dynamic>? stored;
+  int creates = 0;
+  _LostResponseAdapter(
+      {this.remoteChanges = const {}, this.getStatus = 200, this.onGet});
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? stream,
+      Future<void>? cancel) async {
+    requests.add(options);
+    if (options.method == 'GET') {
+      onGet?.call();
+      return ResponseBody.fromString(
+          jsonEncode({
+            'success': true,
+            'data': {
+              ...stored!,
+              ...remoteChanges,
+            }
+          }),
+          getStatus,
+          headers: {
+            Headers.contentTypeHeader: ['application/json']
+          });
+    }
+    final body = Map<String, dynamic>.from(options.data as Map);
+    if (stored != null &&
+        body['id'] == stored!['id'].toString().toLowerCase()) {
+      return ResponseBody.fromString('{}', 409);
+    }
+    creates++;
+    if (stored == null) {
+      stored = {
+        ...body,
+        if (body.containsKey('name')) 'name': body['name'].toString().trim(),
+        'tags':
+            body['tags'].toString().split(',').map((t) => t.trim()).join(','),
+        if (body['notes'] == '') 'notes': null,
+        'id': body.containsKey('deck_id')
+            ? body['id']
+            : body['id'].toString().toUpperCase(),
+        if (body.containsKey('deck_id'))
+          'deck_id': body['deck_id'].toString().toUpperCase(),
+        // Backend assigns timestamps and serializes dates in UTC milliseconds.
+        'created_at': '2026-10-23T00:00:00.000Z',
+        'updated_at': '2026-10-23T00:00:00.000Z',
+        if (body.containsKey('last_review_date'))
+          'last_review_date': '2025-01-01T00:00:00.000Z',
+        if (body.containsKey('share_image'))
+          'share_image': body['share_image'] == false ? 0 : 1,
+        if (body.containsKey('auto_play_tts_on_flip'))
+          'auto_play_tts_on_flip':
+              body['auto_play_tts_on_flip'] == false ? 0 : 1,
+      };
+      throw DioException(
+          requestOptions: options, type: DioExceptionType.receiveTimeout);
+    }
+    return ResponseBody.fromString('{}', 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
 
 class _Queue extends SyncQueueDao {
   final List<SyncQueueItem> items;

@@ -84,6 +84,7 @@ void main() {
         syncService: links,
         deckDao: _SqlDecks(db),
         flashcardDao: _SqlCards(db),
+        deckRepository: decks,
         flashcardRepository: cards);
     await repository.syncDeck('deck');
     final existing = Flashcard.fromMap((await db.query(
@@ -101,8 +102,17 @@ void main() {
         .single);
     await cards.updateFlashcard(added.copyWith(repetitions: 1));
     final pending = await queue.getPendingItems();
-    expect(pending.map((item) => item.operation), ['CREATE', 'UPDATE']);
-    expect(pending.every((item) => item.entityId == added.id), isTrue);
+    expect(
+        pending.map(
+            (item) => '${item.entityType}:${item.operation}:${item.entityId}'),
+        [
+          'flashcard:UPDATE:card',
+          'flashcard:CREATE:${added.id}',
+          'deck:UPDATE:deck',
+          'flashcard:UPDATE:${added.id}'
+        ]);
+    expect(jsonDecode(pending.first.payload!)['back'], 'updated meaning');
+    expect(jsonDecode(pending[2].payload!)['linked_version'], 2);
     expect(
         pending.every(
             (item) => jsonDecode(item.payload!)[SyncQueueDao.ownerKey] == 'A'),
@@ -119,11 +129,33 @@ void main() {
         syncService: links,
         deckDao: _SqlDecks(db),
         flashcardDao: _SqlCards(db),
+        deckRepository: decks,
         flashcardRepository: cards);
     await db.execute(
-        "CREATE TRIGGER fail_queue BEFORE INSERT ON sync_queue WHEN NEW.entity_type = 'flashcard' BEGIN SELECT RAISE(ABORT, 'fixture queue failure'); END");
+        "CREATE TRIGGER fail_queue BEFORE INSERT ON sync_queue WHEN NEW.entity_type = 'flashcard' AND NEW.operation = 'CREATE' BEGIN SELECT RAISE(ABORT, 'fixture queue failure'); END");
     await expectLater(repository.syncDeck('deck'), throwsA(anything));
     expect((await db.query(AppConstants.tableFlashcards)).length, 1);
+    expect(links.version, 1);
+  });
+
+  test('public update rolls back existing content when its outbox write fails',
+      () async {
+    await decks.saveImportedDeck(deck, [card], ownerUserId: 'A');
+    final links = _PublicSync();
+    final repository = PublicLibraryRepository(
+        libraryService: _PublicLibrary(),
+        syncService: links,
+        deckDao: _SqlDecks(db),
+        flashcardDao: _SqlCards(db),
+        deckRepository: decks,
+        flashcardRepository: cards);
+    await db.execute(
+        "CREATE TRIGGER fail_queue BEFORE INSERT ON sync_queue WHEN NEW.operation = 'UPDATE' BEGIN SELECT RAISE(ABORT, 'fixture queue failure'); END");
+    await expectLater(repository.syncDeck('deck'), throwsA(anything));
+    expect(
+        (await db.query(AppConstants.tableFlashcards)).single['back'], 'mot');
+    expect(
+        (await db.query(AppConstants.tableDecks)).single['name'], 'Original');
     expect(links.version, 1);
   });
 
@@ -139,6 +171,51 @@ void main() {
     await cards.createFlashcard(card);
     expect((await db.query(AppConstants.tableFlashcards)).length, 1);
     expect((await queue.getPendingItems()).length, 2);
+  });
+
+  test('public metadata failure leaves deck and import version retryable',
+      () async {
+    await decks.saveImportedDeck(deck, [card], ownerUserId: 'A');
+    final links = _PublicSync();
+    final repository = PublicLibraryRepository(
+        libraryService: _PublicLibrary(),
+        syncService: links,
+        deckDao: _SqlDecks(db),
+        flashcardDao: _SqlCards(db),
+        deckRepository: decks,
+        flashcardRepository: cards);
+    await db.execute(
+        "CREATE TRIGGER fail_deck_queue BEFORE INSERT ON sync_queue WHEN NEW.entity_type = 'deck' AND NEW.operation = 'UPDATE' BEGIN SELECT RAISE(ABORT, 'fixture queue failure'); END");
+    await expectLater(repository.syncDeck('deck'), throwsA(anything));
+    expect(
+        (await db.query(AppConstants.tableDecks)).single['name'], 'Original');
+    expect(links.version, 1);
+    await db.execute('DROP TRIGGER fail_deck_queue');
+    await repository.syncDeck('deck');
+    expect((await db.query(AppConstants.tableFlashcards)).length, 2);
+    expect((await db.query(AppConstants.tableDecks)).single['name'], 'Public');
+    expect(links.version, 2);
+  });
+
+  test('public fetch account change stops before local writes', () async {
+    await decks.saveImportedDeck(deck, [card], ownerUserId: 'A');
+    final before = await db.query('sync_queue');
+    final links = _PublicSync();
+    final repository = PublicLibraryRepository(
+        libraryService: _PublicLibrary(
+            onFetch: () => AlphaAuthSession().setUser(userId: 'B')),
+        syncService: links,
+        deckDao: _SqlDecks(db),
+        flashcardDao: _SqlCards(db),
+        deckRepository: decks,
+        flashcardRepository: cards);
+    await expectLater(repository.syncDeck('deck'), throwsStateError);
+    expect(
+        (await db.query(AppConstants.tableFlashcards)).single['back'], 'mot');
+    expect(
+        (await db.query(AppConstants.tableDecks)).single['name'], 'Original');
+    expect(await db.query('sync_queue'), before);
+    expect(links.version, 1);
   });
 
   test('enqueue retains origin account across database awaits', () async {
@@ -264,6 +341,8 @@ class _PublicSync extends MongoSyncService {
 }
 
 class _PublicLibrary extends MongoPublicLibraryService {
+  final void Function()? onFetch;
+  _PublicLibrary({this.onFetch});
   @override
   Future<PublicDeck?> getDeck(String id) async => PublicDeck(
       id: id,
@@ -275,10 +354,12 @@ class _PublicLibrary extends MongoPublicLibraryService {
       categoryId: 'general',
       version: 2);
   @override
-  Future<List<PublicFlashcard>> getFlashcards(String id, {int? limit}) async =>
-      [
-        PublicFlashcard(
-            id: 'old', publicDeckId: id, front: 'one', back: 'updated meaning'),
-        PublicFlashcard(id: 'new', publicDeckId: id, front: 'two', back: 'hai'),
-      ];
+  Future<List<PublicFlashcard>> getFlashcards(String id, {int? limit}) async {
+    onFetch?.call();
+    return [
+      PublicFlashcard(
+          id: 'old', publicDeckId: id, front: 'one', back: 'updated meaning'),
+      PublicFlashcard(id: 'new', publicDeckId: id, front: 'two', back: 'hai'),
+    ];
+  }
 }

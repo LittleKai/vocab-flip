@@ -22,10 +22,10 @@
     Comma-separated build targets passed to build.ps1 (default: "windows,android,web").
 
 .PARAMETER Prerelease
-    Mark release as prerelease.
+    Mark release as prerelease; skip the stable B2 channel.
 
 .PARAMETER Draft
-    Create release as draft.
+    Create release as draft; skip the stable B2 channel.
 
 .PARAMETER SkipBuild
     Skip build step and use existing artifacts in build/release/.
@@ -256,6 +256,7 @@ $Headers = @{
 $ReleaseId = $null
 $HtmlUrl = $null
 $ExistingAssets = @()
+$ExistingRelease = $null
 
 $GetReleaseUrl = "https://api.github.com/repos/$Owner/$Repo/releases/tags/$TagVersion"
 try {
@@ -352,9 +353,9 @@ foreach ($Artifact in $Artifacts) {
 
 $B2Ok = $false
 
-if ($SkipB2) {
+if ($SkipB2 -or $Draft -or $Prerelease -or $ExistingRelease.draft -or $ExistingRelease.prerelease) {
     Write-Host ""
-    Write-Host "[SKIP] B2 upload skipped (-SkipB2). In-app updater and /studio/vocab stay on the previous version." -ForegroundColor Yellow
+    Write-Host "[SKIP] B2 stable channel unchanged: -SkipB2 or draft/prerelease (requested or existing on GitHub)." -ForegroundColor Yellow
 } else {
     Write-Step "Uploading to Backblaze B2"
 

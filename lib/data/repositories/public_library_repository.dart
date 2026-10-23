@@ -31,6 +31,7 @@ class PublicLibraryRepository {
   final DeckDao _deckDao;
   final FlashcardDao _flashcardDao;
   final FlashcardRepository _flashcardRepository;
+  final DeckRepository _deckRepository;
   final CloudinaryService _cloudinaryService = CloudinaryService();
   final ImageService _imageService = ImageService();
 
@@ -39,11 +40,13 @@ class PublicLibraryRepository {
       MongoSyncService? syncService,
       DeckDao? deckDao,
       FlashcardDao? flashcardDao,
+      DeckRepository? deckRepository,
       FlashcardRepository? flashcardRepository})
       : _libraryService = libraryService ?? MongoPublicLibraryService(),
         _syncService = syncService ?? MongoSyncService(),
         _deckDao = deckDao ?? DeckDao(),
         _flashcardDao = flashcardDao ?? FlashcardDao(),
+        _deckRepository = deckRepository ?? DeckRepository(),
         _flashcardRepository = flashcardRepository ?? FlashcardRepository();
 
   /// Parse comma-separated field types string to List<CardFieldType>
@@ -258,6 +261,15 @@ class PublicLibraryRepository {
   /// Sync an imported deck with its source
   /// Keeps learning progress, updates content
   Future<void> syncDeck(String localDeckId) async {
+    final owner = AlphaAuthSession().userId;
+    final version = ApiClient().sessionVersion;
+    void checkSession() {
+      if (owner != AlphaAuthSession().userId ||
+          version != ApiClient().sessionVersion) {
+        throw StateError('Account changed during public deck update');
+      }
+    }
+
     final link = await _syncService.getImportLink(localDeckId);
     if (link == null) {
       throw Exception('Deck is not linked to a public deck');
@@ -278,6 +290,7 @@ class PublicLibraryRepository {
 
     // Get existing local flashcards (to preserve learning progress)
     final localFlashcards = await _flashcardDao.getByDeckId(localDeckId);
+    checkSession();
     final localCardMap = <String, Flashcard>{};
     for (final card in localFlashcards) {
       // Map by front text for matching
@@ -299,7 +312,8 @@ class PublicLibraryRepository {
           notes: publicCard.notes,
           tags: publicCard.tags,
         );
-        await _flashcardDao.update(updatedCard);
+        await _flashcardRepository.updateFlashcard(updatedCard);
+        checkSession();
         localCardMap.remove(frontKey);
       } else {
         // Add new card
@@ -314,6 +328,7 @@ class PublicLibraryRepository {
           tags: publicCard.tags,
         );
         await _flashcardRepository.createFlashcard(newCard);
+        checkSession();
       }
     }
 
@@ -322,13 +337,15 @@ class PublicLibraryRepository {
 
     // Update local deck metadata
     final localDeck = await _deckDao.getById(localDeckId);
+    checkSession();
     if (localDeck != null) {
       final updatedDeck = localDeck.copyWith(
         name: publicDeck.name,
         description: publicDeck.description,
         linkedVersion: publicDeck.version,
       );
-      await _deckDao.update(updatedDeck);
+      await _deckRepository.updateDeck(updatedDeck);
+      checkSession();
     }
 
     // Update the import link

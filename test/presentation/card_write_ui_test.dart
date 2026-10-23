@@ -211,15 +211,15 @@ void main() {
     await tester.enterText(find.byType(TextFormField).first, 'Saved cover');
     await tester.runAsync(() async {
       await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined).first);
-      for (var i = 0; i < 100; i++) {
-        final managed = Directory('${sandbox.path}/flashcard_images');
-        if (await managed.exists() &&
-            (await managed.list().toList()).isNotEmpty) {
-          break;
-        }
+      // Wait for the editor to accept the image, not merely create its file.
+      final deadline = DateTime.now().add(const Duration(seconds: 10));
+      while (find.byIcon(Icons.close).evaluate().isEmpty &&
+          DateTime.now().isBefore(deadline)) {
         await Future<void>.delayed(const Duration(milliseconds: 10));
+        await tester.pump();
       }
     });
+    expect(find.byIcon(Icons.close), findsOneWidget);
     await tester.runAsync(() => tester.pumpAndSettle());
     await tester.tap(find.widgetWithText(ElevatedButton, 'Create Deck'));
     await tester.pumpAndSettle();
