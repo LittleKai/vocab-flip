@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/foundation.dart';
+import '../../core/constants/app_constants.dart';
+import '../auth/alpha_auth_session.dart';
 import '../local/database/flashcard_dao.dart';
 import '../local/daos/sync_queue_dao.dart';
 import '../models/flashcard.dart';
@@ -26,6 +29,7 @@ class FlashcardRepository {
   }
 
   Future<void> createFlashcard(Flashcard flashcard) async {
+    if (!kIsWeb) return _write(flashcard, 'CREATE');
     await _flashcardDao.insert(flashcard);
     await _syncQueueDao.insert(SyncQueueItem(
       id: const Uuid().v4(),
@@ -37,6 +41,7 @@ class FlashcardRepository {
   }
 
   Future<void> updateFlashcard(Flashcard flashcard) async {
+    if (!kIsWeb) return _write(flashcard, 'UPDATE');
     await _flashcardDao.update(flashcard);
     await _syncQueueDao.insert(SyncQueueItem(
       id: const Uuid().v4(),
@@ -48,6 +53,18 @@ class FlashcardRepository {
   }
 
   Future<void> deleteFlashcard(String id) async {
+    if (!kIsWeb) {
+      return _syncQueueDao.writeEntities([
+        SyncQueueItem(
+            id: const Uuid().v4(),
+            entityType: 'flashcard',
+            entityId: id,
+            operation: 'DELETE')
+      ], (txn) async {
+        await txn.delete(AppConstants.tableFlashcards,
+            where: 'id = ?', whereArgs: [id]);
+      }, ownerUserId: AlphaAuthSession().userId);
+    }
     await _flashcardDao.delete(id);
     await _syncQueueDao.insert(SyncQueueItem(
       id: const Uuid().v4(),
@@ -65,7 +82,8 @@ class FlashcardRepository {
     return await _flashcardDao.getNewCards(deckId, limit: limit);
   }
 
-  Future<List<Flashcard>> searchFlashcards(String query, {String? deckId}) async {
+  Future<List<Flashcard>> searchFlashcards(String query,
+      {String? deckId}) async {
     return await _flashcardDao.search(query, deckId: deckId);
   }
 
@@ -98,18 +116,44 @@ class FlashcardRepository {
       lastReviewDate: DateTime.now(),
     );
 
-    await _flashcardDao.update(updatedFlashcard);
-    await _syncQueueDao.insert(SyncQueueItem(
-      id: const Uuid().v4(),
-      entityType: 'flashcard',
-      entityId: updatedFlashcard.id,
-      operation: 'UPDATE',
-      payload: jsonEncode(updatedFlashcard.toMap()),
-    ));
+    await updateFlashcard(updatedFlashcard);
     return updatedFlashcard;
   }
 
+  Future<void> _write(Flashcard card, String operation) async {
+    await _syncQueueDao.writeEntities([
+      SyncQueueItem(
+          id: const Uuid().v4(),
+          entityType: 'flashcard',
+          entityId: card.id,
+          operation: operation,
+          payload: jsonEncode(card.toMap()))
+    ], (txn) async {
+      if (operation == 'CREATE') {
+        await txn.insert(AppConstants.tableFlashcards, card.toMap());
+      } else {
+        await txn.update(AppConstants.tableFlashcards, card.toMap(),
+            where: 'id = ?', whereArgs: [card.id]);
+      }
+    }, ownerUserId: AlphaAuthSession().userId);
+  }
+
   Future<void> createFlashcardsBatch(List<Flashcard> flashcards) async {
+    if (!kIsWeb) {
+      return _syncQueueDao.writeEntities([
+        for (final card in flashcards)
+          SyncQueueItem(
+              id: const Uuid().v4(),
+              entityType: 'flashcard',
+              entityId: card.id,
+              operation: 'CREATE',
+              payload: jsonEncode(card.toMap()))
+      ], (txn) async {
+        for (final card in flashcards) {
+          await txn.insert(AppConstants.tableFlashcards, card.toMap());
+        }
+      }, ownerUserId: AlphaAuthSession().userId);
+    }
     await _flashcardDao.insertBatch(flashcards);
     for (var f in flashcards) {
       await _syncQueueDao.insert(SyncQueueItem(

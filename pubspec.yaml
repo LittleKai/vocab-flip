@@ -27,6 +27,7 @@ dependencies:
   # Network
   http: ^1.2.0
   dio: ^5.4.1
+  crypto: ^3.0.7
 
   # UI
   flip_card: ^0.7.0
@@ -90,7 +91,7 @@ flutter:
     - assets/zh_vi_dict.db
     - assets/ja_vi_dict.db
     - assets/stroke_data.db
-    - .env
+    - assets/config.env
 
 flutter_launcher_icons:
   android: true

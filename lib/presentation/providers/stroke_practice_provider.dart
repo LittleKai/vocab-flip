@@ -34,6 +34,7 @@ class StrokePracticeProvider extends ChangeNotifier {
   int _totalMistakeCount = 0;
   bool _isWordComplete = false;
   int _practiceGeneration = 0;
+  int get practiceGeneration => _practiceGeneration;
 
   StrokeValidationProfile _validationProfile = StrokeValidationProfile.standard;
   StrokeValidationProfile get validationProfile => _validationProfile;
@@ -80,7 +81,7 @@ class StrokePracticeProvider extends ChangeNotifier {
     required String text,
     required String sourceLanguage,
   }) async {
-    _practiceGeneration++;
+    final generation = ++_practiceGeneration;
     _state = StrokePracticeState.loading;
     _targets = [];
     _targetGraphemes = [];
@@ -104,17 +105,24 @@ class StrokePracticeProvider extends ChangeNotifier {
         return;
       }
 
+      final targets = <StrokeCharacter>[];
+      final graphemes = <String>[];
+      var unsupported = 0;
       for (var char in text.characters) {
         if (char.trim().isEmpty) continue; // skip spaces
         final result = await _repository.lookupCharacter(char, sourceLanguage);
+        if (generation != _practiceGeneration) return;
         if (result != null) {
-          _targets.add(result);
-          _targetGraphemes.add(char);
-          _supportedCharacterCount++;
+          targets.add(result);
+          graphemes.add(char);
         } else {
-          _unsupportedCharacterCount++;
+          unsupported++;
         }
       }
+      _targets = targets;
+      _targetGraphemes = graphemes;
+      _supportedCharacterCount = targets.length;
+      _unsupportedCharacterCount = unsupported;
 
       if (_targets.isEmpty) {
         _state = StrokePracticeState.error;
@@ -122,6 +130,7 @@ class StrokePracticeProvider extends ChangeNotifier {
         _state = StrokePracticeState.ready;
       }
     } catch (e) {
+      if (generation != _practiceGeneration) return;
       _state = StrokePracticeState.error;
     }
     notifyListeners();
@@ -203,5 +212,11 @@ class StrokePracticeProvider extends ChangeNotifier {
     if (_totalMistakeCount <= 2) return ReviewRating.good;
     if (_totalMistakeCount <= 5) return ReviewRating.hard;
     return ReviewRating.again;
+  }
+
+  @override
+  void dispose() {
+    _practiceGeneration++;
+    super.dispose();
   }
 }

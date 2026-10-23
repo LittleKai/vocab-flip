@@ -52,23 +52,16 @@ class _BackupScreenState extends State<BackupScreen> {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.read<BackupProvider>();
 
-    // Show progress dialog
-    showStandardDialog(
-      context: context,
-      title: l10n.creatingBackup,
-      barrierDismissible: false,
-      customContent: Consumer<BackupProvider>(
-        builder: (context, provider, _) => BackupProgressContent(
-          message: provider.statusMessage,
-          progress: provider.progress,
-        ),
-      ),
-    );
+    final closeProgress = await _showProgressDialog(l10n.creatingBackup);
+    if (!mounted) {
+      closeProgress();
+      return;
+    }
 
     final result = await provider.createBackup();
+    closeProgress();
 
     if (!mounted) return;
-    Navigator.of(context).pop(); // Close progress dialog
 
     if (result != null) {
       BackupResultDialog.show(
@@ -92,7 +85,32 @@ class _BackupScreenState extends State<BackupScreen> {
     }
   }
 
-  Future<void> _restoreBackup(String backupId, String date, int deckCount, int cardCount) async {
+  Future<VoidCallback> _showProgressDialog(String title) async {
+    Route<dynamic>? progressRoute;
+    showStandardDialog<void>(
+      context: context,
+      title: title,
+      barrierDismissible: false,
+      customContent: Builder(builder: (dialogContext) {
+        progressRoute = ModalRoute.of(dialogContext);
+        return Consumer<BackupProvider>(
+          builder: (context, provider, _) => BackupProgressContent(
+            message: provider.statusMessage,
+            progress: provider.progress,
+          ),
+        );
+      }),
+    );
+    // Capture the dialog's route before an operation can finish or ask for conflicts.
+    await WidgetsBinding.instance.endOfFrame;
+    return () {
+      final route = progressRoute;
+      if (route != null && route.isActive) route.navigator?.removeRoute(route);
+    };
+  }
+
+  Future<void> _restoreBackup(
+      String backupId, String date, int deckCount, int cardCount) async {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.read<BackupProvider>();
 
@@ -107,24 +125,16 @@ class _BackupScreenState extends State<BackupScreen> {
 
     if (confirm != true || !mounted) return;
 
-    // Show progress dialog
-    showStandardDialog(
-      context: context,
-      title: l10n.restoringBackup,
-      barrierDismissible: false,
-      customContent: Consumer<BackupProvider>(
-        builder: (context, provider, _) => BackupProgressContent(
-          message: provider.statusMessage,
-          progress: provider.progress,
-        ),
-      ),
-    );
+    final closeProgress = await _showProgressDialog(l10n.restoringBackup);
+    if (!mounted) {
+      closeProgress();
+      return;
+    }
 
     final result = await provider.restoreBackup(
       backupId,
       onConflict: () async {
-        // Hide progress dialog temporarily to show conflict resolution
-        Navigator.of(context).pop();
+        if (!mounted) return null;
 
         final mode = await RestoreConfirmDialog.show(
           context,
@@ -135,34 +145,20 @@ class _BackupScreenState extends State<BackupScreen> {
 
         if (!mounted) return null;
 
-        // Show progress dialog again if they didn't cancel
-        if (mode != null) {
-          showStandardDialog(
-            context: context,
-            title: l10n.restoringBackup,
-            barrierDismissible: false,
-            customContent: Consumer<BackupProvider>(
-              builder: (context, provider, _) => BackupProgressContent(
-                message: provider.statusMessage,
-                progress: provider.progress,
-              ),
-            ),
-          );
-        }
-
         return mode;
       },
     );
+    closeProgress();
 
     if (!mounted) return;
-    Navigator.of(context).pop(); // Close progress dialog
 
     if (result != null && result.success) {
       BackupResultDialog.show(
         context,
         success: true,
         title: l10n.restoreComplete,
-        message: l10n.restoreSuccessMessage(result.decksRestored, result.cardsRestored),
+        message: l10n.restoreSuccessMessage(
+            result.decksRestored, result.cardsRestored),
         details: result.decksSkipped > 0
             ? l10n.decksSkipped(result.decksSkipped)
             : null,
@@ -242,7 +238,8 @@ class _BackupScreenState extends State<BackupScreen> {
     );
   }
 
-  Widget _buildDisconnectedView(BuildContext context, BackupProvider provider, AppLocalizations l10n) {
+  Widget _buildDisconnectedView(
+      BuildContext context, BackupProvider provider, AppLocalizations l10n) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -264,8 +261,8 @@ class _BackupScreenState extends State<BackupScreen> {
             Text(
               l10n.connectToBackupData,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
+                    color: AppColors.textSecondaryLight,
+                  ),
               textAlign: TextAlign.center,
             ),
             if (provider.error != null) ...[
@@ -288,7 +285,8 @@ class _BackupScreenState extends State<BackupScreen> {
     );
   }
 
-  Widget _buildConnectedView(BuildContext context, BackupProvider provider, AppLocalizations l10n) {
+  Widget _buildConnectedView(
+      BuildContext context, BackupProvider provider, AppLocalizations l10n) {
     return RefreshIndicator(
       onRefresh: () => provider.loadBackups(),
       child: ListView(
@@ -350,8 +348,8 @@ class _BackupScreenState extends State<BackupScreen> {
               Text(
                 l10n.availableBackups,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               if (provider.status == BackupStatus.listing)
                 const SizedBox(
@@ -385,8 +383,8 @@ class _BackupScreenState extends State<BackupScreen> {
                     Text(
                       l10n.createFirstBackup,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondaryLight,
-                      ),
+                            color: AppColors.textSecondaryLight,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -394,7 +392,8 @@ class _BackupScreenState extends State<BackupScreen> {
               ),
             )
           else
-            ...provider.backups.map((backup) => _buildBackupCard(context, backup, l10n)),
+            ...provider.backups
+                .map((backup) => _buildBackupCard(context, backup, l10n)),
 
           const SizedBox(height: 32),
         ],
@@ -412,7 +411,8 @@ class _BackupScreenState extends State<BackupScreen> {
         ),
         title: Text(backup.formattedDate),
         subtitle: Text(
-          l10n.backupSummary(backup.deckCount, backup.cardCount, backup.formattedSize),
+          l10n.backupSummary(
+              backup.deckCount, backup.cardCount, backup.formattedSize),
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {

@@ -50,8 +50,8 @@ class BackupProgressContent extends StatelessWidget {
           Text(
             message!,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondaryLight,
-            ),
+                  color: AppColors.textSecondaryLight,
+                ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -72,7 +72,7 @@ class BackupResultDialog {
     VoidCallback? onDismiss,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return showStandardDialog(
       context: context,
       title: title,
@@ -96,8 +96,8 @@ class BackupResultDialog {
             Text(
               details,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
+                    color: AppColors.textSecondaryLight,
+                  ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -119,67 +119,63 @@ class RestoreConfirmDialog {
   }) {
     final l10n = AppLocalizations.of(context)!;
     RestoreMode selectedMode = RestoreMode.merge;
-    
-      return showStandardDialog<RestoreMode>(
-        context: context,
-        title: l10n.restoreBackup,
-        customContent: StatefulBuilder(
-          builder: (context, setState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: AppColors.error),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        l10n.selectRestoreMode, // We could add a new string for "Conflict detected" but this is okay too
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppColors.error,
-                        ),
-                      ),
+
+    return showStandardDialog<RestoreMode>(
+      context: context,
+      title: l10n.restoreBackup,
+      customContent: StatefulBuilder(
+        builder: (context, setState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: AppColors.error),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.selectRestoreMode, // We could add a new string for "Conflict detected" but this is okay too
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: AppColors.error,
+                          ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              SelectableRadioTile(
-                title: l10n.restoreModeMerge,
-                subtitle: l10n.restoreModeMergeDesc,
-                selected: selectedMode == RestoreMode.merge,
-                onTap: () => setState(() => selectedMode = RestoreMode.merge),
-              ),
-              const SizedBox(height: 8),
-              SelectableRadioTile(
-                title: l10n.restoreModeReplace,
-                subtitle: l10n.restoreModeReplaceDesc,
-                selected: selectedMode == RestoreMode.replace,
-                onTap: () => setState(() => selectedMode = RestoreMode.replace),
-              ),
-              const SizedBox(height: 8),
-              SelectableRadioTile(
-                title: l10n.restoreModeRename,
-                subtitle: l10n.restoreModeRenameDesc,
-                selected: selectedMode == RestoreMode.rename,
-                onTap: () => setState(() => selectedMode = RestoreMode.rename),
-              ),
+            ),
+            const SizedBox(height: 16),
+            SelectableRadioTile(
+              title: l10n.restoreModeMerge,
+              subtitle: l10n.restoreModeMergeDesc,
+              selected: selectedMode == RestoreMode.merge,
+              onTap: () => setState(() => selectedMode = RestoreMode.merge),
+            ),
+            const SizedBox(height: 8),
+            SelectableRadioTile(
+              title: l10n.restoreModeReplace,
+              subtitle: l10n.restoreModeReplaceDesc,
+              selected: selectedMode == RestoreMode.replace,
+              onTap: () => setState(() => selectedMode = RestoreMode.replace),
+            ),
+            const SizedBox(height: 8),
+            SelectableRadioTile(
+              title: l10n.restoreModeRename,
+              subtitle: l10n.restoreModeRenameDesc,
+              selected: selectedMode == RestoreMode.rename,
+              onTap: () => setState(() => selectedMode = RestoreMode.rename),
+            ),
           ],
         ),
       ),
       secondaryButtonText: l10n.cancel,
       primaryButtonText: l10n.restore,
-      onPrimaryPressed: () {
-        Navigator.of(context).pop(selectedMode);
-      },
+      primaryResult: () => selectedMode,
     );
   }
 }
-
-

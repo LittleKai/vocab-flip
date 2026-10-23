@@ -19,10 +19,10 @@ void main() async {
 
     // Load environment variables
     try {
-      await dotenv.load(fileName: '.env');
+      await dotenv.load(fileName: 'assets/config.env');
       debugPrint('Environment variables loaded');
     } catch (e) {
-      debugPrint('Failed to load .env file: $e');
+      debugPrint('Failed to load public configuration');
     }
 
     // Set preferred orientations

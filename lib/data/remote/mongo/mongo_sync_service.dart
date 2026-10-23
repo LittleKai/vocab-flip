@@ -16,8 +16,27 @@ import 'vocab_api_helpers.dart';
 
 class MongoSyncService {
   final ApiClient _apiClient = ApiClient();
+  final Dio _dio;
+  final Database? _database;
   final MongoPublicLibraryService _libraryService = MongoPublicLibraryService();
   final AlphaAuthSession _authSession = AlphaAuthSession();
+
+  MongoSyncService({Dio? dio, Database? database})
+      : _dio = dio ?? ApiClient().dio,
+        _database = database;
+
+  Future<Database> get _db async => _database ?? await AppDatabase().database;
+
+  void _checkSession(String userId, int version) {
+    if (_authSession.userId != userId || _apiClient.sessionVersion != version) {
+      throw StateError('Account changed during import sync');
+    }
+  }
+
+  Options _options(String userId, int version) => Options(extra: {
+        'syncOwnerUserId': userId,
+        'sessionVersion': version,
+      });
 
   Future<ImportedDeckLink> recordImport({
     required String publicDeckId,
@@ -25,17 +44,20 @@ class MongoSyncService {
     required int importedVersion,
   }) async {
     final userId = _authSession.userId;
+    final version = _apiClient.sessionVersion;
     if (userId == null) {
       throw Exception('User must be signed in to import decks');
     }
 
     try {
-      final response = await _apiClient.dio.post('/vocab/imports', data: {
+      final response = await _dio
+          .post('/vocab/imports', options: _options(userId, version), data: {
         'public_deck_id': publicDeckId,
         'local_deck_id': localDeckId,
         'imported_version': importedVersion,
       });
 
+      _checkSession(userId, version);
       final doc = unwrapApiMap(response.data);
       final link = doc != null
           ? ImportedDeckLink.fromMap(doc)
@@ -47,9 +69,11 @@ class MongoSyncService {
               importedVersion: importedVersion,
             );
 
-      await _saveLocalLink(link);
+      if (link.userId != userId) throw StateError('Import owner mismatch');
+      await _saveLocalLink(link, version);
       return link;
     } on DioException catch (e) {
+      _checkSession(userId, version);
       logVocabApiError('recordImport', e);
       final link = ImportedDeckLink(
         id: const Uuid().v4(),
@@ -58,20 +82,28 @@ class MongoSyncService {
         userId: userId,
         importedVersion: importedVersion,
       );
-      await _saveLocalLink(link);
+      await _saveLocalLink(link, version);
       return link;
     }
   }
 
   Future<ImportedDeckLink?> getImportLink(String localDeckId) async {
+    final userId = _authSession.userId;
+    if (userId == null) return null;
+    final version = _apiClient.sessionVersion;
     final local = await _getLocalLinkByLocalDeck(localDeckId);
+    _checkSession(userId, version);
     if (local != null) return local;
 
     try {
-      final response = await _apiClient.dio.get('/vocab/imports/by-local/$localDeckId');
+      final response = await _dio.get('/vocab/imports/by-local/$localDeckId',
+          options: _options(userId, version));
+      _checkSession(userId, version);
       final doc = unwrapApiMap(response.data);
-      return doc == null ? null : ImportedDeckLink.fromMap(doc);
+      final link = doc == null ? null : ImportedDeckLink.fromMap(doc);
+      return link?.userId == userId ? link : null;
     } on DioException catch (e) {
+      _checkSession(userId, version);
       if (e.response?.statusCode != 404) {
         logVocabApiError('getImportLink', e);
       }
@@ -79,18 +111,25 @@ class MongoSyncService {
     }
   }
 
-  Future<ImportedDeckLink?> getImportLinkByPublicDeck(String publicDeckId) async {
+  Future<ImportedDeckLink?> getImportLinkByPublicDeck(
+      String publicDeckId) async {
     final userId = _authSession.userId;
     if (userId == null) return null;
+    final version = _apiClient.sessionVersion;
 
     final local = await _getLocalLinkByPublicDeck(publicDeckId);
+    _checkSession(userId, version);
     if (local != null) return local;
 
     try {
-      final response = await _apiClient.dio.get('/vocab/imports/by-public/$publicDeckId');
+      final response = await _dio.get('/vocab/imports/by-public/$publicDeckId',
+          options: _options(userId, version));
+      _checkSession(userId, version);
       final doc = unwrapApiMap(response.data);
-      return doc == null ? null : ImportedDeckLink.fromMap(doc);
+      final link = doc == null ? null : ImportedDeckLink.fromMap(doc);
+      return link?.userId == userId ? link : null;
     } on DioException catch (e) {
+      _checkSession(userId, version);
       if (e.response?.statusCode != 404 && e.response?.statusCode != 401) {
         logVocabApiError('getImportLinkByPublicDeck', e);
       }
@@ -99,21 +138,30 @@ class MongoSyncService {
   }
 
   Future<List<ImportedDeckLink>> getAllImportLinks() async {
+    final userId = _authSession.userId;
+    if (userId == null) return [];
+    final version = _apiClient.sessionVersion;
     final local = await _getLocalLinks();
+    _checkSession(userId, version);
     if (local.isNotEmpty) return local;
 
     try {
-      final response = await _apiClient.dio.get('/vocab/imports');
+      final response =
+          await _dio.get('/vocab/imports', options: _options(userId, version));
+      _checkSession(userId, version);
       return unwrapApiList(response.data)
           .map(ImportedDeckLink.fromMap)
+          .where((link) => link.userId == userId)
           .toList();
     } catch (e) {
+      _checkSession(userId, version);
       logVocabApiError('getAllImportLinks', e);
       return [];
     }
   }
 
-  Future<List<({ImportedDeckLink link, PublicDeck deck})>> checkAllUpdates() async {
+  Future<List<({ImportedDeckLink link, PublicDeck deck})>>
+      checkAllUpdates() async {
     final links = await getAllImportLinks();
     final updates = <({ImportedDeckLink link, PublicDeck deck})>[];
 
@@ -135,49 +183,68 @@ class MongoSyncService {
     required String linkId,
     required int newVersion,
   }) async {
+    final userId = _authSession.userId;
+    if (userId == null) {
+      throw StateError('Sign in before updating import links');
+    }
+    final version = _apiClient.sessionVersion;
     final now = DateTime.now();
     try {
-      await _apiClient.dio.patch('/vocab/imports/$linkId', data: {
-        'imported_version': newVersion,
-        'last_synced_at': now.toIso8601String(),
-      });
+      await _dio.patch('/vocab/imports/$linkId',
+          options: _options(userId, version),
+          data: {
+            'imported_version': newVersion,
+            'last_synced_at': now.toIso8601String(),
+          });
     } catch (e) {
+      _checkSession(userId, version);
       logVocabApiError('updateImportLink', e);
     }
+    _checkSession(userId, version);
 
     if (!kIsWeb) {
-      final db = await AppDatabase().database;
+      final db = await _db;
+      _checkSession(userId, version);
       await db.update(
         AppConstants.tableImportedDeckLinks,
         {
           'imported_version': newVersion,
           'last_synced_at': now.toIso8601String(),
         },
-        where: 'id = ?',
-        whereArgs: [linkId],
+        where: 'id = ? AND user_id = ?',
+        whereArgs: [linkId, userId],
       );
     }
   }
 
   Future<void> deleteImportLink(String linkId) async {
+    final userId = _authSession.userId;
+    if (userId == null) {
+      throw StateError('Sign in before deleting import links');
+    }
+    final version = _apiClient.sessionVersion;
     try {
-      await _apiClient.dio.delete('/vocab/imports/$linkId');
+      await _dio.delete('/vocab/imports/$linkId',
+          options: _options(userId, version));
     } catch (e) {
+      _checkSession(userId, version);
       logVocabApiError('deleteImportLink', e);
     }
+    _checkSession(userId, version);
 
     if (!kIsWeb) {
-      final db = await AppDatabase().database;
+      final db = await _db;
+      _checkSession(userId, version);
       await db.delete(
         AppConstants.tableImportedDeckLinks,
-        where: 'id = ?',
-        whereArgs: [linkId],
+        where: 'id = ? AND user_id = ?',
+        whereArgs: [linkId, userId],
       );
     }
   }
 
   Future<void> setAutoSync(String linkId, bool enabled) async {
-    await _apiClient.dio.patch('/vocab/imports/$linkId', data: {
+    await _dio.patch('/vocab/imports/$linkId', data: {
       'auto_sync': enabled,
     });
   }
@@ -189,7 +256,7 @@ class MongoSyncService {
 
   Future<List<SyncNotification>> getAllNotifications({int limit = 50}) async {
     try {
-      final response = await _apiClient.dio.get(
+      final response = await _dio.get(
         '/vocab/sync/notifications',
         queryParameters: {'limit': limit},
       );
@@ -203,16 +270,17 @@ class MongoSyncService {
   }
 
   Future<void> markNotificationRead(String notificationId) async {
-    await _apiClient.dio.patch('/vocab/sync/notifications/$notificationId/read');
+    await _dio.patch('/vocab/sync/notifications/$notificationId/read');
   }
 
   Future<void> markAllNotificationsRead() async {
-    await _apiClient.dio.post('/vocab/sync/notifications/read-all');
+    await _dio.post('/vocab/sync/notifications/read-all');
   }
 
-  Future<void> _saveLocalLink(ImportedDeckLink link) async {
+  Future<void> _saveLocalLink(ImportedDeckLink link, int version) async {
     if (kIsWeb) return;
-    final db = await AppDatabase().database;
+    final db = await _db;
+    _checkSession(link.userId, version);
     await db.insert(
       AppConstants.tableImportedDeckLinks,
       link.toMap(),
@@ -222,24 +290,27 @@ class MongoSyncService {
 
   Future<ImportedDeckLink?> _getLocalLinkByLocalDeck(String localDeckId) async {
     if (kIsWeb) return null;
-    final db = await AppDatabase().database;
+    final userId = _authSession.userId;
+    final db = await _db;
     final results = await db.query(
       AppConstants.tableImportedDeckLinks,
-      where: 'local_deck_id = ?',
-      whereArgs: [localDeckId],
+      where: 'local_deck_id = ? AND user_id = ?',
+      whereArgs: [localDeckId, userId],
       limit: 1,
     );
     if (results.isEmpty) return null;
     return ImportedDeckLink.fromMap(results.first);
   }
 
-  Future<ImportedDeckLink?> _getLocalLinkByPublicDeck(String publicDeckId) async {
+  Future<ImportedDeckLink?> _getLocalLinkByPublicDeck(
+      String publicDeckId) async {
     if (kIsWeb) return null;
-    final db = await AppDatabase().database;
+    final userId = _authSession.userId;
+    final db = await _db;
     final results = await db.query(
       AppConstants.tableImportedDeckLinks,
-      where: 'public_deck_id = ?',
-      whereArgs: [publicDeckId],
+      where: 'public_deck_id = ? AND user_id = ?',
+      whereArgs: [publicDeckId, userId],
       limit: 1,
     );
     if (results.isEmpty) return null;
@@ -248,8 +319,10 @@ class MongoSyncService {
 
   Future<List<ImportedDeckLink>> _getLocalLinks() async {
     if (kIsWeb) return [];
-    final db = await AppDatabase().database;
-    final results = await db.query(AppConstants.tableImportedDeckLinks);
+    final userId = _authSession.userId;
+    final db = await _db;
+    final results = await db.query(AppConstants.tableImportedDeckLinks,
+        where: 'user_id = ?', whereArgs: [userId]);
     return results.map(ImportedDeckLink.fromMap).toList();
   }
 }

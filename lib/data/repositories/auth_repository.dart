@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import '../api/api_client.dart';
 import '../auth/alpha_auth_session.dart';
 
@@ -41,11 +40,6 @@ class AppUser {
       return null;
     }
     final user = AppUser.fromJson(Map<String, dynamic>.from(userData));
-    AlphaAuthSession().setUser(
-      userId: user.id,
-      email: user.email,
-      displayName: user.displayName,
-    );
     return user;
   }
 }
@@ -53,17 +47,29 @@ class AppUser {
 class AuthRepository {
   final ApiClient _apiClient = ApiClient();
 
-  Future<void> setToken(String token) => _apiClient.setToken(token);
+  int _generation = 0;
+  void invalidatePending() {
+    ++_generation;
+  }
+
+  Future<void> setToken(String token) {
+    invalidatePending();
+    return _apiClient.setToken(token);
+  }
 
   Future<String?> getToken() => _apiClient.getToken();
 
   Future<Map<String, dynamic>> login(String email, String password) async {
+    final generation = ++_generation;
+    final session = _apiClient.sessionVersion;
     try {
       final response = await _apiClient.dio.post('/auth/login', data: {
         'email': email,
         'password': password,
       });
 
+      if (generation != _generation || session != _apiClient.sessionVersion)
+        return {'success': false};
       if (response.data != null && response.data['success'] == true) {
         final data = response.data['data'];
         final token = data['token'];
@@ -78,19 +84,24 @@ class AuthRepository {
         'message': response.data?['message'] ?? 'Login failed'
       };
     } on DioException catch (e) {
-      debugPrint('AuthRepository.login DioException: $e');
-      final message = e.response?.data is Map 
-          ? (e.response?.data['message'] ?? e.response?.data['error'] ?? 'Sai email hoặc mật khẩu')
+      final message = e.response?.data is Map
+          ? (e.response?.data['message'] ??
+              e.response?.data['error'] ??
+              'Sai email hoặc mật khẩu')
           : 'Đăng nhập thất bại';
       return {'success': false, 'message': message};
     } catch (e) {
-      debugPrint('AuthRepository.login error: $e');
-      return {'success': false, 'message': 'Đã có lỗi xảy ra. Vui lòng thử lại.'};
+      return {
+        'success': false,
+        'message': 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+      };
     }
   }
 
   Future<Map<String, dynamic>> register(
       String email, String password, String name) async {
+    final generation = ++_generation;
+    final session = _apiClient.sessionVersion;
     try {
       final response = await _apiClient.dio.post('/auth/register', data: {
         'email': email,
@@ -98,6 +109,8 @@ class AuthRepository {
         'name': name,
       });
 
+      if (generation != _generation || session != _apiClient.sessionVersion)
+        return {'success': false};
       if (response.data != null && response.data['success'] == true) {
         final data = response.data['data'];
         final token = data['token'];
@@ -112,26 +125,36 @@ class AuthRepository {
         'message': response.data?['message'] ?? 'Registration failed'
       };
     } on DioException catch (e) {
-      debugPrint('AuthRepository.register DioException: $e');
-      final message = e.response?.data is Map 
-          ? (e.response?.data['message'] ?? e.response?.data['error'] ?? 'Đăng ký thất bại')
+      final message = e.response?.data is Map
+          ? (e.response?.data['message'] ??
+              e.response?.data['error'] ??
+              'Đăng ký thất bại')
           : 'Đăng ký thất bại';
       return {'success': false, 'message': message};
     } catch (e) {
-      debugPrint('AuthRepository.register error: $e');
-      return {'success': false, 'message': 'Đã có lỗi xảy ra. Vui lòng thử lại.'};
+      return {
+        'success': false,
+        'message': 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+      };
     }
   }
 
   Future<AppUser?> getMe() async {
+    final generation = _generation;
+    final session = _apiClient.sessionVersion;
     try {
       final token = await _apiClient.getToken();
       if (token == null || token.isEmpty) {
         return null;
       }
 
-      final response = await _apiClient.dio.get('/auth/me');
+      if (generation != _generation || session != _apiClient.sessionVersion)
+        return null;
+      final response = await _apiClient.dio.get('/auth/me',
+          options: Options(extra: {'sessionVersion': session}));
 
+      if (generation != _generation || session != _apiClient.sessionVersion)
+        return null;
       if (response.data != null && response.data['success'] == true) {
         final data = response.data['data'];
         final userData =
@@ -152,22 +175,31 @@ class AuthRepository {
       if (e.response?.statusCode == 401) {
         return null;
       }
-      debugPrint('AuthRepository.getMe error: $e');
       return null;
     } catch (e) {
-      debugPrint('AuthRepository.getMe error: $e');
       return null;
     }
   }
 
   Future<void> logout() async {
+    invalidatePending();
+    final session = _apiClient.sessionVersion;
+    final token = await _apiClient.getToken();
+    if (session != _apiClient.sessionVersion) return;
+    final clearing = _apiClient.clearToken();
+    final logoutSession = _apiClient.sessionVersion;
     try {
-      await _apiClient.dio.post('/auth/logout');
+      if (token != null) {
+        await _apiClient.dio.post('/auth/logout',
+            options: Options(extra: {
+              'logoutToken': token,
+              'sessionVersion': logoutSession,
+            }));
+      }
     } catch (_) {
-      // Ignore errors on logout
+      // Offline logout still clears local credentials.
     } finally {
-      await _apiClient.clearToken();
-      AlphaAuthSession().clear();
+      await clearing;
     }
   }
 }

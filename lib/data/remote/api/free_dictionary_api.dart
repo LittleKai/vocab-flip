@@ -57,6 +57,24 @@ class FreeDictionaryApi {
       audioUrl: audioUrl,
       sourceLanguage: 'en',
       dataSource: 'Online (FreeDictionary)',
+      meanings: (json['meanings'] as List<dynamic>? ?? []).map((value) {
+        final meaning = value as Map<String, dynamic>;
+        return DictionaryMeaning(
+          partOfSpeech: meaning['partOfSpeech'] as String? ?? '',
+          definitions:
+              (meaning['definitions'] as List<dynamic>? ?? []).map((value) {
+            final definition = value as Map<String, dynamic>;
+            return DictionaryDefinition(
+              definition: definition['definition'] as String,
+              example: definition['example'] as String?,
+            );
+          }).toList(),
+          synonyms:
+              (meaning['synonyms'] as List<dynamic>? ?? []).cast<String>(),
+          antonyms:
+              (meaning['antonyms'] as List<dynamic>? ?? []).cast<String>(),
+        );
+      }).toList(),
     );
   }
 

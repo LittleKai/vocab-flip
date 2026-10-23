@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/flashcard.dart';
 import '../../providers/ai_provider.dart';
 import '../../providers/flashcard_provider.dart';
+import '../../providers/deck_provider.dart';
 
 /// Screen to review AI-generated cards with checkboxes for bulk selection.
 /// User can select/deselect individual cards and add selected ones to the deck.
@@ -56,45 +57,65 @@ class _AiDraftReviewScreenState extends State<AiDraftReviewScreen> {
   }
 
   Future<void> _addSelectedCards() async {
-    if (_selectedIndices.isEmpty) return;
+    if (_selectedIndices.isEmpty || _isSaving) return;
 
     setState(() => _isSaving = true);
 
     final aiProvider = context.read<AiProvider>();
     final flashcardProvider = context.read<FlashcardProvider>();
-    final cards = aiProvider.draftCards;
+    final cards = List<Flashcard>.of(aiProvider.draftCards);
     final l10n = AppLocalizations.of(context)!;
 
     int added = 0;
     // Sort indices to add in order
     final sortedIndices = _selectedIndices.toList()..sort();
 
-    for (final index in sortedIndices) {
-      if (index < cards.length) {
-        final card = cards[index].copyWith(deckId: widget.deckId);
-        await flashcardProvider.createFlashcard(card);
+    final selectedCards = sortedIndices
+        .where((i) => i < cards.length)
+        .map((i) => cards[i])
+        .toList();
+    Object? failure;
+    for (final draft in selectedCards) {
+      try {
+        await flashcardProvider
+            .createFlashcard(draft.copyWith(deckId: widget.deckId));
+        aiProvider.approveCard(draft);
         added++;
+      } catch (e) {
+        failure = e;
+        break;
       }
     }
 
     if (!mounted) return;
-
-    // Reset AI provider
-    aiProvider.reset();
-
-    // Reload flashcards for the deck
-    await flashcardProvider.loadFlashcards(widget.deckId);
-
+    setState(() {
+      _selectedIndices.clear();
+      final remaining = aiProvider.draftCards;
+      for (var i = 0; i < remaining.length; i++) {
+        if (selectedCards.contains(remaining[i])) _selectedIndices.add(i);
+      }
+    });
+    if (added > 0) {
+      final decks = context.read<DeckProvider>();
+      try {
+        await decks.selectDeck(widget.deckId);
+        await decks.loadDecks();
+      } catch (e) {
+        failure ??= e;
+      }
+    }
     if (!mounted) return;
-
+    setState(() => _isSaving = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(l10n.cardsAddedSuccess(added)),
-        backgroundColor: AppColors.success,
+        content: Text(failure == null
+            ? l10n.cardsAddedSuccess(added)
+            : '${l10n.error}: $failure'),
+        backgroundColor: failure == null ? AppColors.success : AppColors.error,
       ),
     );
 
-    Navigator.pop(context);
+    if (aiProvider.draftCards.isEmpty) Navigator.pop(context, true);
   }
 
   @override
@@ -103,100 +124,111 @@ class _AiDraftReviewScreenState extends State<AiDraftReviewScreen> {
     final aiProvider = context.watch<AiProvider>();
     final cards = aiProvider.draftCards;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.aiGeneratedCards),
-        actions: [
-          TextButton.icon(
-            onPressed: _toggleSelectAll,
-            icon: Icon(
-              _allSelected ? Icons.deselect : Icons.select_all,
-              size: 20,
+    return PopScope(
+      canPop: !_isSaving,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.aiGeneratedCards),
+          actions: [
+            TextButton.icon(
+              onPressed: _isSaving ? null : _toggleSelectAll,
+              icon: Icon(
+                _allSelected ? Icons.deselect : Icons.select_all,
+                size: 20,
+              ),
+              label: Text(_allSelected ? l10n.deselectAll : l10n.selectAll),
             ),
-            label: Text(_allSelected ? l10n.deselectAll : l10n.selectAll),
-          ),
-        ],
-      ),
-      body: cards.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+          ],
+        ),
+        body: cards.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.inbox_outlined,
+                        size: 64, color: Colors.grey.shade400),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.noCardsGenerated,
+                      style: TextStyle(
+                          color: AppColors.textSecondary(context),
+                          fontSize: 16),
+                    ),
+                  ],
+                ),
+              )
+            : Column(
                 children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.noCardsGenerated,
-                    style: TextStyle(color: AppColors.textSecondary(context), fontSize: 16),
+                  // Info bar
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    color: AppColors.primary.withOpacity(0.06),
+                    child: Text(
+                      l10n.selectCardsToAdd,
+                      style: TextStyle(
+                        color: AppColors.textSecondary(context),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+
+                  // Cards list
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      itemCount: cards.length,
+                      itemBuilder: (context, index) {
+                        final card = cards[index];
+                        final isSelected = _selectedIndices.contains(index);
+                        return _DraftCardItem(
+                          flashcard: card,
+                          index: index,
+                          isSelected: isSelected,
+                          onToggle: () {
+                            if (!_isSaving) _toggleCard(index);
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
-            )
-          : Column(
-              children: [
-                // Info bar
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  color: AppColors.primary.withOpacity(0.06),
-                  child: Text(
-                    l10n.selectCardsToAdd,
-                    style: TextStyle(
-                      color: AppColors.textSecondary(context),
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-
-                // Cards list
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    itemCount: cards.length,
-                    itemBuilder: (context, index) {
-                      final card = cards[index];
-                      final isSelected = _selectedIndices.contains(index);
-                      return _DraftCardItem(
-                        flashcard: card,
-                        index: index,
-                        isSelected: isSelected,
-                        onToggle: () => _toggleCard(index),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-      bottomNavigationBar: cards.isNotEmpty
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SizedBox(
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _selectedIndices.isEmpty || _isSaving
-                        ? null
-                        : _addSelectedCards,
-                    icon: _isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.add_circle_outline),
-                    label: Text(
-                      l10n.addSelectedCards(_selectedIndices.length),
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+        bottomNavigationBar: cards.isNotEmpty
+            ? SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: _selectedIndices.isEmpty || _isSaving
+                          ? null
+                          : _addSelectedCards,
+                      icon: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.add_circle_outline),
+                      label: Text(
+                        l10n.addSelectedCards(_selectedIndices.length),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            )
-          : null,
+              )
+            : null,
+      ),
     );
   }
 }

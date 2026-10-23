@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:math';
@@ -25,6 +26,7 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
   late List<String> _options;
   int? _selectedIndex;
   bool _hasAnswered = false;
+  Timer? _answerTimer;
 
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
   void didUpdateWidget(MultipleChoiceCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.card.id != widget.card.id) {
+      _answerTimer?.cancel();
       _generateOptions();
       _selectedIndex = null;
       _hasAnswered = false;
@@ -44,11 +47,12 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
 
   void _generateOptions() {
     final correctBack = widget.card.back;
-    final otherCards = widget.allCards.where((c) => c.id != widget.card.id).toList();
+    final otherCards =
+        widget.allCards.where((c) => c.id != widget.card.id).toList();
     otherCards.shuffle(Random());
 
     final distractors = otherCards.take(3).map((c) => c.back).toSet().toList();
-    
+
     // Fill up to 3 distractors if there aren't enough cards
     int counter = 1;
     while (distractors.length < 3) {
@@ -69,18 +73,26 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
     });
 
     final isCorrect = _options[index] == widget.card.back;
-    
+
     // Slight delay to show the color change before moving on
-    Future.delayed(const Duration(milliseconds: 600), () {
+    final onAnswerSelected = widget.onAnswerSelected;
+    _answerTimer = Timer(const Duration(milliseconds: 600), () {
       if (mounted) {
-        widget.onAnswerSelected(isCorrect);
+        onAnswerSelected(isCorrect);
       }
     });
   }
 
   @override
+  void dispose() {
+    _answerTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isDesktop = kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+    final isDesktop =
+        kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux;
     final double questionFontSize = isDesktop ? 120.0 : 64.0;
     final double optionFontSize = isDesktop ? 22.0 : 16.0;
     final double optionNumberSize = isDesktop ? 20.0 : 14.0;
@@ -131,23 +143,31 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
                       ];
                       final optionColor = baseColors[index % baseColors.length];
 
-                      Color backgroundColor = optionColor.withValues(alpha: 0.1);
+                      Color backgroundColor =
+                          optionColor.withValues(alpha: 0.1);
                       Color textColor = Theme.of(context).colorScheme.onSurface;
                       Color borderColor = optionColor.withValues(alpha: 0.3);
 
                       if (_hasAnswered) {
                         if (text == widget.card.back) {
-                          backgroundColor = AppColors.success.withValues(alpha: 0.2);
+                          backgroundColor =
+                              AppColors.success.withValues(alpha: 0.2);
                           borderColor = AppColors.success;
                           textColor = AppColors.success;
                         } else if (index == _selectedIndex) {
-                          backgroundColor = AppColors.error.withValues(alpha: 0.2);
+                          backgroundColor =
+                              AppColors.error.withValues(alpha: 0.2);
                           borderColor = AppColors.error;
                           textColor = AppColors.error;
                         } else {
                           backgroundColor = Colors.transparent;
-                          borderColor = Theme.of(context).dividerColor.withValues(alpha: 0.5);
-                          textColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
+                          borderColor = Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.5);
+                          textColor = Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.5);
                         }
                       }
 
@@ -171,9 +191,15 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
                                     width: optionNumberBoxSize,
                                     height: optionNumberBoxSize,
                                     decoration: BoxDecoration(
-                                      color: _hasAnswered ? Colors.transparent : optionColor.withValues(alpha: 0.2),
+                                      color: _hasAnswered
+                                          ? Colors.transparent
+                                          : optionColor.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
-                                      border: _hasAnswered ? null : Border.all(color: optionColor.withValues(alpha: 0.5)),
+                                      border: _hasAnswered
+                                          ? null
+                                          : Border.all(
+                                              color: optionColor.withValues(
+                                                  alpha: 0.5)),
                                     ),
                                     child: Center(
                                       child: Text(
@@ -181,7 +207,9 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
                                         style: TextStyle(
                                           fontSize: optionNumberSize,
                                           fontWeight: FontWeight.bold,
-                                          color: _hasAnswered ? textColor : optionColor,
+                                          color: _hasAnswered
+                                              ? textColor
+                                              : optionColor,
                                         ),
                                       ),
                                     ),
@@ -193,9 +221,11 @@ class _MultipleChoiceCardState extends State<MultipleChoiceCard> {
                                       style: TextStyle(
                                         fontSize: optionFontSize,
                                         color: textColor,
-                                        fontWeight: _hasAnswered && (text == widget.card.back || index == _selectedIndex) 
-                                          ? FontWeight.bold 
-                                          : FontWeight.w500,
+                                        fontWeight: _hasAnswered &&
+                                                (text == widget.card.back ||
+                                                    index == _selectedIndex)
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),

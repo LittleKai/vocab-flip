@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:file_picker/file_picker.dart';
 import '../models/flashcard.dart';
 import '../models/deck.dart';
+import 'image_service.dart';
 
 /// Exception thrown when the Excel file is in use by another process
 class ExcelFileInUseException implements Exception {
@@ -434,6 +435,11 @@ class ExcelService {
           final tagsStr = tagsCol != null ? _getCellValue(row, tagsCol) : null;
           final imageUrl = imageUrlCol != null ? _getCellValue(row, imageUrlCol) : null;
 
+          // A spreadsheet is untrusted: local files must be chosen through the image picker.
+          if (imageUrl != null && imageUrl.isNotEmpty && !ImageService().isValidImageUrl(imageUrl)) {
+            errors.add('Row ${rowIndex + 1}: Image must be an HTTP(S) URL / Ảnh phải là URL HTTP(S)');
+            continue;
+          }
           // Parse tags
           final tags = tagsStr?.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
 

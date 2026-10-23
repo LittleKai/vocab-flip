@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-
 import '../../data/api/api_client.dart';
 import '../../data/auth/alpha_auth_session.dart';
 import '../../data/local/preferences/app_preferences.dart';
@@ -8,19 +8,22 @@ import '../../data/models/user_profile.dart';
 import '../../data/services/image_service.dart';
 import '../../data/remote/mongo/vocab_api_helpers.dart';
 
-/// Provider for managing user profile state.
 class ProfileProvider extends ChangeNotifier {
   final AppPreferences _preferences;
   final ImageService _imageService = ImageService();
   final ApiClient _apiClient = ApiClient();
   final AlphaAuthSession _authSession = AlphaAuthSession();
-
   UserProfile _profile = const UserProfile();
+  String? _owner;
+  int _generation = 0;
   bool _isLoading = false;
 
   ProfileProvider({required AppPreferences preferences})
       : _preferences = preferences {
+    _owner = _authSession.userId;
     _loadProfile();
+    _authSession.addListener(_accountChanged);
+    if (_owner != null) loadFromRemote();
   }
 
   UserProfile get profile => _profile;
@@ -33,249 +36,175 @@ class ProfileProvider extends ChangeNotifier {
   bool get hasCustomAvatar => _profile.hasCustomAvatar;
   String? get bio => _profile.bio;
   bool get isCustomized => _profile.isCustomized;
-
   String getDisplayName(String? fallback) => _profile.getDisplayName(fallback);
 
   void _loadProfile() {
-    final gender = Gender.values.firstWhere(
-      (g) => g.name == _preferences.profileGender,
-      orElse: () => Gender.preferNotToSay,
-    );
+    _profile = const UserProfile();
+    final json = _preferences.profileJsonFor(_owner);
+    if (json == null) return;
+    try {
+      _profile = UserProfile.fromJson(
+          Map<String, dynamic>.from(jsonDecode(json) as Map));
+    } catch (_) {/* A damaged cache cannot become another account's profile. */}
+  }
 
-    _profile = UserProfile(
-      nickname: _preferences.profileNickname,
-      gender: gender,
-      avatarIndex: _preferences.profileAvatarIndex,
-      customAvatarUrl: _preferences.profileCustomAvatarPath,
-      bio: _preferences.profileBio,
-      updatedAt: _preferences.profileUpdatedAt,
-    );
+  void _accountChanged() {
+    if (_owner == _authSession.userId) return;
+    ++_generation;
+    _owner = _authSession.userId;
+    _isLoading = false;
+    _loadProfile();
+    notifyListeners();
+    if (_owner != null) loadFromRemote();
+  }
+
+  bool _current(int generation) => generation == _generation;
+
+  Future<void> _save(UserProfile profile) async {
+    final owner = _owner;
+    final generation = ++_generation;
+    final session = _apiClient.sessionVersion;
+    // One snapshot write targets the captured account even if storage yields.
+    await _preferences.setProfileJsonFor(owner, jsonEncode(profile.toJson()));
+    if (!_current(generation)) return;
+    _profile = profile;
+    _isLoading = false;
+    notifyListeners();
+    await _syncToRemote(profile, owner, generation, session);
   }
 
   Future<String?> pickAvatarImage() async {
-    final savedPath = await _imageService.pickAndSaveImage(maxWidth: 300, useB2: true);
-    if (savedPath != null) {
-      await setCustomAvatarPath(savedPath);
-    }
-    return savedPath;
+    final generation = _generation;
+    final saved =
+        await _imageService.pickAndSaveImage(maxWidth: 300, useB2: true);
+    if (!_current(generation)) return null;
+    if (saved != null) await setCustomAvatarPath(saved);
+    return saved;
   }
 
-  Future<void> setCustomAvatarPath(String? path) async {
-    if (_profile.customAvatarUrl != null && _profile.customAvatarUrl != path) {
-      await _imageService.deleteImage(_profile.customAvatarUrl!);
-    }
+  Future<void> setCustomAvatarPath(String? path) => _save(UserProfile(
+        nickname: nickname,
+        gender: gender,
+        avatarIndex: avatarIndex,
+        customAvatarUrl: path,
+        bio: bio,
+        updatedAt: DateTime.now(),
+      ));
+  Future<void> removeCustomAvatar() => setCustomAvatarPath(null);
+  Future<void> setNickname(String? value) => _save(UserProfile(
+        nickname: value,
+        gender: gender,
+        avatarIndex: avatarIndex,
+        customAvatarUrl: customAvatarPath,
+        bio: bio,
+        updatedAt: DateTime.now(),
+      ));
+  Future<void> setGender(Gender value) => updateProfile(gender: value);
+  Future<void> setAvatarIndex(int value) => updateProfile(avatarIndex: value);
+  Future<void> setBio(String? value) => _save(UserProfile(
+        nickname: nickname,
+        gender: gender,
+        avatarIndex: avatarIndex,
+        customAvatarUrl: customAvatarPath,
+        bio: value,
+        updatedAt: DateTime.now(),
+      ));
 
-    await _preferences.setProfileCustomAvatarPath(path);
-    final now = DateTime.now();
-    _profile = _profile.copyWith(customAvatarUrl: path, updatedAt: now);
-    await _preferences.setProfileUpdatedAt(now);
-    notifyListeners();
-    _syncToRemote();
-  }
+  Future<void> updateProfile(
+          {String? nickname, Gender? gender, int? avatarIndex, String? bio}) =>
+      _save(UserProfile(
+        nickname: nickname == null
+            ? this.nickname
+            : (nickname.isEmpty ? null : nickname),
+        gender: gender ?? this.gender,
+        avatarIndex: avatarIndex ?? this.avatarIndex,
+        customAvatarUrl: customAvatarPath,
+        bio: bio == null ? this.bio : (bio.isEmpty ? null : bio),
+        updatedAt: DateTime.now(),
+      ));
 
-  Future<void> removeCustomAvatar() async {
-    if (_profile.customAvatarUrl != null) {
-      await _imageService.deleteImage(_profile.customAvatarUrl!);
-    }
-    await _preferences.setProfileCustomAvatarPath(null);
-    await _preferences.setProfileCloudAvatarUrl(null);
-    final now = DateTime.now();
-    _profile = UserProfile(
-      nickname: _profile.nickname,
-      gender: _profile.gender,
-      avatarIndex: _profile.avatarIndex,
-      customAvatarUrl: null,
-      bio: _profile.bio,
-      updatedAt: now,
-    );
-    await _preferences.setProfileUpdatedAt(now);
-    notifyListeners();
-    _syncToRemote();
-  }
+  Future<void> resetProfile() => _save(UserProfile(updatedAt: DateTime.now()));
 
-  Future<void> setNickname(String? value) async {
-    await _preferences.setProfileNickname(value);
-    final now = DateTime.now();
-    _profile = _profile.copyWith(nickname: value, updatedAt: now);
-    await _preferences.setProfileUpdatedAt(now);
-    notifyListeners();
-    _syncToRemote();
-  }
-
-  Future<void> setGender(Gender value) async {
-    await _preferences.setProfileGender(value.name);
-    final now = DateTime.now();
-    _profile = _profile.copyWith(gender: value, updatedAt: now);
-    await _preferences.setProfileUpdatedAt(now);
-    notifyListeners();
-    _syncToRemote();
-  }
-
-  Future<void> setAvatarIndex(int value) async {
-    await _preferences.setProfileAvatarIndex(value);
-    final now = DateTime.now();
-    _profile = _profile.copyWith(avatarIndex: value, updatedAt: now);
-    await _preferences.setProfileUpdatedAt(now);
-    notifyListeners();
-    _syncToRemote();
-  }
-
-  Future<void> setBio(String? value) async {
-    await _preferences.setProfileBio(value);
-    final now = DateTime.now();
-    _profile = _profile.copyWith(bio: value, updatedAt: now);
-    await _preferences.setProfileUpdatedAt(now);
-    notifyListeners();
-    _syncToRemote();
-  }
-
-  Future<void> updateProfile({
-    String? nickname,
-    Gender? gender,
-    int? avatarIndex,
-    String? bio,
-  }) async {
-    _isLoading = true;
-    notifyListeners();
-
+  Future<void> _syncToRemote(
+      UserProfile profile, String? owner, int generation, int session) async {
+    if (owner == null || !_current(generation)) return;
     try {
-      if (nickname != null) {
-        await _preferences.setProfileNickname(nickname.isEmpty ? null : nickname);
-      }
-      if (gender != null) {
-        await _preferences.setProfileGender(gender.name);
-      }
-      if (avatarIndex != null) {
-        await _preferences.setProfileAvatarIndex(avatarIndex);
-      }
-      if (bio != null) {
-        await _preferences.setProfileBio(bio.isEmpty ? null : bio);
-      }
-
-      final now = DateTime.now();
-      await _preferences.setProfileUpdatedAt(now);
-      _profile = UserProfile(
-        nickname: nickname ?? _profile.nickname,
-        gender: gender ?? _profile.gender,
-        avatarIndex: avatarIndex ?? _profile.avatarIndex,
-        customAvatarUrl: _profile.customAvatarUrl,
-        bio: bio ?? _profile.bio,
-        updatedAt: now,
-      );
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-
-    _syncToRemote();
-  }
-
-  Future<void> resetProfile() async {
-    if (_profile.customAvatarUrl != null) {
-      await _imageService.deleteImage(_profile.customAvatarUrl!);
-    }
-    await _preferences.setProfileNickname(null);
-    await _preferences.setProfileGender(Gender.preferNotToSay.name);
-    await _preferences.setProfileAvatarIndex(0);
-    await _preferences.setProfileCustomAvatarPath(null);
-    await _preferences.setProfileCloudAvatarUrl(null);
-    await _preferences.setProfileBio(null);
-    await _preferences.setProfileUpdatedAt(DateTime.now());
-
-    _profile = const UserProfile();
-    notifyListeners();
-    _syncToRemote();
-  }
-
-  Future<void> _syncToRemote() async {
-    if (!_authSession.isAuthenticated) return;
-
-    try {
-      await _apiClient.dio.put('/vocab/profile', data: {
-        'nickname': _profile.nickname,
-        'gender': _profile.gender.name,
-        'avatar_index': _profile.avatarIndex,
-        'avatar_url': _profile.customAvatarUrl,
-        'bio': _profile.bio,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      });
-    } catch (e) {
-      debugPrint('ProfileProvider: remote profile sync error: $e');
+      await _apiClient.dio.put('/vocab/profile',
+          data: {
+            ...profile.toJson(),
+            'avatar_url': profile.customAvatarUrl,
+          'updated_at': profile.updatedAt?.toUtc().toIso8601String(),
+          },
+          options: Options(
+              extra: {'syncOwnerUserId': owner, 'sessionVersion': session}));
+    } catch (_) {
+      debugPrint('Profile sync unavailable; account cache retained.');
     }
   }
 
   Future<void> loadFromRemote() async {
-    if (!_authSession.isAuthenticated) return;
-
+    final owner = _owner;
+    if (owner == null) return;
+    final generation = ++_generation;
+    final session = _apiClient.sessionVersion;
+    _isLoading = true;
+    notifyListeners();
     try {
-      final response = await _apiClient.dio.get('/vocab/profile');
+      final response = await _apiClient.dio.get('/vocab/profile',
+          options: Options(extra: {
+            'syncOwnerUserId': owner,
+            'sessionVersion': session,
+          }));
+      if (!_current(generation)) return;
       final data = unwrapApiMap(response.data);
       if (data == null) {
-        _syncToRemote();
+        await _syncToRemote(_profile, owner, generation, session);
         return;
       }
-
-      final remoteProfile = _profileFromApi(data);
-      final localUpdatedAt = _profile.updatedAt;
-      final remoteUpdatedAt = remoteProfile.updatedAt;
-
-      if (remoteUpdatedAt != null &&
-          (localUpdatedAt == null || remoteUpdatedAt.isAfter(localUpdatedAt))) {
-        await _preferences.setProfileNickname(remoteProfile.nickname);
-        await _preferences.setProfileGender(remoteProfile.gender.name);
-        await _preferences.setProfileAvatarIndex(remoteProfile.avatarIndex);
-        await _preferences.setProfileCustomAvatarPath(remoteProfile.customAvatarUrl);
-        await _preferences.setProfileCloudAvatarUrl(remoteProfile.customAvatarUrl);
-        await _preferences.setProfileBio(remoteProfile.bio);
-        await _preferences.setProfileUpdatedAt(remoteUpdatedAt);
-        _loadProfile();
-        notifyListeners();
+      final remote = UserProfile.fromJson({
+        ...data,
+        'custom_avatar_url': data['avatar_url'] ?? data['custom_avatar_url'],
+      });
+      if (_profile.updatedAt == null ||
+          (remote.updatedAt != null &&
+              remote.updatedAt!.isAfter(_profile.updatedAt!))) {
+        await _preferences.setProfileJsonFor(
+            owner, jsonEncode(remote.toJson()));
+        if (!_current(generation)) return;
+        _profile = remote;
       } else {
-        _syncToRemote();
+        await _syncToRemote(_profile, owner, generation, session);
       }
-    } catch (e) {
-      debugPrint('ProfileProvider: load remote profile error: $e');
+    } catch (_) {
+      debugPrint('Profile load unavailable; account cache retained.');
+    } finally {
+      if (_current(generation)) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<String?> checkNicknameAvailability(String nickname) async {
     if (nickname.trim().isEmpty) return null;
-
+    final generation = _generation;
     try {
       final response = await _apiClient.dio.get(
-        '/vocab/profiles/check-nickname',
-        queryParameters: {'nickname': nickname.trim()},
-      );
+          '/vocab/profiles/check-nickname',
+          queryParameters: {'nickname': nickname.trim()});
+      if (!_current(generation)) return null;
       final data = unwrapApiMap(response.data);
       final userId = data?['user_id']?.toString() ?? data?['id']?.toString();
-      if (userId != null && userId != _authSession.userId) {
-        return userId;
-      }
-      return null;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) return null;
-      debugPrint('ProfileProvider: checkNicknameAvailability error: $e');
-      return null;
-    } catch (e) {
-      debugPrint('ProfileProvider: checkNicknameAvailability error: $e');
+      return userId != _owner ? userId : null;
+    } catch (_) {
       return null;
     }
   }
 
-  UserProfile _profileFromApi(Map<String, dynamic> data) {
-    return UserProfile(
-      nickname: data['nickname'] as String?,
-      gender: Gender.values.firstWhere(
-        (g) => g.name == data['gender'],
-        orElse: () => Gender.preferNotToSay,
-      ),
-      avatarIndex: data['avatar_index'] as int? ?? 0,
-      customAvatarUrl: data['avatar_url'] as String? ??
-          data['custom_avatar_url'] as String?,
-      bio: data['bio'] as String?,
-      updatedAt: data['updated_at'] != null
-          ? DateTime.tryParse(data['updated_at'].toString())
-          : null,
-    );
+  @override
+  void dispose() {
+    ++_generation;
+    _authSession.removeListener(_accountChanged);
+    super.dispose();
   }
 }

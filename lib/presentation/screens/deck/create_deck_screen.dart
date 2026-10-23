@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
@@ -10,6 +11,7 @@ import '../../../data/models/deck.dart';
 import '../../../data/services/image_service.dart';
 import '../../providers/deck_provider.dart';
 import '../../widgets/library/tag_input.dart';
+import '../../widgets/common/safe_network_image.dart';
 
 class CreateDeckScreen extends StatefulWidget {
   final Deck? deck;
@@ -20,7 +22,8 @@ class CreateDeckScreen extends StatefulWidget {
   State<CreateDeckScreen> createState() => _CreateDeckScreenState();
 }
 
-class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerProviderStateMixin {
+class _CreateDeckScreenState extends State<CreateDeckScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -31,6 +34,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   bool _isLoading = false;
   bool _showBackFirst = false;
   String? _imagePath;
+  final Set<String> _unsavedImages = {};
 
   // Card structure configuration
   List<CardFieldType> _frontFields = List.from(Deck.defaultFrontFields);
@@ -66,6 +70,9 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
 
   @override
   void dispose() {
+    for (final path in _unsavedImages) {
+      _imageService.deleteImage(path);
+    }
     _nameController.dispose();
     _descriptionController.dispose();
     _tabController.dispose();
@@ -76,45 +83,51 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? l10n.editDeck : l10n.createDeck),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(
-              icon: const Icon(Icons.info_outline),
-              text: l10n.basicInfo,
-            ),
-            Tab(
-              icon: const Icon(Icons.dashboard_customize),
-              text: l10n.cardStructure,
-            ),
-          ],
+    return PopScope(
+      canPop: !_isLoading,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_isEditing ? l10n.editDeck : l10n.createDeck),
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(
+                icon: const Icon(Icons.info_outline),
+                text: l10n.basicInfo,
+              ),
+              Tab(
+                icon: const Icon(Icons.dashboard_customize),
+                text: l10n.cardStructure,
+              ),
+            ],
+          ),
         ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildBasicInfoTab(l10n),
-            _buildCardStructureTab(l10n),
-          ],
+        body: AbsorbPointer(
+          absorbing: _isLoading,
+          child: Form(
+            key: _formKey,
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildBasicInfoTab(l10n),
+                _buildCardStructureTab(l10n),
+              ],
+            ),
+          ),
         ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _submit,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(_isEditing ? l10n.updateDeck : l10n.createDeck),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _submit,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(_isEditing ? l10n.updateDeck : l10n.createDeck),
+            ),
           ),
         ),
       ),
@@ -131,7 +144,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_imagePath != null && File(_imagePath!).existsSync()) ...[
+            if (_imagePath != null) ...[
               _buildSquareImagePicker(l10n),
               const SizedBox(width: 12),
             ],
@@ -147,7 +160,8 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
                       prefixIcon: const Icon(Icons.folder),
                       suffixIcon: _imagePath == null
                           ? IconButton(
-                              icon: const Icon(Icons.add_photo_alternate_outlined),
+                              icon: const Icon(
+                                  Icons.add_photo_alternate_outlined),
                               tooltip: l10n.image,
                               onPressed: _pickImage,
                             )
@@ -209,7 +223,9 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
                           // Clear category if it's not valid for the new language
                           if (_category != null) {
                             final cat = Category.getById(_category!);
-                            if (cat != null && cat.language != null && cat.language != lang.code) {
+                            if (cat != null &&
+                                cat.language != null &&
+                                cat.language != lang.code) {
                               _category = null;
                             }
                           }
@@ -337,7 +353,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   Widget _buildSquareImagePicker(AppLocalizations l10n) {
     const double size = 100;
 
-    if (_imagePath != null && File(_imagePath!).existsSync()) {
+    if (_imagePath != null) {
       return SizedBox(
         width: size,
         height: size,
@@ -345,12 +361,22 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                File(_imagePath!),
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-              ),
+              child: _imageService.isValidImageUrl(_imagePath!)
+                  ? SafeNetworkImage(
+                      imageUrl: _imagePath!,
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.broken_image))
+                  : !kIsWeb && File(_imagePath!).existsSync()
+                      ? Image.file(
+                          File(_imagePath!),
+                          width: size,
+                          height: size,
+                          fit: BoxFit.cover,
+                        )
+                      : const Icon(Icons.broken_image),
             ),
             Positioned(
               bottom: 0,
@@ -359,7 +385,8 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
               child: Container(
                 decoration: const BoxDecoration(
                   color: Colors.black45,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(12)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -401,7 +428,8 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_outlined, size: 28, color: Colors.grey.shade400),
+            Icon(Icons.add_photo_alternate_outlined,
+                size: 28, color: Colors.grey.shade400),
             const SizedBox(height: 4),
             Text(
               l10n.image,
@@ -414,8 +442,15 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   }
 
   Future<void> _pickImage() async {
-    final path = await _imageService.pickAndSaveImage(maxWidth: 500, useB2: false);
+    if (_isLoading) return;
+    final path =
+        await _imageService.pickAndSaveImage(maxWidth: 500, useB2: false);
     if (path != null) {
+      if (!mounted || _isLoading) {
+        await _imageService.deleteImage(path);
+        return;
+      }
+      _unsavedImages.add(path);
       setState(() => _imagePath = path);
     }
   }
@@ -646,6 +681,7 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
   }
 
   Future<void> _submit() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) {
       // Switch to basic info tab if validation fails
       _tabController.animateTo(0);
@@ -693,27 +729,27 @@ class _CreateDeckScreenState extends State<CreateDeckScreen> with SingleTickerPr
         await provider.createDeck(newDeck);
       }
 
-      if (provider.error != null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(provider.error!),
-              backgroundColor: Colors.red,
-            ),
-          );
-          provider.clearError();
-        }
-        return;
+      // A returned write has committed, even if the following list refresh failed.
+      _unsavedImages.remove(_imagePath);
+      final oldImage = widget.deck?.imagePath;
+      if (oldImage != null && oldImage != _imagePath) {
+        await _imageService.deleteImage(oldImage);
       }
 
       if (mounted) {
-        Navigator.pop(context);
+        if (provider.error != null) {
+          final l10n = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('${l10n.success}. ${l10n.error}: ${provider.error}'),
+          ));
+        }
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('${AppLocalizations.of(context)!.error}: $e'),
             backgroundColor: Colors.red,
           ),
         );

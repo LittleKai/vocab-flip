@@ -67,6 +67,7 @@ class FlashcardProvider extends ChangeNotifier {
   }
 
   Future<void> createFlashcard(Flashcard flashcard) async {
+    _error = null;
     try {
       await _repository.createFlashcard(flashcard);
       if (_currentDeckId != null) {
@@ -75,10 +76,12 @@ class FlashcardProvider extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
+      rethrow;
     }
   }
 
   Future<void> updateFlashcard(Flashcard flashcard) async {
+    _error = null;
     try {
       await _repository.updateFlashcard(flashcard);
       if (_currentDeckId != null) {
@@ -86,14 +89,17 @@ class FlashcardProvider extends ChangeNotifier {
       }
       if (_selectedFlashcard?.id == flashcard.id) {
         _selectedFlashcard = flashcard;
+        notifyListeners();
       }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
+      rethrow;
     }
   }
 
   Future<void> deleteFlashcard(String id) async {
+    _error = null;
     try {
       await _repository.deleteFlashcard(id);
       if (_selectedFlashcard?.id == id) {
@@ -105,6 +111,7 @@ class FlashcardProvider extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
+      rethrow;
     }
   }
 

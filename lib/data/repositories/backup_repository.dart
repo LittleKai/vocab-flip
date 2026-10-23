@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../models/backup_metadata.dart';
+import '../models/deck.dart';
+import '../api/api_client.dart';
+import '../auth/alpha_auth_session.dart';
 import '../services/google_drive_service.dart';
 import 'deck_repository.dart';
 import '../local/database/flashcard_dao.dart';
@@ -122,7 +126,8 @@ class BackupRepository {
         // Get metadata from file
         final metadata = await _driveService.getBackupMetadata(file.id);
         if (metadata != null) {
-          backups.add(BackupMetadata.fromJson(metadata, fileId: file.id, size: file.size));
+          backups.add(BackupMetadata.fromJson(metadata,
+              fileId: file.id, size: file.size));
         } else {
           // Fallback to basic info from file
           backups.add(BackupMetadata(
@@ -161,6 +166,15 @@ class BackupRepository {
     Future<RestoreMode?> Function()? onConflict,
     void Function(String status, double progress)? onProgress,
   }) async {
+    final owner = AlphaAuthSession().userId;
+    final version = ApiClient().sessionVersion;
+    void checkSession() {
+      if (owner != AlphaAuthSession().userId ||
+          version != ApiClient().sessionVersion) {
+        throw StateError('Account changed during restore');
+      }
+    }
+
     if (!_driveService.isConnected) {
       throw Exception('Not connected to Google Drive');
     }
@@ -169,6 +183,7 @@ class BackupRepository {
 
     // Download backup data
     final backupData = await _driveService.downloadBackup(backupId);
+    checkSession();
     if (backupData == null) {
       throw Exception('Failed to download backup');
     }
@@ -181,7 +196,20 @@ class BackupRepository {
       throw Exception('Invalid backup format');
     }
 
-    final decksList = data['decks'] as List<dynamic>? ?? [];
+    final decksList = jsonDecode(jsonEncode(data['decks'])) as List<dynamic>;
+    final ids = <String>{};
+    final cardIds = <String>{};
+    for (final value in decksList) {
+      final deckData = value as Map<String, dynamic>;
+      final deck = Deck.fromJson(deckData);
+      deck.toMap();
+      for (final card in DeckRepository.parseImportCards(deckData, deck.id)) {
+        if (!cardIds.add(card.id)) {
+          throw const FormatException('Duplicate card IDs across decks');
+        }
+      }
+      if (!ids.add(deck.id)) throw const FormatException('Duplicate deck IDs');
+    }
     if (decksList.isEmpty) {
       return const RestoreResult(
         success: true,
@@ -202,9 +230,11 @@ class BackupRepository {
       }
     }
 
+    checkSession();
     RestoreMode mode = RestoreMode.merge;
     if (hasConflicts && onConflict != null) {
       final selectedMode = await onConflict();
+      checkSession();
       if (selectedMode == null) {
         // User cancelled the restore
         return const RestoreResult(
@@ -218,13 +248,24 @@ class BackupRepository {
       mode = selectedMode;
     }
 
+    if (kIsWeb && hasConflicts && mode == RestoreMode.replace) {
+      return const RestoreResult(
+          success: false,
+          decksRestored: 0,
+          cardsRestored: 0,
+          decksSkipped: 0,
+          error: 'Atomic replacement is unavailable on web');
+    }
+
     onProgress?.call('Restoring decks...', 0.3);
 
     int decksRestored = 0;
     int cardsRestored = 0;
     int decksSkipped = 0;
+    String? restoreError;
 
     for (int i = 0; i < decksList.length; i++) {
+      checkSession();
       try {
         final deckData = decksList[i] as Map<String, dynamic>;
         final importData = {
@@ -237,6 +278,7 @@ class BackupRepository {
         bool exists = false;
         if (deckId != null) {
           exists = await _deckRepository.deckExists(deckId);
+          checkSession();
         }
 
         if (exists && mode == RestoreMode.merge) {
@@ -248,7 +290,8 @@ class BackupRepository {
             final baseName = deckData['name'] as String? ?? 'Restored Deck';
             // We need a loop to find an available name (we'll just append timestamp or number)
             // The simplest approach without querying all decks is to append the current timestamp
-            deckData['name'] = '$baseName (${DateTime.now().millisecondsSinceEpoch.toString().substring(8)})';
+            deckData['name'] =
+                '$baseName (${DateTime.now().millisecondsSinceEpoch.toString().substring(8)})';
             // Also need to clear the ID so it's created as a new deck
             deckData.remove('id');
             // Remove deck ID from cards as well so they are inserted as new
@@ -261,12 +304,11 @@ class BackupRepository {
                 }
               }
             }
-          } else if (exists && mode == RestoreMode.replace && deckId != null) {
-            // Delete existing if replacing
-            await _deckRepository.deleteDeck(deckId);
           }
 
-          final deck = await _deckRepository.importDeck(importData);
+          final deck = await _deckRepository.importDeck(importData,
+              overwrite: exists && mode == RestoreMode.replace);
+          checkSession();
           decksRestored++;
 
           final cardCount = (deckData['cards'] as List?)?.length ?? 0;
@@ -275,21 +317,24 @@ class BackupRepository {
           debugPrint('Restored deck: ${deck.name} with $cardCount cards');
         }
       } catch (e) {
-        debugPrint('Error restoring deck: $e');
-        decksSkipped++;
+        checkSession();
+        restoreError = 'Failed to restore deck ${i + 1}';
+        break;
       }
 
       final progress = 0.3 + (0.7 * (i + 1) / decksList.length);
-      onProgress?.call('Restoring deck ${i + 1}/${decksList.length}...', progress);
+      onProgress?.call(
+          'Restoring deck ${i + 1}/${decksList.length}...', progress);
     }
 
     onProgress?.call('Complete!', 1.0);
 
     return RestoreResult(
-      success: true,
+      success: restoreError == null,
       decksRestored: decksRestored,
       cardsRestored: cardsRestored,
       decksSkipped: decksSkipped,
+      error: restoreError,
     );
   }
 
@@ -338,5 +383,6 @@ class RestoreResult {
   });
 
   @override
-  String toString() => 'RestoreResult(decks: $decksRestored, cards: $cardsRestored, skipped: $decksSkipped)';
+  String toString() =>
+      'RestoreResult(decks: $decksRestored, cards: $cardsRestored, skipped: $decksSkipped)';
 }

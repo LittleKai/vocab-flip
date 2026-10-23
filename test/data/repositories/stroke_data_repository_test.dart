@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:vocabflip/data/models/stroke_character.dart';
 import 'package:vocabflip/data/repositories/stroke_data_repository.dart';
 import 'package:vocabflip/data/local/database/stroke_data_dao.dart';
@@ -58,7 +61,21 @@ void main() {
 
   setUp(() {
     fakeDao = FakeStrokeDataDao();
-    repo = StrokeDataRepository(fakeDao);
+    repo = StrokeDataRepository(fakeDao, client: MockClient((request) async {
+      final character = request.url.pathSegments.last.replaceAll('.json', '');
+      if (character != '中' && character != '私') return http.Response('', 404);
+      return http.Response(
+          jsonEncode({
+            'strokes': ['M 0 0 L 100 100'],
+            'medians': [
+              [
+                [0, 0],
+                [100, 100]
+              ]
+            ],
+          }),
+          200);
+    }));
   });
 
   group('lookupCharacter', () {
@@ -117,7 +134,9 @@ void main() {
       expect(result, isNull);
     });
 
-    test('returns null when character not in any fallback locale and not on CDN', () async {
+    test(
+        'returns null when character not in any fallback locale and not on CDN',
+        () async {
       // Use a character that does not exist in Chinese/Japanese writing databases (like a basic English letter)
       final result = await repo.lookupCharacter('X', 'ja');
       expect(result, isNull);

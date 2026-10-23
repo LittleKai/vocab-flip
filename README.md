@@ -103,8 +103,8 @@ cd vocab-flip
 # 2. Get dependencies
 flutter pub get
 
-# 3. Setup environment variables (copy example and configure)
-cp .env.example .env
+# 3. Configure public client settings only
+cp .env.example assets/config.env
 
 # 4. Run the project in debug mode
 flutter run
@@ -124,6 +124,28 @@ flutter build apk --release
 # Build for Web (Embedded inside Alpha Studio)
 flutter build web --release --base-href "/vocab/"
 ```
+
+The app bundles only `assets/config.env`: `API_URL`, `GOOGLE_OAUTH_CLIENT_ID`,
+`CLOUDINARY_CLOUD_NAMES`, and `CLOUDINARY_UPLOAD_PRESETS`. These values are public.
+Keep operator credentials in the unbundled `.env` or backend environment; never
+copy that file into a release. Rotate credentials exposed by older bundles.
+
+Desktop Google Drive sign-in uses a loopback callback, state, and PKCE without
+a client secret. Google desktop OAuth registrations that require `client_secret`
+will reject this public-client exchange, even with PKCE. Such registrations cannot
+support the packaged desktop flow under the no-client-secret policy. Use Drive
+backup on Android/Web with the corresponding configured Google client, or use
+local export/import on desktop. Re-enabling desktop Drive for those registrations
+requires a separately approved server OAuth integration; no broker is included.
+Do not restore a bundled client secret as a workaround. Live Google sign-in must
+be verified with the operator's correct platform client before release.
+
+Alpha Studio SSO uses same-origin `alpha_studio_token` storage when opening the
+VocabFlip tab. Framed `AUTH_TOKEN` messages are accepted only from the same-origin
+parent. Logout removes the shell alias only if it still equals the departing
+VocabFlip token, preserving any newer shell session. Profiles use separate account
+cache snapshots; old unowned profile preferences are retained but never uploaded
+under a newly signed-in account.
 
 ---
 

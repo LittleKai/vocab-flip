@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_profile.dart';
+import '../../../data/auth/alpha_auth_session.dart';
+import '../../../data/api/api_client.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -36,10 +38,31 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
   String? _nicknameError;
   bool _isCheckingNickname = false;
   Timer? _nicknameDebounce;
+  late final String? _accountId;
+  late final int _sessionVersion;
+  bool _invalidated = false;
+
+  bool get _sameSession => !_invalidated &&
+      _accountId == AlphaAuthSession().userId &&
+      _sessionVersion == ApiClient().sessionVersion;
+
+  void _accountChanged() {
+    if (_sameSession || _invalidated || !mounted) return;
+    setState(() => _invalidated = true);
+    _nicknameDebounce?.cancel();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    _accountId = AlphaAuthSession().userId;
+    _sessionVersion = ApiClient().sessionVersion;
+    AlphaAuthSession().addListener(_accountChanged);
     final profile = context.read<ProfileProvider>().profile;
     _nicknameController = TextEditingController(text: profile.nickname ?? '');
     _bioController = TextEditingController(text: profile.bio ?? '');
@@ -49,6 +72,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
   @override
   void dispose() {
+    AlphaAuthSession().removeListener(_accountChanged);
     _nicknameDebounce?.cancel();
     _nicknameController.removeListener(_onNicknameChanged);
     _nicknameController.dispose();
@@ -57,6 +81,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
   }
 
   void _onNicknameChanged() {
+    if (!_sameSession) return;
     _nicknameDebounce?.cancel();
     final value = _nicknameController.text.trim();
     final currentNickname = context.read<ProfileProvider>().profile.nickname;
@@ -73,9 +98,10 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
     setState(() => _isCheckingNickname = true);
 
     _nicknameDebounce = Timer(const Duration(milliseconds: 500), () async {
+      if (!mounted || !_sameSession) return;
       final provider = context.read<ProfileProvider>();
       final takenBy = await provider.checkNicknameAvailability(value);
-      if (mounted && _nicknameController.text.trim() == value) {
+      if (mounted && _sameSession && _nicknameController.text.trim() == value) {
         setState(() {
           _isCheckingNickname = false;
           _nicknameError = takenBy != null
@@ -87,6 +113,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
   }
 
   Future<void> _pickAvatarImage() async {
+    if (!_sameSession) return;
     setState(() => _isPickingImage = true);
     try {
       await context.read<ProfileProvider>().pickAvatarImage();
@@ -98,10 +125,12 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
   }
 
   Future<void> _removeAvatar() async {
+    if (!_sameSession) return;
     await context.read<ProfileProvider>().removeCustomAvatar();
   }
 
   Future<void> _saveProfile() async {
+    if (!_sameSession) return;
     setState(() => _isSaving = true);
 
     try {
@@ -111,7 +140,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
         bio: _bioController.text.trim(),
       );
 
-      if (mounted) {
+      if (mounted && _sameSession) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)),
@@ -126,6 +155,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    if (_invalidated) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
     final isVi = Localizations.localeOf(context).languageCode == 'vi';
 
@@ -211,7 +241,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
-                    onPressed: _isSaving || _nicknameError != null || _isCheckingNickname
+                    onPressed: _invalidated || _isSaving || _nicknameError != null || _isCheckingNickname
                         ? null
                         : _saveProfile,
                     child: _isSaving

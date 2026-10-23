@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -29,6 +30,24 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
   bool _isReplaying = false;
   bool _showHint = false;
   final GlobalKey<HandwritingCanvasState> _canvasKey = GlobalKey();
+  Timer? _completionTimer;
+
+  @override
+  void didUpdateWidget(WritingPracticeCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.card.id != widget.card.id) {
+      _completionTimer?.cancel();
+      _isReplaying = false;
+      _showHint = false;
+      _canvasKey.currentState?.clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    _completionTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,27 +182,44 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
                                 : (points) async {
                                     final currentProvider =
                                         context.read<StrokePracticeProvider>();
+                                    final generation =
+                                        currentProvider.practiceGeneration;
+                                    final cardId = widget.card.id;
+                                    final onComplete = widget.onComplete;
                                     final res = await currentProvider
                                         .submitStroke(points);
-                                    if (mounted && !res.accepted) {
+                                    if (!mounted ||
+                                        generation !=
+                                            currentProvider
+                                                .practiceGeneration ||
+                                        widget.card.id != cardId) {
+                                      return;
+                                    }
+                                    if (!res.accepted) {
                                       HapticFeedback.heavyImpact()
                                           .catchError((_) {});
                                       _canvasKey.currentState?.clear();
-                                    } else if (mounted && res.accepted) {
+                                    } else {
                                       HapticFeedback.lightImpact()
                                           .catchError((_) {});
                                       // Accepted strokes are now reflected by the guide; clear only transient user ink.
                                       _canvasKey.currentState?.clear();
                                     }
 
-                                    if (mounted &&
-                                        currentProvider.isWordComplete) {
-                                      Future.delayed(
+                                    if (currentProvider.isWordComplete) {
+                                      final rating =
+                                          currentProvider.ratingForCompletion();
+                                      _completionTimer?.cancel();
+                                      _completionTimer = Timer(
                                           const Duration(milliseconds: 500),
                                           () {
-                                        if (mounted) {
-                                          widget.onComplete(currentProvider
-                                              .ratingForCompletion());
+                                        if (mounted &&
+                                            generation ==
+                                                currentProvider
+                                                    .practiceGeneration &&
+                                            widget.card.id == cardId &&
+                                            currentProvider.isWordComplete) {
+                                          onComplete(rating);
                                         }
                                       });
                                     }
@@ -218,6 +254,7 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
               children: [
                 IconButton(
                   onPressed: () {
+                    _completionTimer?.cancel();
                     provider.resetPractice();
                     _canvasKey.currentState?.clear();
                   },
@@ -266,8 +303,7 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
                               size: 18, color: AppColors.success),
                           const SizedBox(width: 8),
                           Text(l10n.gentle,
-                              style:
-                                  const TextStyle(color: AppColors.success)),
+                              style: const TextStyle(color: AppColors.success)),
                         ],
                       ),
                     ),
@@ -285,8 +321,7 @@ class _WritingPracticeCardState extends State<WritingPracticeCard> {
                               size: 18, color: AppColors.primary),
                           const SizedBox(width: 8),
                           Text(l10n.standardPractice,
-                              style:
-                                  const TextStyle(color: AppColors.primary)),
+                              style: const TextStyle(color: AppColors.primary)),
                         ],
                       ),
                     ),

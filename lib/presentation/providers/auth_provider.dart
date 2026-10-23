@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/api/api_client.dart';
+import '../../data/auth/alpha_auth_session.dart';
 
 enum AuthStatus {
   initial,
@@ -38,8 +39,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _handleUnauthorized() {
+    ++_loadVersion;
+    _authRepository.invalidatePending();
     if (_status != AuthStatus.unauthenticated) {
-      debugPrint('AuthProvider: Received unauthorized signal, logging out user.');
       _user = null;
       _status = AuthStatus.unauthenticated;
       _error = 'Session expired. Please log in again.';
@@ -52,26 +54,22 @@ class AuthProvider extends ChangeNotifier {
     _status = AuthStatus.loading;
     notifyListeners();
 
-    debugPrint('AuthProvider._init: initialToken=${initialToken != null ? "${initialToken.length} chars" : "null"}, kIsWeb=$kIsWeb');
-
     if (initialToken != null && initialToken.isNotEmpty) {
       await _authRepository.setToken(initialToken);
+      if (version != _loadVersion) return;
     } else if (kIsWeb) {
       // In the embedded web build the Alpha Studio shell sends the JWT via
       // postMessage after the iframe is ready. Avoid calling /auth/me before
       // that token arrives, otherwise the startup request logs a noisy 401.
-      debugPrint('AuthProvider._init: kIsWeb and no initialToken, setting unauthenticated');
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return;
     }
 
     // Check if token exists and fetch user profile
-    debugPrint('AuthProvider._init: calling getMe()...');
     final AppUser? me = await _authRepository.getMe();
     if (version != _loadVersion) return;
 
-    debugPrint('AuthProvider._init: getMe() returned ${me != null ? "user: ${me.email}" : "null"}');
     if (me != null) {
       _user = me;
       _status = AuthStatus.authenticated;
@@ -85,19 +83,16 @@ class AuthProvider extends ChangeNotifier {
   Future<void> applyToken(String token) async {
     if (token.isEmpty) return;
 
-    debugPrint('AuthProvider.applyToken: received token (${token.length} chars)');
     final wasAuthenticated = isAuthenticated;
     final version = ++_loadVersion;
 
     await _authRepository.setToken(token);
-    debugPrint('AuthProvider.applyToken: token stored, now calling getMe()...');
+    if (version != _loadVersion) return;
     final me = await _authRepository.getMe();
     if (version != _loadVersion) {
-      debugPrint('AuthProvider.applyToken: version mismatch, aborting');
       return;
     }
 
-    debugPrint('AuthProvider.applyToken: getMe() returned ${me != null ? "user: ${me.email}" : "null"}');
     if (me != null) {
       _user = me;
       _status = AuthStatus.authenticated;
@@ -108,23 +103,27 @@ class AuthProvider extends ChangeNotifier {
     } else {
       _user = null;
       _status = AuthStatus.unauthenticated;
-      debugPrint('AuthProvider.applyToken: getMe returned null => unauthenticated');
     }
 
     notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {
+    final version = ++_loadVersion;
     _status = AuthStatus.loading;
     _error = null;
     notifyListeners();
 
     final result = await _authRepository.login(email, password);
 
+    if (version != _loadVersion) return false;
     if (result['success'] == true) {
       final me =
           AppUser.fromAuthResponse(result) ?? await _authRepository.getMe();
+      if (version != _loadVersion) return false;
       if (me != null) {
+        AlphaAuthSession().setUser(
+            userId: me.id, email: me.email, displayName: me.displayName);
         _user = me;
         _status = AuthStatus.authenticated;
         onSignIn?.call();
@@ -140,16 +139,21 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> register(String email, String password, String name) async {
+    final version = ++_loadVersion;
     _status = AuthStatus.loading;
     _error = null;
     notifyListeners();
 
     final result = await _authRepository.register(email, password, name);
 
+    if (version != _loadVersion) return false;
     if (result['success'] == true) {
       final me =
           AppUser.fromAuthResponse(result) ?? await _authRepository.getMe();
+      if (version != _loadVersion) return false;
       if (me != null) {
+        AlphaAuthSession().setUser(
+            userId: me.id, email: me.email, displayName: me.displayName);
         _user = me;
         _status = AuthStatus.authenticated;
         onSignIn?.call();
@@ -190,15 +194,24 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    _status = AuthStatus.loading;
-    notifyListeners();
-
-    await _authRepository.logout();
-
+    ++_loadVersion;
+    _authRepository.invalidatePending();
+    // Update UI immediately; an offline or delayed revoke cannot restore it.
     _user = null;
     _status = AuthStatus.unauthenticated;
     _error = null;
+    AlphaAuthSession().clear();
+    final logout = _authRepository.logout();
     notifyListeners();
+    await logout;
+  }
+
+  @override
+  void dispose() {
+    ++_loadVersion;
+    _authRepository.invalidatePending();
+    ApiClient().onUnauthorized = null;
+    super.dispose();
   }
 
   void clearError() {

@@ -17,6 +17,7 @@ class DictionaryProvider extends ChangeNotifier {
   bool _fallbackToEnglish = true;
   bool _usedFallback = false;
   String? _fallbackSource;
+  int _lookupVersion = 0;
 
   DictionaryProvider({
     DictionaryRepository? repository,
@@ -27,7 +28,8 @@ class DictionaryProvider extends ChangeNotifier {
   }
 
   void _loadSavedSettings() {
-    _selectedLanguage = SupportedLanguage.fromCode(_prefs.dictionarySourceLanguage);
+    _selectedLanguage =
+        SupportedLanguage.fromCode(_prefs.dictionarySourceLanguage);
     _filterMode = _prefs.dictionaryFilterMode;
     _fetchMode = _prefs.dictionaryFetchMode;
     _fallbackToEnglish = _prefs.dictionaryFallbackToEnglish;
@@ -46,7 +48,7 @@ class DictionaryProvider extends ChangeNotifier {
   void setLanguage(SupportedLanguage language) {
     _selectedLanguage = language;
     _prefs.setDictionarySourceLanguage(language.code);
-    notifyListeners();
+    clearResults();
   }
 
   void setFilterMode(String mode) {
@@ -68,7 +70,12 @@ class DictionaryProvider extends ChangeNotifier {
   }
 
   Future<void> lookup(String word, {int limit = 10}) async {
+    final version = ++_lookupVersion;
+    _results = [];
+    _usedFallback = false;
+    _fallbackSource = null;
     if (word.trim().isEmpty) {
+      _isLoading = false;
       _error = 'Please enter a word';
       notifyListeners();
       return;
@@ -89,35 +96,43 @@ class DictionaryProvider extends ChangeNotifier {
         fetchMode: _fetchMode,
         limit: limit,
         onResult: (result) {
-          if (!_results.any((r) => r.dataSource == result.dataSource && r.word == result.word)) {
+          if (version != _lookupVersion) return;
+          if (!_results.any((r) =>
+              r.dataSource == result.dataSource && r.word == result.word)) {
             _results.add(result);
             // Re-sort results if necessary, or just rely on appending
             notifyListeners();
           }
         },
       );
-      
+      if (version != _lookupVersion) return;
+
       // Make sure we have the final set of results in case onResult missed something or duplicates were avoided
       for (final r in lookupResult.results) {
-        if (!_results.any((ext) => ext.dataSource == r.dataSource && ext.word == r.word)) {
+        if (!_results.any(
+            (ext) => ext.dataSource == r.dataSource && ext.word == r.word)) {
           _results.add(r);
         }
       }
-      
+
       _usedFallback = lookupResult.usedFallback;
       _fallbackSource = lookupResult.fallbackSource;
       if (_results.isEmpty) {
         _error = 'No results found for "$word"';
       }
     } catch (e) {
+      if (version != _lookupVersion) return;
       _error = 'Failed to lookup word: $e';
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (version == _lookupVersion) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   void clearResults() {
+    ++_lookupVersion;
     _results = [];
     _error = null;
     _usedFallback = false;
@@ -131,12 +146,20 @@ class DictionaryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
+  void dispose() {
+    ++_lookupVersion;
+    super.dispose();
+  }
+
   /// Search for Kanji suggestions based on hiragana/katakana input
-  Future<List<String>> searchKanjiSuggestions(String query, {int limit = 10}) async {
+  Future<List<String>> searchKanjiSuggestions(String query,
+      {int limit = 10}) async {
     if (query.trim().isEmpty) return [];
 
     try {
-      final results = await _repository.searchKanjiSuggestions(query.trim(), limit: limit);
+      final results =
+          await _repository.searchKanjiSuggestions(query.trim(), limit: limit);
       return results;
     } catch (e) {
       debugPrint('Kanji suggestion error: $e');

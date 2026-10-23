@@ -1,4 +1,6 @@
-class AlphaAuthSession {
+import 'package:flutter/foundation.dart';
+
+class AlphaAuthSession extends ChangeNotifier {
   static final AlphaAuthSession _instance = AlphaAuthSession._internal();
   factory AlphaAuthSession() => _instance;
   AlphaAuthSession._internal();
@@ -20,11 +22,13 @@ class AlphaAuthSession {
     _userId = userId.isNotEmpty ? userId : email;
     _email = email;
     _displayName = displayName;
+    notifyListeners();
   }
 
   void clear() {
     _userId = null;
     _email = null;
     _displayName = null;
+    notifyListeners();
   }
 }

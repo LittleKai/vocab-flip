@@ -460,20 +460,6 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
 
-              // Danger zone
-              _SettingsSection(
-                title: l10n.dangerZone,
-                color: AppColors.error,
-                children: [
-                  _SettingsTile(
-                    leading: const Icon(Icons.delete_forever, color: AppColors.error, size: 22),
-                    title: l10n.resetAllData,
-                    subtitle: l10n.deleteAllData,
-                    isDestructive: true,
-                    onTap: () => _confirmReset(context),
-                  ),
-                ],
-              ),
             ],
           );
         },
@@ -893,25 +879,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _confirmReset(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    showStandardDialog(
-      context: context,
-      title: l10n.resetConfirmTitle,
-      content: l10n.resetConfirmMessage,
-      isDestructive: true,
-      secondaryButtonText: l10n.cancel,
-      primaryButtonText: l10n.reset,
-      onPrimaryPressed: () {
-        // TODO: Implement reset
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.dataReset)),
-        );
-      },
-    );
-  }
-
   void _showDonateDialog(BuildContext context, AppLocalizations l10n) {
     showStandardDialog(
       context: context,
@@ -1123,12 +1090,10 @@ class SettingsScreen extends StatelessWidget {
 class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
-  final Color? color;
 
   const _SettingsSection({
     required this.title,
     required this.children,
-    this.color,
   });
 
   @override
@@ -1143,7 +1108,7 @@ class _SettingsSection extends StatelessWidget {
             child: Text(
               title.toUpperCase(),
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: color ?? AppColors.primary,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.2,
                   ),

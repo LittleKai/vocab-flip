@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -49,17 +48,13 @@ class VocabFlipApp extends StatefulWidget {
 class _VocabFlipAppState extends State<VocabFlipApp> {
   late ProfileProvider profileProvider;
   late AuthProvider authProvider;
+  late void Function() _disposeSso;
 
   @override
   void initState() {
     super.initState();
     profileProvider = ProfileProvider(preferences: widget.preferences);
-    authProvider = AuthProvider(initialToken: getStoredWebSsoToken())
-      ..onSignIn = () {
-        if (!kIsWeb) {
-          profileProvider.loadFromRemote();
-        }
-      };
+    authProvider = AuthProvider(initialToken: getStoredWebSsoToken());
 
     // Note: StrokeDataDao initializes asynchronously when first used.
     _strokeDataDao = StrokeDataDao();
@@ -72,10 +67,17 @@ class _VocabFlipAppState extends State<VocabFlipApp> {
   late StrokeDataRepository _strokeDataRepository;
 
   void _initWebSso() {
-    setupWebSsoListener(onTokenReceived: (token) async {
-      debugPrint('VocabFlipApp: Token received via SSO.');
+    _disposeSso = setupWebSsoListener(onTokenReceived: (token) async {
       await authProvider.applyToken(token);
     });
+  }
+
+  @override
+  void dispose() {
+    _disposeSso();
+    authProvider.dispose();
+    profileProvider.dispose();
+    super.dispose();
   }
 
   @override

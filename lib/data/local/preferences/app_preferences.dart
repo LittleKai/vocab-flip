@@ -300,6 +300,13 @@ class AppPreferences {
   Future<bool> setLibFilterSortBy(String value) =>
       _prefs.setString(_keyLibFilterSortBy, value);
 
+  // Legacy unowned keys are retained, but never adopted by an account.
+  String? profileJsonFor(String? userId) =>
+      _prefs.getString('profile_v2:${userId == null ? 'guest' : 'user:$userId'}');
+
+  Future<bool> setProfileJsonFor(String? userId, String json) =>
+      _prefs.setString('profile_v2:${userId == null ? 'guest' : 'user:$userId'}', json);
+
   // User profile - nickname
   String? get profileNickname => _prefs.getString(_keyProfileNickname);
   Future<bool> setProfileNickname(String? value) {

@@ -8,18 +8,25 @@ import '../../remote/mongo/mongo_private_deck_service.dart';
 class DeckDao {
   final AppDatabase _appDatabase;
   final MongoPrivateDeckService _mongoService;
+  final bool _isWeb;
 
-  DeckDao({AppDatabase? appDatabase, MongoPrivateDeckService? mongoService})
+  DeckDao(
+      {AppDatabase? appDatabase,
+      MongoPrivateDeckService? mongoService,
+      bool isWeb = kIsWeb})
       : _appDatabase = appDatabase ?? AppDatabase(),
+        _isWeb = isWeb,
         _mongoService = mongoService ?? MongoPrivateDeckService();
 
   Future<Database> get _db => _appDatabase.database;
 
   Future<int> insert(Deck deck) async {
-    if (kIsWeb) {
-      debugPrint('DeckDao.insert [WEB]: calling MongoService.createDeck for ${deck.name} (id=${deck.id})');
+    if (_isWeb) {
+      debugPrint(
+          'DeckDao.insert [WEB]: calling MongoService.createDeck for ${deck.name} (id=${deck.id})');
       final result = await _mongoService.createDeck(deck);
-      debugPrint('DeckDao.insert [WEB]: MongoService returned ${result != null ? result.name : "null"}');
+      debugPrint(
+          'DeckDao.insert [WEB]: MongoService returned ${result != null ? result.name : "null"}');
       return result != null ? 1 : 0;
     }
 
@@ -43,7 +50,7 @@ class DeckDao {
   }
 
   Future<int> update(Deck deck) async {
-    if (kIsWeb) {
+    if (_isWeb) {
       final result = await _mongoService.updateDeck(deck);
       return result != null ? 1 : 0;
     }
@@ -59,23 +66,15 @@ class DeckDao {
 
   /// Update only specific fields of a deck (safe partial update)
   Future<int> updateFields(String deckId, Map<String, dynamic> fields) async {
-    if (kIsWeb) {
+    if (_isWeb) {
       final deck = await getById(deckId);
       if (deck == null) return 0;
-      final updated = deck.copyWith(
-        name: fields['name'] as String?,
-        description: fields['description'] as String?,
-        sourceLanguage: fields['source_language'] as String?,
-        targetLanguage: fields['target_language'] as String?,
-        linkedPublicDeckId: fields.containsKey('linked_public_deck_id') ? fields['linked_public_deck_id'] as String? : deck.linkedPublicDeckId,
-        linkedVersion: fields.containsKey('linked_version') ? fields['linked_version'] as int? : deck.linkedVersion,
-        isPublished: fields.containsKey('is_published') ? (fields['is_published'] == 1 || fields['is_published'] == true) : deck.isPublished,
-        publishedDeckId: fields.containsKey('published_deck_id') ? fields['published_deck_id'] as String? : deck.publishedDeckId,
-        wasImported: fields.containsKey('was_imported') ? (fields['was_imported'] == 1 || fields['was_imported'] == true) : deck.wasImported,
-        showBackFirst: fields.containsKey('show_back_first') ? (fields['show_back_first'] == 1 || fields['show_back_first'] == true) : deck.showBackFirst,
-        category: fields.containsKey('category') ? fields['category'] as String? : deck.category,
-        imagePath: fields.containsKey('image_path') ? fields['image_path'] as String? : deck.imagePath,
-      );
+      final updated = Deck.fromMap({
+        ...deck.toMap(),
+        ...fields.map((key, value) =>
+            MapEntry(key, value is bool ? (value ? 1 : 0) : value)),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
       await _mongoService.updateDeck(updated);
       return 1;
     }
@@ -90,7 +89,7 @@ class DeckDao {
   }
 
   Future<int> delete(String id) async {
-    if (kIsWeb) {
+    if (_isWeb) {
       await _mongoService.deleteDeck(id);
       return 1;
     }
@@ -110,7 +109,7 @@ class DeckDao {
   }
 
   Future<Deck?> getById(String id) async {
-    if (kIsWeb) {
+    if (_isWeb) {
       return await _mongoService.getDeckById(id);
     }
 
@@ -134,10 +133,11 @@ class DeckDao {
   }
 
   Future<List<Deck>> getAll() async {
-    if (kIsWeb) {
+    if (_isWeb) {
       debugPrint('DeckDao.getAll [WEB]: calling MongoService.getAllDecks');
       final decks = await _mongoService.getAllDecks();
-      debugPrint('DeckDao.getAll [WEB]: MongoService returned ${decks.length} decks');
+      debugPrint(
+          'DeckDao.getAll [WEB]: MongoService returned ${decks.length} decks');
       return decks;
     }
 
@@ -203,7 +203,7 @@ class DeckDao {
   }
 
   Future<int> getCount() async {
-    if (kIsWeb) {
+    if (_isWeb) {
       final decks = await _mongoService.getAllDecks();
       return decks.length;
     }
@@ -216,7 +216,7 @@ class DeckDao {
   }
 
   Future<bool> exists(String id) async {
-    if (kIsWeb) {
+    if (_isWeb) {
       final deck = await _mongoService.getDeckById(id);
       return deck != null;
     }

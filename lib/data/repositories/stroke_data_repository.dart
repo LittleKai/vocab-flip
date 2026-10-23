@@ -12,11 +12,12 @@ import '../models/stroke_character.dart';
 /// - Other languages (en, vi, etc.) → `null` immediately
 class StrokeDataRepository {
   final StrokeDataDao _dao;
+  final http.Client? _client;
 
   // In-memory cache for online/web-fetched stroke characters to avoid redundant requests.
   final Map<String, StrokeCharacter> _onlineCache = {};
 
-  StrokeDataRepository(this._dao);
+  StrokeDataRepository(this._dao, {http.Client? client}) : _client = client;
 
   /// Returns ordered locale keys to try for a given source language.
   static List<String>? _localeFallbacks(String sourceLanguage) {
@@ -50,10 +51,12 @@ class StrokeDataRepository {
     if (!kIsWeb) {
       for (final locale in fallbacks) {
         try {
-          final result = await _dao.lookup(character: character, locale: locale);
+          final result =
+              await _dao.lookup(character: character, locale: locale);
           if (result != null) return result;
         } catch (e) {
-          debugPrint('[stroke_data_repository] DAO lookup failed for $character ($locale): $e');
+          debugPrint(
+              '[stroke_data_repository] DAO lookup failed for $character ($locale): $e');
         }
       }
     }
@@ -84,7 +87,9 @@ class StrokeDataRepository {
     // Try DB next (on native)
     if (!kIsWeb) {
       for (final locale in fallbacks) {
-        if (await _dao.exists(character: character, locale: locale)) return true;
+        if (await _dao.exists(character: character, locale: locale)) {
+          return true;
+        }
       }
     }
 
@@ -108,19 +113,24 @@ class StrokeDataRepository {
       // ja-kana characters are hiragana/katakana. Hanzi Writer JP database does not typically
       // contain kana, but we construct the URL just in case, or default to animCJK-like CDN if needed.
       if (locale == 'ja' || locale == 'ja-kana') {
-        url = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/$character.json';
+        url =
+            'https://cdn.jsdelivr.net/npm/hanzi-writer-data-jp@0/$character.json';
       } else {
-        url = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/$character.json';
+        url =
+            'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/$character.json';
       }
 
-      final response = await http.get(Uri.parse(url));
+      final uri = Uri.parse(url);
+      final response = await (_client?.get(uri) ?? http.get(uri));
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map<String, dynamic>) {
           final strokes = decoded['strokes'] as List<dynamic>?;
           final medians = decoded['medians'] as List<dynamic>?;
 
-          if (strokes != null && medians != null && strokes.length == medians.length) {
+          if (strokes != null &&
+              medians != null &&
+              strokes.length == medians.length) {
             final formattedStrokes = [];
             for (int i = 0; i < strokes.length; i++) {
               final pathStr = strokes[i] as String;
@@ -152,7 +162,8 @@ class StrokeDataRepository {
         }
       }
     } catch (e) {
-      debugPrint('[stroke_data_repository] Error fetching online for $character ($locale): $e');
+      debugPrint(
+          '[stroke_data_repository] Error fetching online for $character ($locale): $e');
     }
     return null;
   }

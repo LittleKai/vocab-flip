@@ -19,9 +19,14 @@ class ImageService {
   /// Get the directory for storing flashcard images
   Future<Directory> get _imageDirectory async {
     final appDir = await getApplicationDocumentsDirectory();
-    final imageDir = Directory(p.join(appDir.path, _imageFolder));
+    final imageDir =
+        Directory(p.join(await appDir.resolveSymbolicLinks(), _imageFolder));
     if (!await imageDir.exists()) {
       await imageDir.create(recursive: true);
+    }
+    if (!p.equals(await imageDir.resolveSymbolicLinks(), imageDir.path)) {
+      throw const FileSystemException(
+          'Managed image directory must not be linked');
     }
     return imageDir;
   }
@@ -99,7 +104,8 @@ class ImageService {
           final fileName = '${const Uuid().v4()}$extension';
           final destPath = p.join(imageDir.path, fileName);
           await sourceFile.copy(destPath);
-          debugPrint('ImageService: Original image copied to: $destPath (resize failed)');
+          debugPrint(
+              'ImageService: Original image copied to: $destPath (resize failed)');
           return destPath;
         }
       } else {
@@ -109,6 +115,7 @@ class ImageService {
         final destPath = p.join(imageDir.path, fileName);
         await sourceFile.copy(destPath);
         debugPrint('ImageService: Image saved to: $destPath');
+        return destPath;
       }
     } catch (e) {
       debugPrint('ImageService: Error saving image: $e');
@@ -118,17 +125,22 @@ class ImageService {
 
   /// Delete an image from local storage
   Future<bool> deleteImage(String imagePath) async {
+    if (kIsWeb || !p.isAbsolute(imagePath)) return false;
     try {
-      // Only delete if it's a local file in our image directory
-      if (!imagePath.startsWith('http')) {
-        final file = File(imagePath);
-        if (await file.exists()) {
-          await file.delete();
-          debugPrint('ImageService: Deleted image: $imagePath');
-          return true;
-        }
+      final imageDir = await _imageDirectory;
+      final candidate = p.normalize(imagePath);
+      if (!p.equals(p.dirname(candidate), imageDir.path) ||
+          !_allowedExtensions
+              .contains(p.extension(candidate).substring(1).toLowerCase()) ||
+          await FileSystemEntity.type(candidate, followLinks: false) !=
+              FileSystemEntityType.file) {
+        return false;
       }
-      return false;
+      final file = File(candidate);
+      final resolved = await file.resolveSymbolicLinks();
+      if (!p.equals(p.dirname(resolved), imageDir.path)) return false;
+      await file.delete();
+      return true;
     } catch (e) {
       debugPrint('ImageService: Error deleting image: $e');
       return false;
@@ -140,7 +152,7 @@ class ImageService {
     if (url.isEmpty) return false;
     try {
       final uri = Uri.parse(url);
-      if (!uri.hasScheme || (!uri.scheme.startsWith('http'))) {
+      if (!['http', 'https'].contains(uri.scheme) || uri.host.isEmpty) {
         return false;
       }
       // URL is valid if it has http(s) scheme
@@ -220,11 +232,10 @@ class ImageService {
           .map((p) => p.toLowerCase())
           .toSet();
 
-      await for (final entity in imageDir.list()) {
+      await for (final entity in imageDir.list(followLinks: false)) {
         if (entity is File) {
           if (!localUsedPaths.contains(entity.path.toLowerCase())) {
-            await entity.delete();
-            deletedCount++;
+            if (await deleteImage(entity.path)) deletedCount++;
           }
         }
       }

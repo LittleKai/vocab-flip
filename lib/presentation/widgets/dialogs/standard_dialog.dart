@@ -10,6 +10,7 @@ Future<T?> showStandardDialog<T>({
   Widget? customContent,
   String? primaryButtonText,
   VoidCallback? onPrimaryPressed,
+  T? Function()? primaryResult,
   String? secondaryButtonText,
   VoidCallback? onSecondaryPressed,
   bool isDestructive = false,
@@ -57,6 +58,7 @@ Future<T?> showStandardDialog<T>({
     desc: content,
     body: customContent,
     dismissOnTouchOutside: barrierDismissible,
+    dismissOnBackKeyPress: barrierDismissible,
     btnCancel: secondaryButtonText != null
         ? Builder(
             builder: (dialogContext) => SizedBox(
@@ -74,9 +76,10 @@ Future<T?> showStandardDialog<T>({
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 onPressed: () {
+                  if (completer.isCompleted) return;
+                  completer.complete(null);
                   Navigator.of(dialogContext).pop();
                   if (onSecondaryPressed != null) onSecondaryPressed();
-                  if (!completer.isCompleted) completer.complete(null);
                 },
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -123,9 +126,13 @@ Future<T?> showStandardDialog<T>({
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 onPressed: () {
+                  if (completer.isCompleted) return;
+                  final result = primaryResult != null
+                      ? primaryResult()
+                      : (true is T ? true as T : null);
+                  completer.complete(result);
                   Navigator.of(dialogContext).pop();
                   if (onPrimaryPressed != null) onPrimaryPressed();
-                  if (!completer.isCompleted) completer.complete(true as T?);
                 },
                 child: FittedBox(
                   fit: BoxFit.scaleDown,

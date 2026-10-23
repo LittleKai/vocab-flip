@@ -2,6 +2,8 @@ import 'package:uuid/uuid.dart';
 import '../../core/constants/app_constants.dart';
 import 'card_srs_state.dart';
 
+const _unchangedStep = Object();
+
 class Flashcard {
   final String id;
   final String deckId;
@@ -65,7 +67,8 @@ class Flashcard {
         updatedAt = updatedAt ?? DateTime.now(),
         srsState = srsState ??
             CardSrsState(
-              easinessFactor: easinessFactor ?? AppConstants.defaultEasinessFactor,
+              easinessFactor:
+                  easinessFactor ?? AppConstants.defaultEasinessFactor,
               interval: interval ?? 0,
               repetitions: repetitions ?? 0,
               lapses: lapses ?? 0,
@@ -78,7 +81,8 @@ class Flashcard {
             );
 
   /// Check if legacy image is a URL (http/https)
-  bool get isImageUrl => imageUrl != null &&
+  bool get isImageUrl =>
+      imageUrl != null &&
       (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'));
 
   /// Check if legacy image is a local file
@@ -95,18 +99,24 @@ class Flashcard {
       backImageUrl ?? (shareImage ? effectiveFrontImageUrl : null);
 
   /// Check if front has an image
-  bool get hasFrontImage => effectiveFrontImageUrl != null && effectiveFrontImageUrl!.isNotEmpty;
+  bool get hasFrontImage =>
+      effectiveFrontImageUrl != null && effectiveFrontImageUrl!.isNotEmpty;
 
   /// Check if back has an image
-  bool get hasBackImage => effectiveBackImageUrl != null && effectiveBackImageUrl!.isNotEmpty;
+  bool get hasBackImage =>
+      effectiveBackImageUrl != null && effectiveBackImageUrl!.isNotEmpty;
 
   /// Check if front image is a URL
-  bool get isFrontImageUrl => hasFrontImage &&
-      (effectiveFrontImageUrl!.startsWith('http://') || effectiveFrontImageUrl!.startsWith('https://'));
+  bool get isFrontImageUrl =>
+      hasFrontImage &&
+      (effectiveFrontImageUrl!.startsWith('http://') ||
+          effectiveFrontImageUrl!.startsWith('https://'));
 
   /// Check if back image is a URL
-  bool get isBackImageUrl => hasBackImage &&
-      (effectiveBackImageUrl!.startsWith('http://') || effectiveBackImageUrl!.startsWith('https://'));
+  bool get isBackImageUrl =>
+      hasBackImage &&
+      (effectiveBackImageUrl!.startsWith('http://') ||
+          effectiveBackImageUrl!.startsWith('https://'));
 
   /// Check if this card is due for review
   bool get isDue {
@@ -149,20 +159,25 @@ class Flashcard {
     double? stability,
     double? difficulty,
     int? fsrsState,
-    int? fsrsStep,
+    Object? fsrsStep = _unchangedStep,
     DateTime? nextReviewDate,
     DateTime? lastReviewDate,
   }) {
-    final mergedSrsState = srsState ?? this.srsState.copyWith(
-      easinessFactor: easinessFactor,
-      interval: interval,
-      repetitions: repetitions,
-      lapses: lapses,
-      stability: stability,
-      difficulty: difficulty,
-      nextReviewDate: nextReviewDate,
-      lastReviewDate: lastReviewDate,
-    );
+    final mergedSrsState = srsState ??
+        this.srsState.copyWith(
+              easinessFactor: easinessFactor,
+              interval: interval,
+              repetitions: repetitions,
+              lapses: lapses,
+              stability: stability,
+              difficulty: difficulty,
+              fsrsState: fsrsState,
+              fsrsStep: identical(fsrsStep, _unchangedStep)
+                  ? this.fsrsStep
+                  : fsrsStep,
+              nextReviewDate: nextReviewDate,
+              lastReviewDate: lastReviewDate,
+            );
 
     return Flashcard(
       id: id ?? this.id,
@@ -173,7 +188,8 @@ class Flashcard {
       example: example ?? this.example,
       notes: notes ?? this.notes,
       imageUrl: clearImage ? null : (imageUrl ?? this.imageUrl),
-      frontImageUrl: clearFrontImage ? null : (frontImageUrl ?? this.frontImageUrl),
+      frontImageUrl:
+          clearFrontImage ? null : (frontImageUrl ?? this.frontImageUrl),
       backImageUrl: clearBackImage ? null : (backImageUrl ?? this.backImageUrl),
       shareImage: shareImage ?? this.shareImage,
       tags: tags ?? this.tags,
@@ -224,15 +240,22 @@ class Flashcard {
       imageUrl: map['image_url'] as String?,
       frontImageUrl: map['front_image_url'] as String?,
       backImageUrl: map['back_image_url'] as String?,
-      shareImage: map['share_image'] == null ? true : (map['share_image'] as int) == 1,
-      tags: (map['tags'] as String?)?.split(',').where((t) => t.isNotEmpty).toList() ?? [],
+      shareImage:
+          map['share_image'] == null ? true : (map['share_image'] as int) == 1,
+      tags: (map['tags'] as String?)
+              ?.split(',')
+              .where((t) => t.isNotEmpty)
+              .toList() ??
+          [],
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
-      easinessFactor: (map['easiness_factor'] as num?)?.toDouble() ?? AppConstants.defaultEasinessFactor,
+      easinessFactor: (map['easiness_factor'] as num?)?.toDouble() ??
+          AppConstants.defaultEasinessFactor,
       interval: map['interval'] as int? ?? 0,
       repetitions: map['repetitions'] as int? ?? 0,
       srsState: CardSrsState(
-        easinessFactor: (map['easiness_factor'] as num?)?.toDouble() ?? AppConstants.defaultEasinessFactor,
+        easinessFactor: (map['easiness_factor'] as num?)?.toDouble() ??
+            AppConstants.defaultEasinessFactor,
         interval: map['interval'] as int? ?? 0,
         repetitions: map['repetitions'] as int? ?? 0,
         lapses: map['lapses'] as int? ?? 0,
@@ -263,6 +286,7 @@ class Flashcard {
       'front_phonetic': frontPhonetic,
       'back': back,
       'examples': example != null ? [example] : [],
+      'notes': notes,
       'image_url': imageUrl,
       'front_image_url': frontImageUrl,
       'back_image_url': backImageUrl,
@@ -279,6 +303,7 @@ class Flashcard {
         'fsrs_state': fsrsState,
         'fsrs_step': fsrsStep,
         'next_review': nextReviewDate?.toIso8601String(),
+        'last_review': lastReviewDate?.toIso8601String(),
       },
     };
   }
@@ -308,7 +333,8 @@ class Flashcard {
       interval: reviewData['interval'] as int? ?? 0,
       repetitions: reviewData['repetitions'] as int? ?? 0,
       srsState: CardSrsState(
-        easinessFactor: (reviewData['easiness_factor'] as num?)?.toDouble() ?? AppConstants.defaultEasinessFactor,
+        easinessFactor: (reviewData['easiness_factor'] as num?)?.toDouble() ??
+            AppConstants.defaultEasinessFactor,
         interval: reviewData['interval'] as int? ?? 0,
         repetitions: reviewData['repetitions'] as int? ?? 0,
         lapses: reviewData['lapses'] as int? ?? 0,
@@ -319,7 +345,9 @@ class Flashcard {
         nextReviewDate: reviewData['next_review'] != null
             ? DateTime.parse(reviewData['next_review'] as String)
             : null,
-        lastReviewDate: null, // Depending on if it's stored
+        lastReviewDate: reviewData['last_review'] != null
+            ? DateTime.parse(reviewData['last_review'] as String)
+            : null,
       ),
       nextReviewDate: reviewData['next_review'] != null
           ? DateTime.parse(reviewData['next_review'] as String)

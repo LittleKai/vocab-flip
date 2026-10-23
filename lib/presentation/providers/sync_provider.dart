@@ -4,7 +4,6 @@ import '../../data/models/sync_notification.dart';
 import '../../data/models/public_deck.dart';
 import '../../data/repositories/public_library_repository.dart';
 import '../../data/services/sync_queue_service.dart';
-import '../../data/local/preferences/app_preferences.dart';
 
 /// State for sync operations
 enum SyncState {
@@ -31,9 +30,13 @@ class DeckUpdate {
 
 /// Provider for sync management
 class SyncProvider extends ChangeNotifier {
-  final PublicLibraryRepository _repository = PublicLibraryRepository();
-  final SyncQueueService _syncQueueService = SyncQueueService();
-  final AppPreferences _prefs = AppPreferences();
+  final PublicLibraryRepository _repository;
+  final SyncQueueService _syncQueueService;
+
+  SyncProvider(
+      {PublicLibraryRepository? repository, SyncQueueService? syncQueueService})
+      : _repository = repository ?? PublicLibraryRepository(),
+        _syncQueueService = syncQueueService ?? SyncQueueService();
 
   // State
   SyncState _state = SyncState.idle;
@@ -146,7 +149,6 @@ class SyncProvider extends ChangeNotifier {
     // Push local offline changes first
     try {
       await _syncQueueService.syncPendingItems();
-      await _prefs.setLastSyncCursor(DateTime.now());
     } catch (e) {
       debugPrint('SyncQueue push failed: $e');
       // We might still want to continue to pull down updates
@@ -223,7 +225,8 @@ class SyncProvider extends ChangeNotifier {
     try {
       await _repository.markAllNotificationsRead();
 
-      _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
+      _notifications =
+          _notifications.map((n) => n.copyWith(isRead: true)).toList();
       _unreadCount = 0;
       notifyListeners();
     } catch (e) {

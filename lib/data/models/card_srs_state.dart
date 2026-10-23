@@ -1,5 +1,7 @@
 import '../../core/constants/app_constants.dart';
 
+const _unchangedStep = Object();
+
 class CardSrsState {
   final double easinessFactor;
   final int interval;
@@ -33,7 +35,7 @@ class CardSrsState {
     double? stability,
     double? difficulty,
     int? fsrsState,
-    int? fsrsStep,
+    Object? fsrsStep = _unchangedStep,
     DateTime? nextReviewDate,
     DateTime? lastReviewDate,
     bool clearNextReviewDate = false,
@@ -46,8 +48,11 @@ class CardSrsState {
       stability: stability ?? this.stability,
       difficulty: difficulty ?? this.difficulty,
       fsrsState: fsrsState ?? this.fsrsState,
-      fsrsStep: fsrsStep ?? this.fsrsStep,
-      nextReviewDate: clearNextReviewDate ? null : (nextReviewDate ?? this.nextReviewDate),
+      fsrsStep: identical(fsrsStep, _unchangedStep)
+          ? this.fsrsStep
+          : fsrsStep as int?,
+      nextReviewDate:
+          clearNextReviewDate ? null : (nextReviewDate ?? this.nextReviewDate),
       lastReviewDate: lastReviewDate ?? this.lastReviewDate,
     );
   }

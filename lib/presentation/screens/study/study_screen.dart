@@ -38,19 +38,8 @@ class _StudyScreenState extends State<StudyScreen> {
     super.initState();
     _ttsService.init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StudyProvider>().startStudySession(widget.deckId).then((_) {
-        // Just in case we started in writing practice mode somehow, load the first card
-        if (_currentMode == StudyMode.writingPractice && mounted) {
-          final deck = context.read<DeckProvider>().selectedDeck;
-          final card = context.read<StudyProvider>().currentCard;
-          if (card != null) {
-            context.read<StrokePracticeProvider>().loadForCard(
-                  text: card.front,
-                  sourceLanguage: deck?.sourceLanguage ?? '',
-                );
-          }
-        }
-      });
+      if (!mounted) return;
+      _startSession();
       context.read<DeckProvider>().selectDeck(widget.deckId);
     });
   }
@@ -70,8 +59,9 @@ class _StudyScreenState extends State<StudyScreen> {
         final deck = deckProvider.selectedDeck;
 
         return PopScope(
-          canPop: studyProvider.state == StudyState.idle ||
-              studyProvider.state == StudyState.completed,
+          canPop: !studyProvider.isSubmitting &&
+              (studyProvider.state == StudyState.idle ||
+                  studyProvider.state == StudyState.completed),
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
             _confirmExit(context, studyProvider);
@@ -81,15 +71,19 @@ class _StudyScreenState extends State<StudyScreen> {
               title: Text(deck?.name ?? l10n.study),
               leading: IconButton(
                 icon: const Icon(Icons.close),
-                onPressed: () => _confirmExit(context, studyProvider),
+                onPressed: studyProvider.isSubmitting
+                    ? null
+                    : () => _confirmExit(context, studyProvider),
               ),
               actions: [
                 if (studyProvider.state == StudyState.studying ||
                     studyProvider.state == StudyState.showingAnswer) ...[
                   PopupMenuButton<StudyMode>(
+                    enabled: !studyProvider.isSubmitting,
                     icon: const Icon(Icons.tune),
                     tooltip: l10n.studyMode,
                     onSelected: (StudyMode mode) {
+                      if (studyProvider.isSubmitting) return;
                       setState(() {
                         _currentMode = mode;
                       });
@@ -120,36 +114,47 @@ class _StudyScreenState extends State<StudyScreen> {
                     ],
                   ),
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                     decoration: BoxDecoration(
-                      color: studyProvider.isShuffleMode 
-                          ? AppColors.primary.withValues(alpha: 0.2) 
+                      color: studyProvider.isShuffleMode
+                          ? AppColors.primary.withValues(alpha: 0.2)
                           : Colors.grey.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
                       icon: Icon(
-                        studyProvider.isShuffleMode ? Icons.shuffle : Icons.format_list_numbered,
-                        color: studyProvider.isShuffleMode ? AppColors.primary : Colors.grey,
+                        studyProvider.isShuffleMode
+                            ? Icons.shuffle
+                            : Icons.format_list_numbered,
+                        color: studyProvider.isShuffleMode
+                            ? AppColors.primary
+                            : Colors.grey,
                       ),
-                      onPressed: () {
-                        studyProvider.toggleShuffleMode();
-                      },
-                      tooltip: studyProvider.isShuffleMode ? l10n.shuffle : 'Sequential',
+                      onPressed: studyProvider.isSubmitting
+                          ? null
+                          : () {
+                              studyProvider.toggleShuffleMode();
+                            },
+                      tooltip: studyProvider.isShuffleMode
+                          ? l10n.shuffle
+                          : 'Sequential',
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.skip_next),
-                    onPressed: () {
-                      studyProvider.skipCard();
-                      if (_currentMode == StudyMode.writingPractice &&
-                          studyProvider.currentCard != null) {
-                        strokeProvider.loadForCard(
-                          text: studyProvider.currentCard!.front,
-                          sourceLanguage: deck?.sourceLanguage ?? '',
-                        );
-                      }
-                    },
+                    onPressed: studyProvider.isSubmitting
+                        ? null
+                        : () {
+                            studyProvider.skipCard();
+                            if (_currentMode == StudyMode.writingPractice &&
+                                studyProvider.currentCard != null) {
+                              strokeProvider.loadForCard(
+                                text: studyProvider.currentCard!.front,
+                                sourceLanguage: deck?.sourceLanguage ?? '',
+                              );
+                            }
+                          },
                     tooltip: l10n.skip,
                   ),
                 ],
@@ -191,7 +196,7 @@ class _StudyScreenState extends State<StudyScreen> {
               Text(l10n.anError),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => provider.startStudySession(widget.deckId),
+                onPressed: () => _startSession(),
                 child: Text(l10n.tryAgain),
               ),
             ],
@@ -296,26 +301,31 @@ class _StudyScreenState extends State<StudyScreen> {
   ) {
     final card = provider.currentCard;
     if (card == null) return const SizedBox.shrink();
+    final attempt = provider.attempt;
 
     switch (_currentMode) {
       case StudyMode.multipleChoice:
         return MultipleChoiceCard(
+          key: ValueKey(provider.attempt),
           card: card,
           allCards: provider.studyQueue,
           onAnswerSelected: (isCorrect) {
             _rateCard(
-                provider, isCorrect ? ReviewRating.good : ReviewRating.again);
+                provider, isCorrect ? ReviewRating.good : ReviewRating.again,
+                attempt: attempt);
           },
         );
       case StudyMode.writingPractice:
         return WritingPracticeCard(
+          key: ValueKey(provider.attempt),
           card: card,
           onComplete: (rating) {
-            _rateCard(provider, rating);
+            _rateCard(provider, rating, attempt: attempt);
           },
         );
       case StudyMode.classic:
         return FlipCard(
+          key: ValueKey(provider.attempt),
           controller: _flipController,
           isFlipped: provider.state == StudyState.showingAnswer,
           onFlip: () {
@@ -364,7 +374,9 @@ class _StudyScreenState extends State<StudyScreen> {
             label: l10n.again,
             interval: intervals[ReviewRating.again] ?? 1,
             color: AppColors.ratingAgain,
-            onPressed: () => _rateCard(provider, ReviewRating.again),
+            onPressed: provider.isSubmitting
+                ? null
+                : () => _rateCard(provider, ReviewRating.again),
           ),
         ),
         const SizedBox(width: 12),
@@ -373,7 +385,9 @@ class _StudyScreenState extends State<StudyScreen> {
             label: l10n.hard,
             interval: intervals[ReviewRating.hard] ?? 1,
             color: AppColors.ratingHard,
-            onPressed: () => _rateCard(provider, ReviewRating.hard),
+            onPressed: provider.isSubmitting
+                ? null
+                : () => _rateCard(provider, ReviewRating.hard),
           ),
         ),
         const SizedBox(width: 12),
@@ -382,7 +396,9 @@ class _StudyScreenState extends State<StudyScreen> {
             label: l10n.good,
             interval: intervals[ReviewRating.good] ?? 1,
             color: AppColors.ratingGood,
-            onPressed: () => _rateCard(provider, ReviewRating.good),
+            onPressed: provider.isSubmitting
+                ? null
+                : () => _rateCard(provider, ReviewRating.good),
           ),
         ),
         const SizedBox(width: 12),
@@ -391,28 +407,26 @@ class _StudyScreenState extends State<StudyScreen> {
             label: l10n.easy,
             interval: intervals[ReviewRating.easy] ?? 1,
             color: AppColors.ratingEasy,
-            onPressed: () => _rateCard(provider, ReviewRating.easy),
+            onPressed: provider.isSubmitting
+                ? null
+                : () => _rateCard(provider, ReviewRating.easy),
           ),
         ),
       ],
     );
   }
 
-  void _rateCard(StudyProvider provider, ReviewRating rating) async {
-    await provider.rateCard(rating);
-    
-    if (!mounted) return;
-    
+  void _rateCard(StudyProvider provider, ReviewRating rating,
+      {int? attempt}) async {
+    final ratedAttempt = attempt ?? provider.attempt;
+    if (provider.isSubmitting || ratedAttempt != provider.attempt) return;
+    await provider.rateCard(rating, attempt: ratedAttempt);
+
+    if (!mounted || ratedAttempt == provider.attempt) return;
+
     _flipController.reset();
 
-    if (_currentMode == StudyMode.writingPractice &&
-        provider.currentCard != null) {
-      final deck = context.read<DeckProvider>().selectedDeck;
-      context.read<StrokePracticeProvider>().loadForCard(
-            text: provider.currentCard!.front,
-            sourceLanguage: deck?.sourceLanguage ?? '',
-          );
-    }
+    _loadWritingCard(provider);
 
     if (provider.isFatigued) {
       provider.resetFatigue();
@@ -429,6 +443,28 @@ class _StudyScreenState extends State<StudyScreen> {
         },
       );
     }
+  }
+
+  Future<void> _startSession({bool forceReload = false}) async {
+    final provider = context.read<StudyProvider>();
+    if (provider.isSubmitting) return;
+    await provider.startStudySession(widget.deckId, forceReload: forceReload);
+    if (!mounted) return;
+    _flipController.reset();
+    _loadWritingCard(provider);
+  }
+
+  void _loadWritingCard(StudyProvider provider) {
+    if (_currentMode != StudyMode.writingPractice ||
+        provider.state != StudyState.studying ||
+        provider.currentCard == null) {
+      return;
+    }
+    final deck = context.read<DeckProvider>().selectedDeck;
+    context.read<StrokePracticeProvider>().loadForCard(
+          text: provider.currentCard!.front,
+          sourceLanguage: deck?.sourceLanguage ?? '',
+        );
   }
 
   Widget _buildCompletedView(BuildContext context, StudyProvider provider) {
@@ -486,18 +522,19 @@ class _StudyScreenState extends State<StudyScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 OutlinedButton(
-                  onPressed: () {
-                    provider.reset();
-                    Navigator.pop(context);
-                  },
+                  onPressed: provider.isSubmitting
+                      ? null
+                      : () {
+                          provider.reset();
+                          Navigator.pop(context);
+                        },
                   child: Text(l10n.done),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    provider.startStudySession(widget.deckId,
-                        forceReload: true);
-                  },
+                  onPressed: provider.isSubmitting
+                      ? null
+                      : () => _startSession(forceReload: true),
                   child: Text(l10n.studyAgain),
                 ),
               ],
@@ -522,6 +559,7 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   void _confirmExit(BuildContext context, StudyProvider provider) {
+    if (provider.isSubmitting) return;
     final l10n = AppLocalizations.of(context)!;
 
     if (provider.cardsStudied == 0) {
@@ -539,6 +577,7 @@ class _StudyScreenState extends State<StudyScreen> {
       secondaryButtonText: l10n.continueSession,
       primaryButtonText: l10n.endSession,
       onPrimaryPressed: () async {
+        if (provider.isSubmitting) return;
         await provider.saveAndCompleteSession();
         if (context.mounted) {
           Navigator.pop(context);
@@ -582,7 +621,7 @@ class _RatingButton extends StatelessWidget {
   final String label;
   final int interval;
   final Color color;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const _RatingButton({
     required this.label,

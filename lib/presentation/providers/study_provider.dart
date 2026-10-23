@@ -27,11 +27,16 @@ class StudyProvider extends ChangeNotifier {
   int _currentIndex = 0;
   StudySession? _currentSession;
   DateTime? _cardStartTime;
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+  int _generation = 0;
+  int _attempt = 0;
+  int get attempt => _attempt;
 
   int _cardsStudied = 0;
   int _cardsCorrect = 0;
   int _cardsIncorrect = 0;
-  
+
   final AdvancedLearningScience _advancedLearning = AdvancedLearningScience();
   bool _isFatigued = false;
   bool get isFatigued => _isFatigued;
@@ -40,6 +45,7 @@ class StudyProvider extends ChangeNotifier {
   bool get isShuffleMode => _isShuffleMode;
 
   void toggleShuffleMode() {
+    if (_isSubmitting) return;
     _isShuffleMode = !_isShuffleMode;
     if (_isShuffleMode) {
       shuffleCards();
@@ -96,34 +102,54 @@ class StudyProvider extends ChangeNotifier {
 
   Future<void> startStudySession(String deckId,
       {bool forceReload = false}) async {
+    if (_isSubmitting) return;
+    final generation = ++_generation;
+    final previousIds = _studyQueue.map((card) => card.id).toSet();
+    _attempt++;
     _state = StudyState.loading;
     notifyListeners();
 
     try {
-      if (forceReload && _studyQueue.isNotEmpty) {
-        // For "Study Again" - reshuffle the same cards
-        _studyQueue.shuffle();
+      List<Flashcard> queue;
+      if (forceReload && previousIds.isNotEmpty) {
+        final fresh = await _flashcardRepository.getFlashcardsByDeckId(deckId);
+        queue = fresh.where((card) => previousIds.contains(card.id)).toList();
       } else {
-        _studyQueue = await _flashcardRepository.getDueFlashcards(
+        queue = await _flashcardRepository.getDueFlashcards(
           deckId,
           limit: _preferences.newCardsPerDay + _preferences.reviewCardsPerDay,
         );
 
         // If no due cards, load random cards for practice/cramming
-        if (_studyQueue.isEmpty) {
-          final allCards = await _flashcardRepository.getFlashcardsByDeckId(deckId);
+        if (queue.isEmpty) {
+          final allCards =
+              await _flashcardRepository.getFlashcardsByDeckId(deckId);
           if (allCards.isNotEmpty) {
             allCards.shuffle();
-            _studyQueue = allCards.take(_preferences.newCardsPerDay + _preferences.reviewCardsPerDay).toList();
+            queue = allCards
+                .take(_preferences.newCardsPerDay +
+                    _preferences.reviewCardsPerDay)
+                .toList();
           }
         }
       }
+      if (generation != _generation) return;
+      queue = {for (final card in queue) card.id: card}.values.toList();
 
       if (_preferences.advancedLearningScience) {
-        _studyQueue = _advancedLearning.applySemanticShuffle(_studyQueue);
+        queue = _advancedLearning.applySemanticShuffle(queue);
       } else if (_isShuffleMode) {
-        _studyQueue.shuffle();
+        queue.shuffle();
       }
+      _studyQueue = queue;
+      _currentIndex = 0;
+      _cardsStudied = 0;
+      _cardsCorrect = 0;
+      _cardsIncorrect = 0;
+      _isFatigued = false;
+      _advancedLearning.resetFatigue();
+      _currentSession = null;
+      _cardStartTime = null;
 
       if (_studyQueue.isEmpty) {
         _state = StudyState.completed;
@@ -131,20 +157,16 @@ class StudyProvider extends ChangeNotifier {
         return;
       }
 
-      _currentIndex = 0;
-      _cardsStudied = 0;
-      _cardsCorrect = 0;
-      _cardsIncorrect = 0;
-      _isFatigued = false;
-      _advancedLearning.resetFatigue();
-
-      _currentSession = StudySession(deckId: deckId);
-      await _studyAnalyticsRepository.startSession(_currentSession!);
+      final session = StudySession(deckId: deckId);
+      _currentSession = session;
+      await _studyAnalyticsRepository.startSession(session);
+      if (generation != _generation) return;
       _cardStartTime = DateTime.now();
 
       _state = StudyState.studying;
       notifyListeners();
     } catch (e) {
+      if (generation != _generation) return;
       _state = StudyState.error;
       notifyListeners();
     }
@@ -157,8 +179,19 @@ class StudyProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> rateCard(ReviewRating rating) async {
-    if (currentCard == null) return;
+  Future<void> rateCard(ReviewRating rating, {int? attempt}) async {
+    final card = currentCard;
+    final session = _currentSession;
+    if (_isSubmitting ||
+        card == null ||
+        session == null ||
+        (attempt != null && attempt != _attempt) ||
+        (_state != StudyState.studying && _state != StudyState.showingAnswer)) {
+      return;
+    }
+    final generation = _generation;
+    _isSubmitting = true;
+    notifyListeners();
 
     try {
       final responseTime = _cardStartTime != null
@@ -166,21 +199,25 @@ class StudyProvider extends ChangeNotifier {
           : 0;
 
       final updatedCard = await _flashcardRepository.reviewFlashcard(
-        currentCard!,
+        card,
         rating,
       );
-      if (_currentSession != null) {
-        await _studyAnalyticsRepository.logReview(
-          before: currentCard!,
-          after: updatedCard,
-          rating: rating,
-          sessionId: _currentSession!.id,
-          responseTimeMs: responseTime,
-        );
-      }
+      if (generation != _generation) return;
+      await _studyAnalyticsRepository.logReview(
+        before: card,
+        after: updatedCard,
+        rating: rating,
+        sessionId: session.id,
+        responseTimeMs: responseTime,
+      );
+      if (generation != _generation) return;
+      _studyQueue = _studyQueue
+          .map((item) => item.id == card.id ? updatedCard : item)
+          .toList();
 
       if (_preferences.advancedLearningScience) {
-        final isCorrect = rating != ReviewRating.again && rating != ReviewRating.hard;
+        final isCorrect =
+            rating != ReviewRating.again && rating != ReviewRating.hard;
         _isFatigued = _advancedLearning.checkFatigue(isCorrect, responseTime);
       }
 
@@ -194,6 +231,7 @@ class StudyProvider extends ChangeNotifier {
       }
 
       _currentIndex++;
+      _attempt++;
 
       if (_currentIndex >= _studyQueue.length) {
         await _completeSession();
@@ -203,34 +241,42 @@ class StudyProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
+      if (generation != _generation) return;
       _state = StudyState.error;
-      notifyListeners();
+    } finally {
+      _isSubmitting = false;
+      if (generation == _generation) notifyListeners();
     }
   }
 
   Future<void> _completeSession() async {
+    final generation = _generation;
+    final session = _currentSession;
     _state = StudyState.completed;
 
-    if (_currentSession != null) {
-      final endedSession = _currentSession!.copyWith(
+    if (session != null && !session.isComplete) {
+      final endedSession = session.copyWith(
         endedAt: DateTime.now(),
         cardsStudied: _cardsStudied,
         cardsCorrect: _cardsCorrect,
         cardsIncorrect: _cardsIncorrect,
         totalTimeSeconds:
-            DateTime.now().difference(_currentSession!.startedAt).inSeconds,
+            DateTime.now().difference(session.startedAt).inSeconds,
       );
-      _currentSession = endedSession;
       await _studyAnalyticsRepository.completeSession(endedSession);
+      if (generation != _generation) return;
 
       // Update streak
       await _preferences.updateStreak();
+      if (generation != _generation) return;
 
       // Add study time
       await _preferences.addStudyTime(endedSession.totalTimeSeconds);
+      if (generation != _generation) return;
+      _currentSession = endedSession;
     }
 
-    notifyListeners();
+    if (generation == _generation) notifyListeners();
   }
 
   Map<ReviewRating, int> getIntervalPreviews() {
@@ -242,10 +288,15 @@ class StudyProvider extends ChangeNotifier {
   }
 
   void skipCard() {
+    if (_isSubmitting ||
+        (_state != StudyState.studying && _state != StudyState.showingAnswer)) {
+      return;
+    }
     if (currentCard != null && _currentIndex < _studyQueue.length) {
       // Move current card to end of queue
       final card = _studyQueue.removeAt(_currentIndex);
       _studyQueue.add(card);
+      _attempt++;
       _cardStartTime = DateTime.now();
       _state = StudyState.studying;
       notifyListeners();
@@ -254,6 +305,7 @@ class StudyProvider extends ChangeNotifier {
 
   /// Shuffle remaining cards in the queue (preserving the current card)
   void shuffleCards() {
+    if (_isSubmitting) return;
     if (_currentIndex + 1 >= _studyQueue.length) return;
 
     // Get remaining cards (after current index)
@@ -271,13 +323,32 @@ class StudyProvider extends ChangeNotifier {
   }
 
   Future<void> saveAndCompleteSession() async {
-    if (_currentSession != null && _cardsStudied > 0) {
-      await _completeSession();
+    if (_isSubmitting) return;
+    final generation = _generation;
+    _isSubmitting = true;
+    notifyListeners();
+    var saved = false;
+    try {
+      if (_currentSession != null && _cardsStudied > 0) {
+        await _completeSession();
+      }
+      saved = true;
+    } finally {
+      _isSubmitting = false;
+      if (generation == _generation) {
+        if (saved) {
+          reset();
+        } else {
+          notifyListeners();
+        }
+      }
     }
-    reset();
   }
 
   void reset() {
+    if (_isSubmitting) return;
+    _generation++;
+    _attempt++;
     _state = StudyState.idle;
     _studyQueue = [];
     _currentIndex = 0;
@@ -287,5 +358,11 @@ class StudyProvider extends ChangeNotifier {
     _cardsCorrect = 0;
     _cardsIncorrect = 0;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _generation++;
+    super.dispose();
   }
 }

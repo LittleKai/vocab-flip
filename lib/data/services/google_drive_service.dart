@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:io' show Platform, HttpServer, HttpStatus, ContentType;
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -8,6 +10,24 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+
+/// Per-attempt proof and callback binding for the native loopback flow.
+class DesktopOAuthAttempt {
+  static String _random() {
+    final random = Random.secure();
+    return base64UrlEncode(List<int>.generate(32, (_) => random.nextInt(256)))
+        .replaceAll('=', '');
+  }
+  final String verifier = _random();
+  final String state = _random();
+  String get challenge =>
+      base64UrlEncode(sha256.convert(utf8.encode(verifier)).bytes)
+          .replaceAll('=', '');
+  bool accepts(Uri callback) =>
+      callback.path == '/oauth2callback' &&
+      callback.queryParameters['state'] == state &&
+      (callback.queryParameters['code']?.isNotEmpty ?? false);
+}
 
 /// Service for Google Drive operations using the appdata folder
 class GoogleDriveService {
@@ -38,16 +58,14 @@ class GoogleDriveService {
   ];
 
   /// Get OAuth2 Client ID from environment
-  /// Create a Desktop OAuth client ID in Google Cloud Console and add to .env:
+  /// Public client identifier only, configured in assets/config.env:
   /// GOOGLE_OAUTH_CLIENT_ID=your_client_id.apps.googleusercontent.com
-  /// GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret
   auth.ClientId? get _clientId {
     final clientIdString = dotenv.env['GOOGLE_OAUTH_CLIENT_ID'];
-    final clientSecret = dotenv.env['GOOGLE_OAUTH_CLIENT_SECRET'];
     if (clientIdString == null || clientIdString.isEmpty) {
       return null;
     }
-    return auth.ClientId(clientIdString, clientSecret);
+    return auth.ClientId(clientIdString);
   }
 
   /// Check if we should use desktop OAuth flow
@@ -65,7 +83,7 @@ class GoogleDriveService {
         return await _connectMobile(silentOnly: silentOnly);
       }
     } catch (e) {
-      debugPrint('Failed to connect to Google Drive: $e');
+      debugPrint('Google Drive connection failed.');
       _isConnected = false;
       return false;
     }
@@ -75,8 +93,8 @@ class GoogleDriveService {
   Future<bool> _connectMobile({bool silentOnly = false}) async {
     final clientId = _clientId?.identifier;
     if (kIsWeb && clientId == null) {
-      debugPrint('Google OAuth Client ID not configured. Add GOOGLE_OAUTH_CLIENT_ID to .env file.');
-      throw Exception('Google Drive backup not configured. Please add GOOGLE_OAUTH_CLIENT_ID to .env file.');
+      throw StateError(
+          'Configure public GOOGLE_OAUTH_CLIENT_ID in assets/config.env.');
     }
 
     _googleSignIn ??= GoogleSignIn(
@@ -108,7 +126,6 @@ class GoogleDriveService {
     _userEmail = account.email;
     _isConnected = true;
 
-    debugPrint('Connected to Google Drive as ${account.email}');
     return true;
   }
 
@@ -116,16 +133,16 @@ class GoogleDriveService {
   Future<bool> _connectDesktop() async {
     final clientId = _clientId;
     if (clientId == null) {
-      debugPrint('Google OAuth Client ID not configured. Add GOOGLE_OAUTH_CLIENT_ID to .env file.');
-      throw Exception('Google Drive backup not configured. Please add GOOGLE_OAUTH_CLIENT_ID to .env file.');
+      throw StateError(
+          'Configure public GOOGLE_OAUTH_CLIENT_ID in assets/config.env.');
     }
 
+    HttpServer? server;
     try {
       // Start local server to receive OAuth callback
-      final server = await HttpServer.bind('localhost', 0);
-      final redirectUri = 'http://localhost:${server.port}';
-
-      debugPrint('Starting OAuth flow with redirect: $redirectUri');
+      server = await HttpServer.bind('127.0.0.1', 0);
+      final redirectUri = 'http://127.0.0.1:${server.port}/oauth2callback';
+      final attempt = DesktopOAuthAttempt();
 
       // Build authorization URL
       final authUrl = Uri.https('accounts.google.com', '/o/oauth2/v2/auth', {
@@ -135,18 +152,20 @@ class GoogleDriveService {
         'scope': _scopes.join(' '),
         'access_type': 'offline',
         'prompt': 'consent',
+        'state': attempt.state,
+        'code_challenge': attempt.challenge,
+        'code_challenge_method': 'S256',
       });
 
       // Open browser for authentication
       if (!await launchUrl(authUrl, mode: LaunchMode.externalApplication)) {
-        await server.close();
         throw Exception('Could not open browser for authentication');
       }
 
       // Wait for callback
       String? authCode;
-      await for (final request in server) {
-        if (request.uri.path == '/' || request.uri.path.isEmpty) {
+      await for (final request in server.timeout(const Duration(minutes: 3))) {
+        if (attempt.accepts(request.uri)) {
           authCode = request.uri.queryParameters['code'];
 
           // Send response to browser
@@ -172,7 +191,6 @@ class GoogleDriveService {
           ..write('Not found');
         await request.response.close();
       }
-      await server.close();
 
       if (authCode == null) {
         throw Exception('No authorization code received');
@@ -184,20 +202,21 @@ class GoogleDriveService {
         'code': authCode,
         'grant_type': 'authorization_code',
         'redirect_uri': redirectUri,
+        'code_verifier': attempt.verifier,
       };
 
-      // Add client secret if available (required for Desktop apps)
-      if (clientId.secret != null && clientId.secret!.isNotEmpty) {
-        tokenBody['client_secret'] = clientId.secret!;
-      }
-
-      final tokenResponse = await http.post(
-        Uri.https('oauth2.googleapis.com', '/token'),
-        body: tokenBody,
-      );
+      final tokenResponse = await http
+          .post(
+            Uri.https('oauth2.googleapis.com', '/token'),
+            body: tokenBody,
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (tokenResponse.statusCode != 200) {
-        throw Exception('Failed to exchange code for tokens: ${tokenResponse.body}');
+        // ponytail: public PKCE clients only; secret-requiring Google desktop
+        // registrations need a supported client or a separately approved broker.
+        throw StateError(
+            'Google rejected public-client token exchange (${tokenResponse.statusCode}).');
       }
 
       final tokenData = jsonDecode(tokenResponse.body) as Map<String, dynamic>;
@@ -224,12 +243,14 @@ class GoogleDriveService {
       await _fetchUserEmail(accessToken);
 
       _isConnected = true;
-      debugPrint('Connected to Google Drive as $_userEmail');
       return true;
     } catch (e) {
-      debugPrint('Desktop OAuth failed: $e');
+      debugPrint(
+          'Desktop Google OAuth failed. Check public-client PKCE support; see README.');
       _isConnected = false;
       return false;
+    } finally {
+      await server?.close(force: true);
     }
   }
 
@@ -245,7 +266,7 @@ class GoogleDriveService {
         _userEmail = data['email'] as String?;
       }
     } catch (e) {
-      debugPrint('Failed to fetch user email: $e');
+      debugPrint('Google account details unavailable.');
     }
   }
 
@@ -287,7 +308,8 @@ class GoogleDriveService {
   }
 
   /// Upload backup data to Google Drive appdata folder
-  Future<String?> uploadBackup(Map<String, dynamic> backupData, {
+  Future<String?> uploadBackup(
+    Map<String, dynamic> backupData, {
     void Function(int sent, int total)? onProgress,
   }) async {
     if (!_isConnected || _driveApi == null) {
@@ -299,7 +321,11 @@ class GoogleDriveService {
       final bytes = utf8.encode(jsonString);
       final stream = Stream.value(bytes);
 
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first;
+      final timestamp = DateTime.now()
+          .toIso8601String()
+          .replaceAll(':', '-')
+          .split('.')
+          .first;
       final fileName = '$_backupFilePrefix$timestamp$_backupFileExtension';
 
       final fileMetadata = drive.File()
@@ -364,13 +390,15 @@ class GoogleDriveService {
         $fields: 'files(id, name, size, createdTime, modifiedTime)',
       );
 
-      return (fileList.files ?? []).map((file) => BackupFileInfo(
-        id: file.id ?? '',
-        name: file.name ?? '',
-        size: int.tryParse(file.size ?? '0') ?? 0,
-        createdAt: file.createdTime ?? DateTime.now(),
-        modifiedAt: file.modifiedTime,
-      )).toList();
+      return (fileList.files ?? [])
+          .map((file) => BackupFileInfo(
+                id: file.id ?? '',
+                name: file.name ?? '',
+                size: int.tryParse(file.size ?? '0') ?? 0,
+                createdAt: file.createdTime ?? DateTime.now(),
+                modifiedAt: file.modifiedTime,
+              ))
+          .toList();
     } catch (e) {
       debugPrint('Failed to list backups: $e');
       rethrow;
@@ -457,5 +485,6 @@ class BackupFileInfo {
   }
 
   @override
-  String toString() => 'BackupFileInfo(id: $id, name: $name, size: $formattedSize)';
+  String toString() =>
+      'BackupFileInfo(id: $id, name: $name, size: $formattedSize)';
 }

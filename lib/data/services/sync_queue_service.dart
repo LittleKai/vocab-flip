@@ -1,15 +1,18 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../local/daos/sync_queue_dao.dart';
 import '../models/sync_queue_item.dart';
 import '../api/api_client.dart';
 import '../local/preferences/app_preferences.dart';
+import '../auth/alpha_auth_session.dart';
 
 class SyncQueueService {
   final SyncQueueDao _syncQueueDao;
   final ApiClient? _apiClient;
   final AppPreferences _prefs;
   final bool _disableLocalQueue;
+  final Dio? _dio;
   bool _isSyncing = false;
 
   SyncQueueService({
@@ -17,8 +20,12 @@ class SyncQueueService {
     ApiClient? apiClient,
     AppPreferences? prefs,
     bool disableLocalQueue = kIsWeb,
+    Dio? dio,
   })  : _syncQueueDao = syncQueueDao ?? SyncQueueDao(),
-        _apiClient = disableLocalQueue ? apiClient : (apiClient ?? ApiClient()),
+        _apiClient = disableLocalQueue || dio != null
+            ? apiClient
+            : (apiClient ?? ApiClient()),
+        _dio = dio,
         _prefs = prefs ?? AppPreferences(),
         _disableLocalQueue = disableLocalQueue;
 
@@ -26,10 +33,13 @@ class SyncQueueService {
   Future<void> syncPendingItems() async {
     if (_disableLocalQueue) return;
     if (_isSyncing) return;
+    final owner = AlphaAuthSession().userId;
+    if (owner == null || owner.isEmpty) return;
     _isSyncing = true;
 
     try {
       final pendingItems = await _syncQueueDao.getPendingItems();
+      if (AlphaAuthSession().userId != owner) return;
       if (pendingItems.isEmpty) {
         _isSyncing = false;
         return;
@@ -39,26 +49,34 @@ class SyncQueueService {
           'SyncQueueService: Draining ${pendingItems.length} items from sync queue');
 
       for (final item in pendingItems) {
+        if (AlphaAuthSession().userId != owner) return;
         try {
-          await _processItem(item);
-          // Only remove if successful or it's a non-retriable error
+          final payload = jsonDecode(item.payload ?? '{}');
+          if (payload is! Map || payload[SyncQueueDao.ownerKey] != owner) {
+            continue;
+          }
+          await _processItem(item, owner);
+          if (AlphaAuthSession().userId != owner) return;
+          // Ownership markers survive delivery; remove only the delivered operation.
           await _syncQueueDao.delete(item.id);
         } catch (e) {
           debugPrint('SyncQueueService: Failed to process item ${item.id}: $e');
           // Break immediately to preserve strict queue ordering.
           // We cannot process subsequent items if a prerequisite (like a parent deck creation) fails.
-          break;
+          return;
         }
       }
 
       // Update cursor after successful sync
-      await _prefs.setLastSyncCursor(DateTime.now());
+      if (AlphaAuthSession().userId == owner) {
+        await _prefs.setLastSyncCursor(DateTime.now());
+      }
     } finally {
       _isSyncing = false;
     }
   }
 
-  Future<void> _processItem(SyncQueueItem item) async {
+  Future<void> _processItem(SyncQueueItem item, String owner) async {
     String path = '';
     dynamic dataMap;
 
@@ -70,6 +88,7 @@ class SyncQueueService {
             'SyncQueueService: Failed to decode payload for item ${item.id}: $e');
       }
     }
+    if (dataMap is Map) dataMap.remove(SyncQueueDao.ownerKey);
 
     if (item.entityType == 'deck') {
       if (item.operation == 'CREATE') {
@@ -99,15 +118,20 @@ class SyncQueueService {
       throw Exception('Unknown entityType: ${item.entityType}');
     }
 
+    if (AlphaAuthSession().userId != owner) {
+      throw StateError('Sync account changed');
+    }
+    final options = Options(extra: {'syncOwnerUserId': owner});
+    final dio = _dio ?? _apiClient!.dio;
     switch (item.operation) {
       case 'CREATE':
-        await _apiClient!.dio.post(path, data: dataMap);
+        await dio.post(path, data: dataMap, options: options);
         break;
       case 'UPDATE':
-        await _apiClient!.dio.put(path, data: dataMap);
+        await dio.put(path, data: dataMap, options: options);
         break;
       case 'DELETE':
-        await _apiClient!.dio.delete(path);
+        await dio.delete(path, options: options);
         break;
       default:
         throw Exception('Unknown operation: ${item.operation}');

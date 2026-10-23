@@ -17,17 +17,34 @@ import '../local/database/deck_dao.dart';
 import '../local/database/flashcard_dao.dart';
 import '../services/cloudinary_service.dart';
 import '../services/image_service.dart';
+import '../auth/alpha_auth_session.dart';
+import '../api/api_client.dart';
+import 'deck_repository.dart';
+import 'flashcard_repository.dart';
 
 /// Repository for public library operations
 /// Coordinates between remote MongoDB/B2 services and local database.
 class PublicLibraryRepository {
-  final MongoPublicLibraryService _libraryService = MongoPublicLibraryService();
+  final MongoPublicLibraryService _libraryService;
   final MongoRatingService _ratingService = MongoRatingService();
-  final MongoSyncService _syncService = MongoSyncService();
-  final DeckDao _deckDao = DeckDao();
-  final FlashcardDao _flashcardDao = FlashcardDao();
+  final MongoSyncService _syncService;
+  final DeckDao _deckDao;
+  final FlashcardDao _flashcardDao;
+  final FlashcardRepository _flashcardRepository;
   final CloudinaryService _cloudinaryService = CloudinaryService();
   final ImageService _imageService = ImageService();
+
+  PublicLibraryRepository(
+      {MongoPublicLibraryService? libraryService,
+      MongoSyncService? syncService,
+      DeckDao? deckDao,
+      FlashcardDao? flashcardDao,
+      FlashcardRepository? flashcardRepository})
+      : _libraryService = libraryService ?? MongoPublicLibraryService(),
+        _syncService = syncService ?? MongoSyncService(),
+        _deckDao = deckDao ?? DeckDao(),
+        _flashcardDao = flashcardDao ?? FlashcardDao(),
+        _flashcardRepository = flashcardRepository ?? FlashcardRepository();
 
   /// Parse comma-separated field types string to List<CardFieldType>
   static List<CardFieldType>? _parseFieldTypes(String? str) {
@@ -97,6 +114,15 @@ class PublicLibraryRepository {
     ImageProgressCallback? onImageProgress,
   }) async {
     // Get the public deck and its flashcards
+    final owner = AlphaAuthSession().userId;
+    final version = ApiClient().sessionVersion;
+    void checkSession() {
+      if (owner != AlphaAuthSession().userId ||
+          version != ApiClient().sessionVersion) {
+        throw StateError('Account changed during import');
+      }
+    }
+
     final publicDeck = await _libraryService.getDeck(publicDeckId);
     if (publicDeck == null) {
       throw Exception('Public deck not found');
@@ -143,9 +169,6 @@ class PublicLibraryRepository {
       frontFields: _parseFieldTypes(publicDeck.frontFields),
       backFields: _parseFieldTypes(publicDeck.backFields),
     );
-
-    // Insert deck to local DB
-    await _deckDao.insert(localDeck);
 
     // Download images and create flashcards
     int imageCompleted = 0;
@@ -197,7 +220,10 @@ class PublicLibraryRepository {
       ));
     }
 
-    await _flashcardDao.insertBatch(localFlashcards);
+    checkSession();
+    await DeckRepository()
+        .saveImportedDeck(localDeck, localFlashcards, ownerUserId: owner);
+    checkSession();
 
     // Record the import link
     await _syncService.recordImport(
@@ -205,6 +231,7 @@ class PublicLibraryRepository {
       localDeckId: localDeck.id,
       importedVersion: publicDeck.version,
     );
+    checkSession();
 
     // Increment download count
     await _libraryService.incrementDownloadCount(publicDeckId);
@@ -213,10 +240,10 @@ class PublicLibraryRepository {
   }
 
   /// Check if a public deck is already imported
-    Future<bool> isImported(String publicDeckId) async {
-      final decks = await _deckDao.getAll();
-      return decks.any((d) => d.linkedPublicDeckId == publicDeckId);
-    }
+  Future<bool> isImported(String publicDeckId) async {
+    final decks = await _deckDao.getAll();
+    return decks.any((d) => d.linkedPublicDeckId == publicDeckId);
+  }
 
   /// Get import link for a local deck
   Future<ImportedDeckLink?> getImportLink(String localDeckId) =>
@@ -286,7 +313,7 @@ class PublicLibraryRepository {
           notes: publicCard.notes,
           tags: publicCard.tags,
         );
-        await _flashcardDao.insert(newCard);
+        await _flashcardRepository.createFlashcard(newCard);
       }
     }
 
@@ -624,13 +651,15 @@ class PublicLibraryRepository {
         final file = File(path);
         if (await file.exists() && await file.length() > 250 * 1024) {
           // Pre-compress large local images (over 250KB) to maxWidth 800 before upload
-          final compressed = await _imageService.saveImageLocally(path, maxWidth: 800);
+          final compressed =
+              await _imageService.saveImageLocally(path, maxWidth: 800);
           if (compressed != null) {
             pathToUpload = compressed;
           }
         }
       } catch (e) {
-        flutter.debugPrint('PublicLibraryRepository: Error optimizing image before upload: $e');
+        flutter.debugPrint(
+            'PublicLibraryRepository: Error optimizing image before upload: $e');
       }
 
       final uploadResult = await _cloudinaryService.uploadImage(pathToUpload);

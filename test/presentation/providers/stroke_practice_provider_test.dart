@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vocabflip/core/utils/spaced_repetition.dart';
 import 'package:vocabflip/data/models/stroke_character.dart';
@@ -37,6 +38,17 @@ class MockValidationService implements StrokeValidationService {
     return nextResult ??
         const StrokeValidationResult.reject(StrokeRejection.tooShort);
   }
+}
+
+class DelayedStrokeRepository extends MockStrokeDataRepository {
+  final first = Completer<StrokeCharacter?>();
+  DelayedStrokeRepository(super.fixtures);
+
+  @override
+  Future<StrokeCharacter?> lookupCharacter(String character, String language) =>
+      character == '日'
+          ? first.future
+          : super.lookupCharacter(character, language);
 }
 
 void main() {
@@ -83,6 +95,21 @@ void main() {
       expect(provider.currentCharacter, char1);
       expect(provider.supportedCharacterCount, 2);
       expect(provider.unsupportedCharacterCount, 0);
+    });
+
+    test('obsolete lookup cannot mix targets into the next card', () async {
+      final delayed = DelayedStrokeRepository({'本': char2});
+      final subject = StrokePracticeProvider(
+        repository: delayed,
+        validationService: validationService,
+      );
+      final oldLoad = subject.loadForCard(text: '日', sourceLanguage: 'ja');
+      await subject.loadForCard(text: '本', sourceLanguage: 'ja');
+      delayed.first.complete(char1);
+      await oldLoad;
+      expect(subject.currentCharacter, char2);
+      expect(subject.supportedCharacterCount, 1);
+      expect(subject.unsupportedCharacterCount, 0);
     });
 
     test(

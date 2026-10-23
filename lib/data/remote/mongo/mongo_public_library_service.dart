@@ -60,12 +60,14 @@ enum LibrarySortBy {
 
 /// MongoDB-backed public library API client.
 class MongoPublicLibraryService {
-  final ApiClient _apiClient = ApiClient();
+  final Dio _dio;
   final AlphaAuthSession _authSession = AlphaAuthSession();
+
+  MongoPublicLibraryService({Dio? dio}) : _dio = dio ?? ApiClient().dio;
 
   Future<List<Category>> getCategories() async {
     try {
-      final response = await _apiClient.dio.get('/vocab/categories');
+      final response = await _dio.get('/vocab/categories');
       final docs = unwrapApiList(response.data);
       if (docs.isEmpty) return Category.predefined;
       return docs.map(Category.fromMap).toList();
@@ -81,7 +83,7 @@ class MongoPublicLibraryService {
     int offset = 0,
   }) async {
     try {
-      final response = await _apiClient.dio.get(
+      final response = await _dio.get(
         '/vocab/public-decks',
         queryParameters: _filterParams(filter, limit, offset),
       );
@@ -92,7 +94,8 @@ class MongoPublicLibraryService {
     }
   }
 
-  Future<List<PublicDeck>> search(String query, {int limit = 10, int offset = 0}) {
+  Future<List<PublicDeck>> search(String query,
+      {int limit = 10, int offset = 0}) {
     return browse(
       filter: LibraryFilter(searchQuery: query),
       limit: limit,
@@ -102,7 +105,7 @@ class MongoPublicLibraryService {
 
   Future<PublicDeck?> getDeck(String deckId) async {
     try {
-      final response = await _apiClient.dio.get('/vocab/public-decks/$deckId');
+      final response = await _dio.get('/vocab/public-decks/$deckId');
       final doc = unwrapApiMap(response.data);
       return doc == null ? null : PublicDeck.fromMap(doc);
     } on DioException catch (e) {
@@ -116,21 +119,21 @@ class MongoPublicLibraryService {
     }
   }
 
-  Future<List<PublicFlashcard>> getFlashcards(String publicDeckId, {int? limit}) async {
+  Future<List<PublicFlashcard>> getFlashcards(String publicDeckId,
+      {int? limit}) async {
     try {
       final queryParams = limit != null ? {'limit': limit} : null;
-      final response = await _apiClient.dio.get(
+      final response = await _dio.get(
         '/vocab/public-decks/$publicDeckId/flashcards',
         queryParameters: queryParams,
       );
-      final cards = unwrapApiList(response.data)
-          .map(PublicFlashcard.fromMap)
-          .toList();
+      final cards =
+          unwrapApiList(response.data).map(PublicFlashcard.fromMap).toList();
       cards.sort((a, b) => a.order.compareTo(b.order));
       return cards;
     } catch (e) {
       logVocabApiError('getFlashcards', e);
-      return [];
+      rethrow;
     }
   }
 
@@ -156,7 +159,7 @@ class MongoPublicLibraryService {
     }
 
     final deckId = _generateShortId();
-    final response = await _apiClient.dio.post('/vocab/public-decks', data: {
+    final response = await _dio.post('/vocab/public-decks', data: {
       'id': deckId,
       'short_id': deckId,
       'original_local_id': localDeckId,
@@ -218,7 +221,7 @@ class MongoPublicLibraryService {
     String? imageDisplayMode,
     bool? showBackFirst,
   }) async {
-    await _apiClient.dio.patch('/vocab/public-decks/$publicDeckId', data: {
+    await _dio.patch('/vocab/public-decks/$publicDeckId', data: {
       if (name != null) 'name': name,
       if (description != null) 'description': description,
       if (categoryId != null) 'category_id': categoryId,
@@ -234,12 +237,12 @@ class MongoPublicLibraryService {
   }
 
   Future<void> unpublishDeck(String publicDeckId) async {
-    await _apiClient.dio.delete('/vocab/public-decks/$publicDeckId');
+    await _dio.delete('/vocab/public-decks/$publicDeckId');
   }
 
   Future<void> incrementDownloadCount(String publicDeckId) async {
     try {
-      await _apiClient.dio.post('/vocab/public-decks/$publicDeckId/download');
+      await _dio.post('/vocab/public-decks/$publicDeckId/download');
     } catch (e) {
       logVocabApiError('incrementDownloadCount', e);
     }
@@ -250,7 +253,7 @@ class MongoPublicLibraryService {
     if (userId == null) return [];
 
     try {
-      final response = await _apiClient.dio.get('/vocab/public-decks/mine');
+      final response = await _dio.get('/vocab/public-decks/mine');
       return unwrapApiList(response.data).map(PublicDeck.fromMap).toList();
     } catch (e) {
       logVocabApiError('getMyPublishedDecks', e);
@@ -282,7 +285,7 @@ class MongoPublicLibraryService {
 
   Future<PublicProfile?> getAuthorProfile(String authorId) async {
     try {
-      final response = await _apiClient.dio.get('/vocab/profiles/$authorId');
+      final response = await _dio.get('/vocab/profiles/$authorId');
       final doc = unwrapApiMap(response.data);
       return doc == null ? null : PublicProfile.fromMap(authorId, doc);
     } on DioException catch (e) {
@@ -296,7 +299,8 @@ class MongoPublicLibraryService {
     }
   }
 
-  Map<String, dynamic> _filterParams(LibraryFilter? filter, int limit, int offset) {
+  Map<String, dynamic> _filterParams(
+      LibraryFilter? filter, int limit, int offset) {
     final params = <String, dynamic>{
       'limit': limit,
       'pageSize': limit,

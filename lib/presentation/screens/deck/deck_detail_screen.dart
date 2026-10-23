@@ -130,7 +130,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                         children: [
                           Icon(Icons.edit_outlined, size: 20, color: AppColors.primary),
                           const SizedBox(width: 8),
-                          Text(l10n.editDeck),
+                          Flexible(child: Text(l10n.editDeck)),
                         ],
                       ),
                     ),
@@ -142,7 +142,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                         children: [
                           Icon(Icons.file_download_outlined, size: 20, color: AppColors.secondary),
                           const SizedBox(width: 8),
-                          Text(l10n.exportToExcel),
+                          Flexible(child: Text(l10n.exportToExcel)),
                         ],
                       ),
                     ),
@@ -153,7 +153,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                         children: [
                           Icon(Icons.upload_file_outlined, size: 20, color: AppColors.info),
                           const SizedBox(width: 8),
-                          Text(l10n.importFromExcel),
+                          Flexible(child: Text(l10n.importFromExcel)),
                         ],
                       ),
                     ),
@@ -202,7 +202,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
                         children: [
                           const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
                           const SizedBox(width: 8),
-                          Text(l10n.deleteDeckMenu, style: const TextStyle(color: AppColors.error)),
+                          Flexible(child: Text(l10n.deleteDeckMenu, style: const TextStyle(color: AppColors.error))),
                         ],
                       ),
                     ),
@@ -541,7 +541,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
       final continueImport = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Text(l10n.warning),
           content: Text(l10n
               .excelFromDifferentDeck(result.deckNameFromFile ?? 'Unknown')),
@@ -670,6 +671,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         await flashcardProvider.updateFlashcard(card);
         updated++;
       }
+      await _refreshDeck();
 
       if (!mounted) return;
       Navigator.pop(context); // Close loading
@@ -681,6 +683,8 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         ),
       );
     } catch (e) {
+      // Earlier rows may already be committed when a later row fails.
+      await _refreshDeck();
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -793,17 +797,33 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     );
   }
 
-  void _navigateToAddCard(BuildContext context) {
-    Navigator.push(
+  Future<void> _refreshDeck() async {
+    if (!mounted) return;
+    final decks = context.read<DeckProvider>();
+    try {
+      await decks.selectDeck(widget.deckId);
+      await decks.loadDecks();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${AppLocalizations.of(context)!.error}: $e'),
+        backgroundColor: AppColors.error,
+      ));
+    }
+  }
+
+  Future<void> _navigateToAddCard(BuildContext context) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => FlashcardEditorScreen(deckId: widget.deckId),
       ),
     );
+    await _refreshDeck();
   }
 
-  void _navigateToEditCard(BuildContext context, Flashcard card) {
-    Navigator.push(
+  Future<void> _navigateToEditCard(BuildContext context, Flashcard card) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => FlashcardEditorScreen(
@@ -812,6 +832,7 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
         ),
       ),
     );
+    await _refreshDeck();
   }
 
   void _confirmDeleteCard(BuildContext context, Flashcard card) {
@@ -829,9 +850,20 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
             child: Text(l10n.cancel),
           ),
           ElevatedButton(
-            onPressed: () {
-              context.read<FlashcardProvider>().deleteFlashcard(card.id);
-              Navigator.pop(context);
+            onPressed: () async {
+              try {
+                await context
+                    .read<FlashcardProvider>()
+                    .deleteFlashcard(card.id);
+                if (context.mounted) Navigator.pop(context);
+                await _refreshDeck();
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('${l10n.error}: $e'),
+                  backgroundColor: AppColors.error,
+                ));
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: Text(l10n.delete),
@@ -848,7 +880,8 @@ class _StickyActionButtonsDelegate extends SliverPersistentHeaderDelegate {
   _StickyActionButtonsDelegate({required this.child});
 
   @override
-  double get minExtent => 72.0; // 12 padding top + 48 button + 12 padding bottom
+  double get minExtent =>
+      72.0; // 12 padding top + 48 button + 12 padding bottom
   @override
   double get maxExtent => 72.0;
 
@@ -1348,8 +1381,7 @@ class _ImportSummaryRow extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 8),
-        Text(label),
-        const Spacer(),
+        Expanded(child: Text(label)),
         Text(
           '$count',
           style: TextStyle(

@@ -172,12 +172,10 @@ class DeckProvider extends ChangeNotifier {
   }
 
   Future<void> createDeck(Deck deck) async {
+    _error = null;
     try {
       debugPrint('DeckProvider: Creating deck: ${deck.name}');
       await _repository.createDeck(deck);
-      debugPrint('DeckProvider: Deck created successfully');
-      await loadDecks();
-      debugPrint('DeckProvider: Decks reloaded, total: ${_decks.length}');
     } catch (e, stackTrace) {
       debugPrint('DeckProvider: Error creating deck: $e');
       debugPrint('DeckProvider: Stack trace: $stackTrace');
@@ -185,17 +183,16 @@ class DeckProvider extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+    // The write committed. A failed refresh must not invite another create.
+    _decks = [..._decks.where((item) => item.id != deck.id), deck];
+    await loadDecks();
   }
 
   Future<void> updateDeck(Deck deck) async {
+    _error = null;
     try {
       debugPrint('DeckProvider: Updating deck: ${deck.name}');
       await _repository.updateDeck(deck);
-      debugPrint('DeckProvider: Deck updated successfully');
-      await loadDecks();
-      if (_selectedDeck?.id == deck.id) {
-        _selectedDeck = deck;
-      }
     } catch (e, stackTrace) {
       debugPrint('DeckProvider: Error updating deck: $e');
       debugPrint('DeckProvider: Stack trace: $stackTrace');
@@ -203,6 +200,9 @@ class DeckProvider extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+    if (_selectedDeck?.id == deck.id) _selectedDeck = deck;
+    _decks = [..._decks.where((item) => item.id != deck.id), deck];
+    await loadDecks();
   }
 
   Future<void> deleteDeck(String id) async {

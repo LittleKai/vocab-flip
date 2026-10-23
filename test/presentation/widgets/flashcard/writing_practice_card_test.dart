@@ -135,6 +135,44 @@ void main() {
     expect(completedRating, ReviewRating.easy);
   });
 
+  testWidgets('changing writing card cancels its delayed completion',
+      (tester) async {
+    final provider = StrokePracticeProvider(
+      repository: FakeStrokeDataRepository({'日': char1, '本': char2}),
+      validationService: FakeValidationService(),
+    );
+    final first = Flashcard(id: 'old', deckId: 'deck', front: '日', back: 'Sun');
+    final next = Flashcard(id: 'new', deckId: 'deck', front: '本', back: 'Book');
+    final ratings = <ReviewRating>[];
+    await provider.loadForCard(text: '日', sourceLanguage: 'ja');
+    await tester.pumpWidget(buildTestApp(provider, first, ratings.add));
+    await tester.drag(
+        find.byType(GestureDetector).first, const Offset(100, 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    await provider.loadForCard(text: '本', sourceLanguage: 'ja');
+    await tester.pumpWidget(buildTestApp(provider, next, ratings.add));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(ratings, isEmpty);
+  });
+
+  testWidgets('resetting writing practice cancels its delayed completion',
+      (tester) async {
+    final provider = StrokePracticeProvider(
+      repository: FakeStrokeDataRepository({'日': char1}),
+      validationService: FakeValidationService(),
+    );
+    final card = Flashcard(id: 'same', deckId: 'deck', front: '日', back: 'Sun');
+    final ratings = <ReviewRating>[];
+    await provider.loadForCard(text: '日', sourceLanguage: 'ja');
+    await tester.pumpWidget(buildTestApp(provider, card, ratings.add));
+    await tester.drag(
+        find.byType(GestureDetector).first, const Offset(100, 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byIcon(Icons.refresh));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(ratings, isEmpty);
+  });
+
   testWidgets('WritingPracticeCard multi-character flow completes both targets',
       (WidgetTester tester) async {
     final provider = StrokePracticeProvider(
