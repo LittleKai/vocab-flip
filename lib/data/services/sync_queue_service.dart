@@ -56,9 +56,9 @@ class SyncQueueService {
             continue;
           }
           await _processItem(item, owner);
-          if (AlphaAuthSession().userId != owner) return;
-          // Ownership markers survive delivery; remove only the delivered operation.
+          // A known success acknowledges only this UUID, even after an account switch.
           await _syncQueueDao.delete(item.id);
+          if (AlphaAuthSession().userId != owner) return;
         } catch (e) {
           debugPrint('SyncQueueService: Failed to process item ${item.id}: $e');
           // Break immediately to preserve strict queue ordering.
