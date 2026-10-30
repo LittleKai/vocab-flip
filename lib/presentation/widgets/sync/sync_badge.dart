@@ -97,55 +97,6 @@ class SyncBadge extends StatelessWidget {
   }
 }
 
-/// Icon button with badge for sync notifications
-class SyncNotificationBadge extends StatelessWidget {
-  final int unreadCount;
-  final VoidCallback? onTap;
-
-  const SyncNotificationBadge({
-    super.key,
-    this.unreadCount = 0,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Stack(
-        children: [
-          const Icon(Icons.notifications_outlined),
-          if (unreadCount > 0)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: AppColors.error,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
-                child: Text(
-                  unreadCount > 99 ? '99+' : unreadCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-        ],
-      ),
-      onPressed: onTap,
-    );
-  }
-}
-
 /// Linked deck indicator showing it's imported from library
 class LinkedDeckIndicator extends StatelessWidget {
   final String? authorName;

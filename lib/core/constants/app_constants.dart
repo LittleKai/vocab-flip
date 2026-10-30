@@ -1,7 +1,6 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'VocabFlip';
   static const String appVersion = '1.0.0';
 
   // Database
@@ -15,16 +14,6 @@ class AppConstants {
   static const String tableReviewLogs = 'review_logs';
   static const String tableImportedDeckLinks = 'imported_deck_links';
 
-  // Firestore Collections
-  static const String collectionPublicDecks = 'public_decks';
-  static const String collectionPublicFlashcards = 'flashcards';
-  static const String collectionRatings = 'ratings';
-  static const String collectionCategories = 'categories';
-  static const String collectionImportedDecks = 'imported_decks';
-  static const String collectionSyncNotifications = 'sync_notifications';
-  static const String collectionPublicProfiles = 'public_profiles';
-  static const String collectionFeedback = 'feedback';
-
   // SM-2 Algorithm defaults
   static const double defaultEasinessFactor = 2.5;
   static const double minEasinessFactor = 1.3;
@@ -37,15 +26,9 @@ class AppConstants {
   static const int ratingGood = 4;
   static const int ratingEasy = 5;
 
-  // Pagination
-  static const int defaultPageSize = 20;
-
   // Animation durations
   static const Duration flipDuration = Duration(milliseconds: 400);
-  static const Duration shortDuration = Duration(milliseconds: 200);
-  static const Duration mediumDuration = Duration(milliseconds: 300);
 
   // Export/Import
-  static const String exportFileExtension = '.json';
   static const String exportVersion = '1.0';
 }

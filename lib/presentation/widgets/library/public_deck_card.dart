@@ -76,9 +76,10 @@ class PublicDeckCard extends StatelessWidget {
                   DeckCardHeader(
                     name: deck.name,
                     imagePath: deck.imageUrl,
-                    frontFieldsLabel: _formatFields(deck.frontFields ?? 'word'),
+                    frontFieldsLabel:
+                        formatPublicFieldNames(deck.frontFields ?? 'word'),
                     backFieldsLabel:
-                        _formatFields(deck.backFields ?? 'meaning'),
+                        formatPublicFieldNames(deck.backFields ?? 'meaning'),
                     sourceLanguage: deck.sourceLanguage,
                     targetLanguage: deck.targetLanguage,
                     reverseFieldOrder: deck.showBackFirst,
@@ -174,7 +175,7 @@ class PublicDeckCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _getCategoryIcon(category.icon),
+                                categoryIconFromName(category.icon),
                                 size: 12,
                                 color: AppColors.secondary,
                               ),
@@ -386,47 +387,5 @@ class PublicDeckCard extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd/MM/yyyy').format(date);
-  }
-
-  IconData _getCategoryIcon(String? iconName) {
-    switch (iconName) {
-      case 'school':
-        return Icons.school;
-      case 'translate':
-        return Icons.translate;
-      case 'flight':
-        return Icons.flight;
-      case 'business':
-        return Icons.business;
-      case 'home':
-        return Icons.home;
-      case 'menu_book':
-        return Icons.menu_book;
-      case 'chat_bubble':
-        return Icons.chat_bubble;
-      case 'more_horiz':
-        return Icons.more_horiz;
-      default:
-        return Icons.category;
-    }
-  }
-
-  String _formatFields(String fields) {
-    return fields.split(',').map((f) {
-      switch (f.trim()) {
-        case 'word':
-          return 'Word';
-        case 'phonetic':
-          return 'Phonetic';
-        case 'meaning':
-          return 'Meaning';
-        case 'example':
-          return 'Example';
-        case 'notes':
-          return 'Notes';
-        default:
-          return f.trim();
-      }
-    }).join(', ');
   }
 }

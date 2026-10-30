@@ -41,7 +41,6 @@ The official distribution packages and builds for VocabFlip (Windows, Android, a
 ### 🎮 Multiple Study Modes
 - **Classic Flip:** Traditional flashcard memorization (flip front/back) to reinforce active recall.
 - **Multiple Choice:** Quick-fire selection of vocabulary meanings to improve character recognition.
-- **Type Answer:** Typing practice for vocabulary spelling and retrieval.
 - **Writing Practice:** Hand-drawn input mode to master character strokes.
 
 ### 👥 Public Library & Cloud Sync

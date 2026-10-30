@@ -25,17 +25,4 @@ class ApiEndpoints {
   // Mazii word detail API
   static const String maziiDetailBase = 'https://mazii.net/api/javi';
   static String maziiDetail(int mobileId) => '$maziiDetailBase/$mobileId';
-
-  // chineseDict API (Chinese - Vietnamese) - uses same backend as Mazii
-  static const String chineseDictSearch = 'https://mazii.net/api/search';
-  static const String chineseDictBase = 'https://mazii.net/api/search';
-  static String chineseDict(String word, {int limit = 10, int page = 1}) =>
-      '$chineseDictBase/${Uri.encodeComponent(word)}/$limit/$page';
-
-  // chineseDict word detail API
-  static const String chineseDictDetailBase = 'https://mazii.net/api/hanzivi';
-  static String chineseDictDetail(int mobileId) => '$chineseDictDetailBase/$mobileId';
-
-  // Google Translate (requires API key)
-  static const String googleTranslateBase = 'https://translation.googleapis.com/language/translate/v2';
 }

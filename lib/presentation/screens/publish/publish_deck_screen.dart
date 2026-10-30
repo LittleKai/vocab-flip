@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
@@ -8,6 +7,7 @@ import '../../../data/models/deck.dart';
 import '../../providers/publish_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/common/deck_card_header.dart';
 import '../../widgets/library/tag_input.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
 
@@ -100,24 +100,10 @@ class _PublishDeckScreenState extends State<PublishDeckScreen> {
                   if (_deck!.imagePath != null && _deck!.imagePath!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: 64,
-                          height: 64,
-                          child: _deck!.imagePath!.startsWith('http')
-                              ? Image.network(
-                                  _deck!.imagePath!, 
-                                  fit: BoxFit.cover,
-                                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
-                                )
-                              : File(_deck!.imagePath!).existsSync()
-                                  ? Image.file(File(_deck!.imagePath!), fit: BoxFit.cover)
-                                  : Container(
-                                      color: AppColors.primary.withOpacity(0.1),
-                                      child: Icon(Icons.style, color: AppColors.primary),
-                                    ),
-                        ),
+                      child: DeckCardHeader.buildDeckImage(
+                        context,
+                        _deck!.imagePath,
+                        size: 64,
                       ),
                     ),
                   Expanded(

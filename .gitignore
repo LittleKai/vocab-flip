@@ -16,8 +16,8 @@ CLAUDE.md
 .superpowers/
 /.spec-archive/
 /tools/*
-!/tools/build_stroke_data_test.dart
-!/tools/verify_stroke_data_test.dart
+!/tools/build_stroke_data.script.dart
+!/tools/verify_stroke_data.script.dart
 !/tools/stroke_data_manifest.json
 
 # IntelliJ related

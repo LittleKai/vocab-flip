@@ -48,7 +48,8 @@ class WebProxyHttpClient extends http.BaseClient {
 
           return await _inner.send(proxyRequest);
         } catch (e) {
-          debugPrint('[WebProxyHttpClient] Error proxying request: $e. Falling back to direct client.');
+          debugPrint('[WebProxyHttpClient] Error proxying request: $e');
+          rethrow;
         }
       }
     }

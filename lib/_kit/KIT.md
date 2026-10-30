@@ -1,17 +1,13 @@
-﻿# Shared Code Kit — VocabFlip
+# Shared Code Kit — VocabFlip
 
 ## Quyết định
 
-VocabFlip đang sống và deploy liên tục; code dùng chung nên được load chung trong app. `formatCompactCount` đã được promote vì hai bản copy có cùng hành vi; các bản `_getCategoryIcon` vẫn khác chữ ký hoặc fallback nên chưa gộp.
+VocabFlip đang sống và deploy liên tục; code dùng chung nên được load chung trong app. Các hàm đã được promote vào `lib/_kit/formatters.dart`:
 
-## Bản sao cần xem lại
-
-| File | Hàm | Nhận xét |
-|---|---|---|
-| `lib/presentation/screens/library/public_deck_detail_screen.dart` | `_getCategoryIcon` | Bộ icon cần xem lại trước khi gộp |
-| `lib/presentation/widgets/library/public_deck_card.dart` | `_getCategoryIcon` | Bộ icon cần xem lại trước khi gộp |
-| `lib/presentation/screens/deck/deck_detail_screen.dart` | `_getCategoryIcon` | Bộ icon khác một phần; cần quyết định fallback trước khi gộp |
-| `lib/presentation/screens/library/library_search_screen.dart` | `_getCategoryIcon` | Bộ icon/fallback khác; chưa coi là bản copy tương đương |
+- `formatCompactCount(int count)` — định dạng số lượng rút gọn (`K`, `M`).
+- `categoryIconFromName(String? iconName)` — ánh xạ tên icon danh mục sang `IconData` (fallback `Icons.category`), dùng chung tại `deck_list_screen.dart`, `deck_detail_screen.dart`, `public_deck_detail_screen.dart` và `public_deck_card.dart`.
+- `formatPublicFieldNames(String fields)` — định dạng danh sách trường mặt trước/sau của bộ thẻ công khai (`public_deck_detail_screen.dart`, `public_deck_card.dart`).
+- `formatCardFields(List<CardFieldType> fields)` — định dạng danh sách `CardFieldType` của bộ thẻ cá nhân (`deck_list_screen.dart`, `deck_detail_screen.dart`).
 
 ## LUẬT PROMOTE
 

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../providers/deck_provider.dart';
+import '../../providers/flashcard_provider.dart';
 import '../../providers/sync_provider.dart';
 
 /// Screen showing sync update notifications
@@ -100,8 +102,23 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.sync),
                 label: Text(l10n.syncAll),
-                onPressed:
-                    provider.isSyncing ? null : () => provider.syncAll(),
+                onPressed: provider.isSyncing
+                    ? null
+                    : () async {
+                        final deckProvider = context.read<DeckProvider>();
+                        final flashcardProvider =
+                            context.read<FlashcardProvider>();
+                        await provider.syncAll();
+                        await deckProvider.loadDecks();
+                        final selectedId = deckProvider.selectedDeck?.id;
+                        if (selectedId != null) {
+                          await deckProvider.selectDeck(selectedId);
+                        }
+                        final currentDeckId = flashcardProvider.currentDeckId;
+                        if (currentDeckId != null) {
+                          await flashcardProvider.loadFlashcards(currentDeckId);
+                        }
+                      },
               ),
             ),
 
@@ -127,7 +144,21 @@ class _SyncNotificationsScreenState extends State<SyncNotificationsScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : ElevatedButton(
-                        onPressed: () => provider.syncDeck(update.link.localDeckId),
+                        onPressed: () async {
+                          final localDeckId = update.link.localDeckId;
+                          final deckProvider = context.read<DeckProvider>();
+                          final flashcardProvider =
+                              context.read<FlashcardProvider>();
+                          final ok = await provider.syncDeck(localDeckId);
+                          if (!ok) return;
+                          await deckProvider.loadDecks();
+                          if (deckProvider.selectedDeck?.id == localDeckId) {
+                            await deckProvider.selectDeck(localDeckId);
+                          }
+                          if (flashcardProvider.currentDeckId == localDeckId) {
+                            await flashcardProvider.loadFlashcards(localDeckId);
+                          }
+                        },
                         child: Text(l10n.sync),
                       ),
               ),

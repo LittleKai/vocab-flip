@@ -15,6 +15,7 @@ import '../../../data/repositories/stroke_data_repository.dart';
 import '../../../data/services/tts_service.dart';
 import '../../providers/dictionary_provider.dart';
 import '../../providers/deck_provider.dart';
+import '../../providers/flashcard_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/stroke/stroke_order_animation.dart';
 
@@ -358,11 +359,13 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
       // Search for kanji using Mazii API
       final results =
           await provider.searchKanjiSuggestions(query, limit: limit);
+      if (!mounted) return;
       setState(() {
         _kanjiSuggestions = results;
         _loadingKanji = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _loadingKanji = false;
       });
@@ -1042,6 +1045,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
   ) async {
     final l10n = AppLocalizations.of(context)!;
     final deckProvider = context.read<DeckProvider>();
+    final flashcardProvider = context.read<FlashcardProvider>();
 
     try {
       await deckProvider.addFlashcard(
@@ -1052,6 +1056,9 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
         example: example,
         notes: notes,
       );
+      if (flashcardProvider.currentDeckId == deckId) {
+        await flashcardProvider.loadFlashcards(deckId);
+      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

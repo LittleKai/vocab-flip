@@ -251,7 +251,15 @@ class FlashcardDao {
   }
 
   Future<Map<String, int>> getDeckBreakdown() async {
-    if (kIsWeb) return {'new': 0, 'learning': 0, 'mature': 0};
+    if (kIsWeb) {
+      final cards = await getAll();
+      return {
+        'new': cards.where((c) => c.repetitions == 0).length,
+        'learning':
+            cards.where((c) => c.repetitions > 0 && c.interval < 21).length,
+        'mature': cards.where((c) => c.interval >= 21).length,
+      };
+    }
 
     final db = await _db;
     final results = await db.rawQuery('''

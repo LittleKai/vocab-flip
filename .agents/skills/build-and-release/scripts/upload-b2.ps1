@@ -156,9 +156,8 @@ Write-Step "Reading B2 config"
 
 $BackendEnv = [System.IO.Path]::GetFullPath((Join-Path $ProjectRoot "..\..\alpha-studio-backend\.env"))
 $ReleaseEnv = Join-Path $ProjectRoot ".env.release"
-$LocalEnv   = Join-Path $ProjectRoot ".env"
 
-$EnvVars = Read-EnvMap -CandidatePaths @($LocalEnv, $BackendEnv, $ReleaseEnv)
+$EnvVars = Read-EnvMap -CandidatePaths @($BackendEnv, $ReleaseEnv)
 
 $KeyId      = if ($env:B2_ACCESS_KEY_ID)     { $env:B2_ACCESS_KEY_ID }     else { $EnvVars['B2_ACCESS_KEY_ID'] }
 $AppKey     = if ($env:B2_SECRET_ACCESS_KEY) { $env:B2_SECRET_ACCESS_KEY } else { $EnvVars['B2_SECRET_ACCESS_KEY'] }

@@ -605,27 +605,30 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
       return;
     }
 
+    final deckProvider = context.read<DeckProvider>();
+    final dictProvider = context.read<DictionaryProvider>();
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _isLookingUp = true);
 
     try {
-      final deck = await context.read<DeckProvider>().getDeckById(widget.deckId);
-      if (deck == null) return;
+      final deck = await deckProvider.getDeckById(widget.deckId);
+      if (!mounted || deck == null) return;
 
-      final dictProvider = context.read<DictionaryProvider>();
       dictProvider.setLanguage(SupportedLanguage.fromCode(deck.sourceLanguage));
       await dictProvider.lookup(word);
+      if (!mounted) return;
 
       final results = dictProvider.results;
       if (results.isNotEmpty) {
         _fillFromDictionary(results.first);
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text(l10n.autoFilled),
             backgroundColor: AppColors.success,
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text(dictProvider.error ?? l10n.wordNotFound),
             backgroundColor: AppColors.warning,

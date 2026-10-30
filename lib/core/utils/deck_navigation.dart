@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../data/local/preferences/app_preferences.dart';
 import '../../presentation/providers/deck_provider.dart';
 import '../../presentation/providers/flashcard_provider.dart';
+import '../../presentation/providers/settings_provider.dart';
 import '../../presentation/screens/deck/deck_detail_screen.dart';
 import '../../presentation/screens/flashcard/flashcard_viewer_screen.dart';
 
@@ -56,8 +57,19 @@ class DeckNavigation {
     );
   }
 
-  /// Navigate to study mode
-  static void navigateToStudy(BuildContext context, String deckId) {
-    Navigator.of(context).pushNamed('/study', arguments: deckId);
+  /// Navigate to study mode and refresh deck/card/stats state when returning
+  static Future<void> navigateToStudy(BuildContext context, String deckId) async {
+    final deckProvider = context.read<DeckProvider>();
+    final flashcardProvider = context.read<FlashcardProvider>();
+    final settingsProvider = context.read<SettingsProvider>();
+    await Navigator.of(context).pushNamed('/study', arguments: deckId);
+    await deckProvider.loadDecks();
+    if (deckProvider.selectedDeck?.id == deckId) {
+      await deckProvider.selectDeck(deckId);
+    }
+    if (flashcardProvider.currentDeckId == deckId) {
+      await flashcardProvider.loadFlashcards(deckId);
+    }
+    settingsProvider.refreshStats();
   }
 }

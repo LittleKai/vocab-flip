@@ -4,6 +4,10 @@ import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/backup_provider.dart';
 import '../../providers/deck_provider.dart';
+import '../../providers/flashcard_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../providers/study_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../widgets/backup/backup_progress_dialog.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
 
@@ -153,6 +157,25 @@ class _BackupScreenState extends State<BackupScreen> {
     if (!mounted) return;
 
     if (result != null && result.success) {
+      final deckProvider = context.read<DeckProvider>();
+      final flashcardProvider = context.read<FlashcardProvider>();
+      final studyProvider = context.read<StudyProvider>();
+      final syncProvider = context.read<SyncProvider>();
+      final settingsProvider = context.read<SettingsProvider>();
+
+      await deckProvider.loadDecks();
+      if (deckProvider.selectedDeck != null) {
+        await deckProvider.selectDeck(deckProvider.selectedDeck!.id);
+      }
+      if (flashcardProvider.currentDeckId != null) {
+        await flashcardProvider
+            .loadFlashcards(flashcardProvider.currentDeckId!);
+      }
+      studyProvider.reset();
+      await syncProvider.checkForUpdates();
+      settingsProvider.refreshStats();
+      if (!mounted) return;
+
       BackupResultDialog.show(
         context,
         success: true,
@@ -162,10 +185,6 @@ class _BackupScreenState extends State<BackupScreen> {
         details: result.decksSkipped > 0
             ? l10n.decksSkipped(result.decksSkipped)
             : null,
-        onDismiss: () {
-          // Refresh deck list
-          context.read<DeckProvider>().loadDecks();
-        },
       );
     } else if (provider.error != null) {
       BackupResultDialog.show(

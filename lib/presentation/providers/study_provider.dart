@@ -345,6 +345,14 @@ class StudyProvider extends ChangeNotifier {
     }
   }
 
+  void clearIfDeck(String deckId) {
+    final matchesSession = _currentSession?.deckId == deckId;
+    final matchesQueue = _studyQueue.any((card) => card.deckId == deckId);
+    if (matchesSession || matchesQueue) {
+      reset();
+    }
+  }
+
   void reset() {
     if (_isSubmitting) return;
     _generation++;

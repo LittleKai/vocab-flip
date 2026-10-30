@@ -24,6 +24,7 @@ class UpdateInstallService {
   Future<String?> extractUpdate(String zipPath) async {
     if (!isSupported) return null;
 
+    Directory? createdDirectory;
     try {
       final zipFile = File(zipPath);
       if (!await zipFile.exists()) {
@@ -45,17 +46,23 @@ class UpdateInstallService {
         await directory.delete(recursive: true);
       }
       await directory.create(recursive: true);
+      createdDirectory = directory;
 
+      final normalizedExtractDir = path.normalize(extractDir);
       for (final file in archive) {
         final filename = file.name;
+        final targetPath = path.normalize(path.join(extractDir, filename));
+        if (path.isAbsolute(filename) ||
+            !path.isWithin(normalizedExtractDir, targetPath)) {
+          throw FileSystemException('Invalid archive entry path', filename);
+        }
         if (file.isFile) {
           final data = file.content as List<int>;
-          final outFile = File(path.join(extractDir, filename));
+          final outFile = File(targetPath);
           await outFile.create(recursive: true);
           await outFile.writeAsBytes(data);
         } else {
-          await Directory(path.join(extractDir, filename))
-              .create(recursive: true);
+          await Directory(targetPath).create(recursive: true);
         }
       }
 
@@ -63,6 +70,9 @@ class UpdateInstallService {
       return extractDir;
     } catch (e) {
       debugPrint('UpdateInstallService: Extract error: $e');
+      if (createdDirectory != null && await createdDirectory.exists()) {
+        await createdDirectory.delete(recursive: true);
+      }
       return null;
     }
   }

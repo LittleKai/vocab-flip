@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
+import '../../../_kit/formatters.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/supported_languages.dart';
 import '../../../data/models/flashcard.dart';
@@ -14,6 +15,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/deck_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/study_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -503,6 +505,13 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
 
   void _confirmDeleteDeck(BuildContext context, Deck deck) {
     final l10n = AppLocalizations.of(context)!;
+    final deckProvider = context.read<DeckProvider>();
+    final flashcardProvider = context.read<FlashcardProvider>();
+    final studyProvider = context.read<StudyProvider>();
+    final syncProvider = context.read<SyncProvider>();
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final deckId = deck.id;
 
     showStandardDialog(
       context: context,
@@ -512,9 +521,21 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
       secondaryButtonText: l10n.cancel,
       isDestructive: true,
       onPrimaryPressed: () async {
-        await context.read<DeckProvider>().deleteDeck(deck.id);
-        if (context.mounted) {
-          Navigator.pop(context); // go back from deck detail
+        try {
+          await deckProvider.deleteDeck(deckId);
+          flashcardProvider.clearIfDeck(deckId);
+          studyProvider.clearIfDeck(deckId);
+          syncProvider.clearIfDeck(deckId);
+          if (mounted) {
+            navigator.pop(); // go back from deck detail
+          }
+        } catch (e) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('${l10n.error}: $e'),
+              backgroundColor: AppColors.error,
+            ),
+          );
         }
       },
     );
@@ -748,34 +769,25 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
 
   void _confirmUnlink(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final syncProvider = context.read<SyncProvider>();
+    final messenger = ScaffoldMessenger.of(context);
 
-    showDialog(
+    showStandardDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.unlinkDeck),
-        content: Text(l10n.unlinkDeckMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await context.read<SyncProvider>().unlinkDeck(widget.deckId);
-              if (context.mounted) {
-                // Reload deck to reflect unlinked state
-                context.read<DeckProvider>().selectDeck(widget.deckId);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.deckUnlinked)),
-                );
-              }
-            },
-            child: Text(l10n.unlink),
-          ),
-        ],
-      ),
+      title: l10n.unlinkDeck,
+      content: l10n.unlinkDeckMessage,
+      primaryButtonText: l10n.unlink,
+      secondaryButtonText: l10n.cancel,
+      isDestructive: true,
+      onPrimaryPressed: () async {
+        await syncProvider.unlinkDeck(widget.deckId);
+        if (!mounted) return;
+        await _refreshDeck();
+        if (!mounted) return;
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.deckUnlinked)),
+        );
+      },
     );
   }
 
@@ -788,13 +800,19 @@ class _DeckDetailScreenState extends State<DeckDetailScreen> {
     );
   }
 
-  void _navigateToStudy(BuildContext context) {
-    Navigator.push(
+  Future<void> _navigateToStudy(BuildContext context) async {
+    final flashcardProvider = context.read<FlashcardProvider>();
+    final settingsProvider = context.read<SettingsProvider>();
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => StudyScreen(deckId: widget.deckId),
       ),
     );
+    if (!mounted) return;
+    await _refreshDeck();
+    await flashcardProvider.loadFlashcards(widget.deckId);
+    settingsProvider.refreshStats();
   }
 
   Future<void> _refreshDeck() async {
@@ -920,10 +938,6 @@ class _DeckHeader extends StatelessWidget {
 
   const _DeckHeader({required this.deck});
 
-  String _formatFields(List<CardFieldType> fields) {
-    return fields.map((f) => f.displayName).join(', ');
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -973,26 +987,26 @@ class _DeckHeader extends StatelessWidget {
                             DeckCardHeader.buildMiniChip(
                               context,
                               Icons.flip_to_front,
-                              _formatFields(deck.frontFields),
+                              formatCardFields(deck.frontFields),
                               AppColors.primary,
                             ),
                             DeckCardHeader.buildMiniChip(
                               context,
                               Icons.flip_to_back,
-                              _formatFields(deck.backFields),
+                              formatCardFields(deck.backFields),
                               AppColors.secondary,
                             ),
                           ] else ...[
                             DeckCardHeader.buildMiniChip(
                               context,
                               Icons.flip_to_back,
-                              _formatFields(deck.backFields),
+                              formatCardFields(deck.backFields),
                               AppColors.secondary,
                             ),
                             DeckCardHeader.buildMiniChip(
                               context,
                               Icons.flip_to_front,
-                              _formatFields(deck.frontFields),
+                              formatCardFields(deck.frontFields),
                               AppColors.primary,
                             ),
                           ],
@@ -1043,14 +1057,24 @@ class _DeckHeader extends StatelessWidget {
                         final update = syncProvider.getUpdateForDeck(deck.id);
                         final isSyncing = syncProvider.syncingDeckId == deck.id;
 
+                        Future<void> handleSync() async {
+                          final deckProvider = context.read<DeckProvider>();
+                          final flashcardProvider =
+                              context.read<FlashcardProvider>();
+                          final ok = await syncProvider.syncDeck(deck.id);
+                          if (!ok || !context.mounted) return;
+                          await deckProvider.selectDeck(deck.id);
+                          await deckProvider.loadDecks();
+                          await flashcardProvider.loadFlashcards(deck.id);
+                        }
+
                         return Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             LinkedDeckIndicator(
                               hasUpdate: hasUpdate,
-                              onSyncTap: hasUpdate && !isSyncing
-                                  ? () => syncProvider.syncDeck(deck.id)
-                                  : null,
+                              onSyncTap:
+                                  hasUpdate && !isSyncing ? handleSync : null,
                             ),
                             if (isSyncing) ...[
                               const SizedBox(width: 6),
@@ -1060,7 +1084,7 @@ class _DeckHeader extends StatelessWidget {
                               SyncBadge(
                                 hasUpdate: true,
                                 versionsBehind: update.versionsBehind,
-                                onTap: () => syncProvider.syncDeck(deck.id),
+                                onTap: handleSync,
                               ),
                             ],
                           ],
@@ -1139,7 +1163,7 @@ class _DeckHeader extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _getCategoryIcon(category.icon ?? 'category'),
+                          categoryIconFromName(category.icon),
                           size: 13,
                           color: AppColors.secondary,
                         ),
@@ -1174,20 +1198,6 @@ class _DeckHeader extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getCategoryIcon(String iconName) {
-    switch (iconName) {
-      case 'flight': return Icons.flight;
-      case 'business': return Icons.business;
-      case 'home': return Icons.home;
-      case 'menu_book': return Icons.menu_book;
-      case 'chat_bubble': return Icons.chat_bubble;
-      case 'school': return Icons.school;
-      case 'translate': return Icons.translate;
-      case 'more_horiz': return Icons.more_horiz;
-      default: return Icons.category;
-    }
   }
 }
 

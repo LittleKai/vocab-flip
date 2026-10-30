@@ -238,6 +238,17 @@ class SyncProvider extends ChangeNotifier {
   Future<ImportedDeckLink?> getImportLink(String localDeckId) =>
       _repository.getImportLink(localDeckId);
 
+  /// Remove any cached update state for a deleted local deck
+  void clearIfDeck(String localDeckId) {
+    final next = _availableUpdates
+        .where((u) => u.link.localDeckId != localDeckId)
+        .toList();
+    if (next.length != _availableUpdates.length) {
+      _availableUpdates = next;
+      notifyListeners();
+    }
+  }
+
   /// Clear error
   void clearError() {
     _error = null;

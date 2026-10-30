@@ -206,6 +206,7 @@ class DeckProvider extends ChangeNotifier {
   }
 
   Future<void> deleteDeck(String id) async {
+    _error = null;
     try {
       await _repository.deleteDeck(id);
       if (_selectedDeck?.id == id) {
@@ -215,6 +216,7 @@ class DeckProvider extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
+      rethrow;
     }
   }
 
@@ -250,6 +252,9 @@ class DeckProvider extends ChangeNotifier {
       debugPrint('DeckProvider: Flashcard added successfully');
 
       // Reload decks to update card counts
+      if (_selectedDeck?.id == deckId) {
+        await selectDeck(deckId);
+      }
       await loadDecks();
     } catch (e, stackTrace) {
       debugPrint('DeckProvider: Error adding flashcard: $e');

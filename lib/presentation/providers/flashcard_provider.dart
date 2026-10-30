@@ -163,6 +163,12 @@ class FlashcardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearIfDeck(String deckId) {
+    if (_currentDeckId == deckId) {
+      reset();
+    }
+  }
+
   void reset() {
     _flashcards = [];
     _dueFlashcards = [];

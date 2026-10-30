@@ -364,10 +364,21 @@ class PublicLibraryRepository {
     await _syncService.deleteImportLink(link.id);
 
     // Clear link fields only (safe partial update, preserves all other data)
-    await _deckDao.updateFields(localDeckId, {
-      'linked_public_deck_id': null,
-      'linked_version': null,
-    });
+    final localDeck = await _deckDao.getById(localDeckId);
+    if (localDeck != null) {
+      final clearedDeck = Deck.fromMap({
+        ...localDeck.toMap(),
+        'linked_public_deck_id': null,
+        'linked_version': null,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+      await _deckRepository.updateDeck(clearedDeck);
+    } else {
+      await _deckDao.updateFields(localDeckId, {
+        'linked_public_deck_id': null,
+        'linked_version': null,
+      });
+    }
   }
 
   // ===== Publish =====
@@ -474,7 +485,7 @@ class PublicLibraryRepository {
       isPublished: true,
       publishedDeckId: publicDeck.id,
     );
-    await _deckDao.update(updatedDeck);
+    await _deckRepository.updateDeck(updatedDeck);
 
     return publicDeck;
   }
@@ -581,10 +592,13 @@ class PublicLibraryRepository {
     await _libraryService.unpublishDeck(deck.publishedDeckId!);
 
     // Update only publish-related fields (safe partial update)
-    await _deckDao.updateFields(localDeckId, {
+    final clearedDeck = Deck.fromMap({
+      ...deck.toMap(),
       'is_published': 0,
       'published_deck_id': null,
+      'updated_at': DateTime.now().toIso8601String(),
     });
+    await _deckRepository.updateDeck(clearedDeck);
   }
 
   /// Unpublish a deck by public deck ID (used from library screen)
@@ -596,10 +610,13 @@ class PublicLibraryRepository {
     final localDeck =
         localDecks.where((d) => d.publishedDeckId == publicDeckId).firstOrNull;
     if (localDeck != null) {
-      await _deckDao.updateFields(localDeck.id, {
+      final clearedDeck = Deck.fromMap({
+        ...localDeck.toMap(),
         'is_published': 0,
         'published_deck_id': null,
+        'updated_at': DateTime.now().toIso8601String(),
       });
+      await _deckRepository.updateDeck(clearedDeck);
     }
   }
 
@@ -658,6 +675,7 @@ class PublicLibraryRepository {
     List<String> paths, {
     ImageProgressCallback? onProgress,
   }) async {
+    if (flutter.kIsWeb) return const {};
     final result = <String, String?>{};
     var completed = 0;
     var failed = 0;
@@ -665,26 +683,33 @@ class PublicLibraryRepository {
     for (final path in paths) {
       String pathToUpload = path;
       try {
-        final file = File(path);
-        if (await file.exists() && await file.length() > 250 * 1024) {
-          // Pre-compress large local images (over 250KB) to maxWidth 800 before upload
-          final compressed =
-              await _imageService.saveImageLocally(path, maxWidth: 800);
-          if (compressed != null) {
-            pathToUpload = compressed;
+        try {
+          final file = File(path);
+          if (await file.exists() && await file.length() > 250 * 1024) {
+            // Pre-compress large local images (over 250KB) to maxWidth 800 before upload
+            final compressed =
+                await _imageService.saveImageLocally(path, maxWidth: 800);
+            if (compressed != null) {
+              pathToUpload = compressed;
+            }
           }
+        } catch (e) {
+          flutter.debugPrint(
+              'PublicLibraryRepository: Error optimizing image before upload: $e');
         }
-      } catch (e) {
-        flutter.debugPrint(
-            'PublicLibraryRepository: Error optimizing image before upload: $e');
-      }
 
-      final uploadResult = await _cloudinaryService.uploadImage(pathToUpload);
-      final url = uploadResult.success ? uploadResult.url : null;
-      result[path] = url;
-      completed++;
-      if (url == null) failed++;
-      onProgress?.call(completed, paths.length, failed);
+        final uploadResult =
+            await _cloudinaryService.uploadImage(pathToUpload);
+        final url = uploadResult.success ? uploadResult.url : null;
+        result[path] = url;
+        completed++;
+        if (url == null) failed++;
+        onProgress?.call(completed, paths.length, failed);
+      } finally {
+        if (pathToUpload != path) {
+          await _imageService.deleteImage(pathToUpload);
+        }
+      }
     }
 
     return result;

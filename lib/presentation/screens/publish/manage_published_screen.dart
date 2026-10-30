@@ -271,7 +271,26 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
   void _confirmUnpublish(BuildContext context, String publicDeckId) {
     final l10n = AppLocalizations.of(context)!;
     final publishProvider = context.read<PublishProvider>();
+    final deckProvider = context.read<DeckProvider>();
     final messenger = ScaffoldMessenger.of(context);
+
+    Future<void> performUnpublish() async {
+      final success = await publishProvider.unpublishByPublicId(publicDeckId);
+      if (success) {
+        await deckProvider.loadDecks();
+        final selected = deckProvider.selectedDeck;
+        if (selected != null && selected.publishedDeckId == publicDeckId) {
+          await deckProvider.selectDeck(selected.id);
+        }
+      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? l10n.deckUnpublished
+              : publishProvider.error ?? 'Failed to unpublish'),
+        ),
+      );
+    }
 
     showStandardDialog(
       context: context,
@@ -281,11 +300,14 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
       secondaryButtonText: l10n.cancel,
       primaryButtonText: l10n.unpublish,
       onPrimaryPressed: () async {
-        final localDeckExists = context.read<DeckProvider>().decks.any(
-          (d) => d.publishedDeckId == publicDeckId || d.linkedPublicDeckId == publicDeckId,
+        final localDeckExists = deckProvider.decks.any(
+          (d) =>
+              d.publishedDeckId == publicDeckId ||
+              d.linkedPublicDeckId == publicDeckId,
         );
 
         if (!localDeckExists) {
+          if (!context.mounted) return;
           // Show second confirmation dialog warning the user they will lose the deck permanently
           showStandardDialog(
             context: context,
@@ -294,27 +316,11 @@ class _ManagePublishedScreenState extends State<ManagePublishedScreen> {
             isDestructive: true,
             secondaryButtonText: l10n.cancel,
             primaryButtonText: l10n.unpublish,
-            onPrimaryPressed: () async {
-              final success = await publishProvider.unpublishByPublicId(publicDeckId);
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text(success
-                      ? l10n.deckUnpublished
-                      : publishProvider.error ?? 'Failed to unpublish'),
-                ),
-              );
-            },
+            onPrimaryPressed: performUnpublish,
           );
         } else {
           // Local copy exists, proceed normally
-          final success = await publishProvider.unpublishByPublicId(publicDeckId);
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(success
-                  ? l10n.deckUnpublished
-                  : publishProvider.error ?? 'Failed to unpublish'),
-            ),
-          );
+          await performUnpublish();
         }
       },
     );

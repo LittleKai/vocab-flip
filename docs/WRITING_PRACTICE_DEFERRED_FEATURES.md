@@ -36,21 +36,23 @@ Phần đã hoàn thành:
 
 ## 3. Bộ so khớp nâng cao kiểu Inkstone
 
-Trạng thái: chưa có SPEC triển khai chi tiết.
+Trạng thái: đã hoàn thành phần cốt lõi (Phase 8).
 
 Mức độ nên áp dụng: 6/10.
 
-Bộ validation hiện tại đã kiểm tra thứ tự nét, hướng nét, khoảng cách, độ dài và hình dạng bằng các phép đo hình học. Phần nâng cao hơn vẫn chưa được tự triển khai lại.
+Phần đã hoàn thành (`lib/core/utils/advanced_stroke_matcher.dart` & `test/core/utils/advanced_stroke_matcher_test.dart`):
 
-Phần còn lại:
+- Phát hiện góc bằng thuật toán kiểu ShortStraw (`detectCorners`).
+- Dọn dẹp đoạn thừa, móc nét ở đầu/cuối nét (`cleanHooks`).
+- Căn chỉnh đoạn nét bằng dynamic programming segment alignment (`calculateAlignmentScore`).
+- Tích hợp điểm số nâng cao vào `StrokeValidationService`.
 
-- Phát hiện góc bằng thuật toán kiểu ShortStraw.
-- Căn chỉnh đoạn nét bằng dynamic programming segment alignment.
-- Dọn dẹp đoạn thừa, móc nét, hoặc nét kéo quá dài.
+Phần còn lại (nếu cần mở rộng thêm):
+
 - So khớp partial/component-aware cho các trường hợp người dùng viết tắt hoặc viết theo cụm nét.
 - Nhận diện sai thứ tự linh hoạt hơn nhưng vẫn giữ mục tiêu học đúng stroke order.
 
-Lưu ý: không được copy mã từ Inkstone vì ràng buộc GPLv3. Nếu làm phần này, cần tự triển khai thuật toán bằng Dart và có test độc lập.
+Lưu ý: không được copy mã từ Inkstone vì ràng buộc GPLv3. Toàn bộ thuật toán trong `advanced_stroke_matcher.dart` được tự triển khai bằng Dart thuần và có test độc lập.
 
 ## 4. Phân tích chữ viết tay lưu trữ lâu dài
 

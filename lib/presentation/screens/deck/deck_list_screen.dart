@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/dialogs/standard_dialog.dart';
 import 'package:vocabflip/l10n/app_localizations.dart';
+import '../../../_kit/formatters.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/deck_navigation.dart';
 import '../../../data/models/category.dart';
 import '../../../data/models/deck.dart';
 import '../../providers/deck_provider.dart';
+import '../../providers/flashcard_provider.dart';
+import '../../providers/study_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../widgets/common/deck_card_header.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -359,8 +362,8 @@ class _DeckCard extends StatelessWidget {
                   DeckCardHeader(
                     name: deck.name,
                     imagePath: deck.imagePath,
-                    frontFieldsLabel: _formatFields(deck.frontFields),
-                    backFieldsLabel: _formatFields(deck.backFields),
+                    frontFieldsLabel: formatCardFields(deck.frontFields),
+                    backFieldsLabel: formatCardFields(deck.backFields),
                     sourceLanguage: deck.sourceLanguage,
                     targetLanguage: 'vi',
                     reverseFieldOrder: deck.showBackFirst,
@@ -585,10 +588,6 @@ class _DeckCard extends StatelessWidget {
     );
   }
 
-  String _formatFields(List<CardFieldType> fields) {
-    return fields.map((f) => f.displayName).join(', ');
-  }
-
   void _navigateBasedOnPref(BuildContext context) {
     DeckNavigation.navigateBasedOnPreference(context, deck.id);
   }
@@ -622,6 +621,12 @@ class _DeckCard extends StatelessWidget {
 
   void _confirmDelete(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final deckProvider = context.read<DeckProvider>();
+    final flashcardProvider = context.read<FlashcardProvider>();
+    final studyProvider = context.read<StudyProvider>();
+    final syncProvider = context.read<SyncProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final deckId = deck.id;
 
     showStandardDialog(
       context: context,
@@ -630,8 +635,20 @@ class _DeckCard extends StatelessWidget {
       primaryButtonText: l10n.delete,
       secondaryButtonText: l10n.cancel,
       isDestructive: true,
-      onPrimaryPressed: () {
-        context.read<DeckProvider>().deleteDeck(deck.id);
+      onPrimaryPressed: () async {
+        try {
+          await deckProvider.deleteDeck(deckId);
+          flashcardProvider.clearIfDeck(deckId);
+          studyProvider.clearIfDeck(deckId);
+          syncProvider.clearIfDeck(deckId);
+        } catch (e) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('${l10n.error}: $e'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       },
     );
   }
@@ -661,7 +678,7 @@ class _CategoryChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            _categoryIcon(category?.icon),
+            categoryIconFromName(category?.icon),
             size: 13,
             color: AppColors.secondary,
           ),
@@ -680,29 +697,6 @@ class _CategoryChip extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  static IconData _categoryIcon(String? iconName) {
-    switch (iconName) {
-      case 'school':
-        return Icons.school;
-      case 'translate':
-        return Icons.translate;
-      case 'flight':
-        return Icons.flight;
-      case 'business':
-        return Icons.business;
-      case 'home':
-        return Icons.home;
-      case 'menu_book':
-        return Icons.menu_book;
-      case 'chat_bubble':
-        return Icons.chat_bubble;
-      case 'more_horiz':
-        return Icons.more_horiz;
-      default:
-        return Icons.category;
-    }
   }
 }
 

@@ -164,13 +164,14 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                                     _buildMiniChip(
                                       context,
                                       Icons.flip_to_front,
-                                      _formatFields(deck.frontFields ?? 'word'),
+                                      formatPublicFieldNames(
+                                          deck.frontFields ?? 'word'),
                                       AppColors.primary,
                                     ),
                                     _buildMiniChip(
                                       context,
                                       Icons.flip_to_back,
-                                      _formatFields(
+                                      formatPublicFieldNames(
                                           deck.backFields ?? 'meaning'),
                                       AppColors.secondary,
                                     ),
@@ -178,14 +179,15 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                                     _buildMiniChip(
                                       context,
                                       Icons.flip_to_back,
-                                      _formatFields(
+                                      formatPublicFieldNames(
                                           deck.backFields ?? 'meaning'),
                                       AppColors.secondary,
                                     ),
                                     _buildMiniChip(
                                       context,
                                       Icons.flip_to_front,
-                                      _formatFields(deck.frontFields ?? 'word'),
+                                      formatPublicFieldNames(
+                                          deck.frontFields ?? 'word'),
                                       AppColors.primary,
                                     ),
                                   ],
@@ -346,7 +348,7 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _getCategoryIcon(category.icon),
+                                  categoryIconFromName(category.icon),
                                   size: 13,
                                   color: AppColors.secondary,
                                 ),
@@ -591,29 +593,6 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
         return AppColors.vietnameseBadge;
       default:
         return AppColors.primary;
-    }
-  }
-
-  IconData _getCategoryIcon(String? iconName) {
-    switch (iconName) {
-      case 'school':
-        return Icons.school;
-      case 'translate':
-        return Icons.translate;
-      case 'flight':
-        return Icons.flight;
-      case 'business':
-        return Icons.business;
-      case 'home':
-        return Icons.home;
-      case 'menu_book':
-        return Icons.menu_book;
-      case 'chat_bubble':
-        return Icons.chat_bubble;
-      case 'more_horiz':
-        return Icons.more_horiz;
-      default:
-        return Icons.category;
     }
   }
 
@@ -1004,25 +983,6 @@ class _PublicDeckDetailScreenState extends State<PublicDeckDetailScreen> {
       );
       provider.clearError();
     }
-  }
-
-  String _formatFields(String fields) {
-    return fields.split(',').map((f) {
-      switch (f.trim()) {
-        case 'word':
-          return 'Word';
-        case 'phonetic':
-          return 'Phonetic';
-        case 'meaning':
-          return 'Meaning';
-        case 'example':
-          return 'Example';
-        case 'notes':
-          return 'Notes';
-        default:
-          return f.trim();
-      }
-    }).join(', ');
   }
 }
 

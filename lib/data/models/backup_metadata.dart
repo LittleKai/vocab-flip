@@ -70,28 +70,3 @@ class BackupMetadata {
   @override
   String toString() => 'BackupMetadata(id: $id, decks: $deckCount, cards: $cardCount, date: $formattedDate)';
 }
-
-/// Represents backup data including metadata and deck content
-class BackupData {
-  final BackupMetadata metadata;
-  final Map<String, dynamic> data;
-
-  const BackupData({
-    required this.metadata,
-    required this.data,
-  });
-
-  factory BackupData.fromJson(Map<String, dynamic> json, {String? fileId, int? fileSize}) {
-    return BackupData(
-      metadata: BackupMetadata.fromJson(json, fileId: fileId, size: fileSize),
-      data: json['data'] as Map<String, dynamic>? ?? {},
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      ...metadata.toJson(),
-      'data': data,
-    };
-  }
-}

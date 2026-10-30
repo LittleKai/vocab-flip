@@ -1,0 +1,32 @@
+{
+  "exclude": [
+    "react-native-dev",
+    "android-native-dev",
+    "ios-application-dev",
+    "vercel-react-best-practices",
+    "motion-ui",
+    "frontend-dev",
+    "fullstack-dev",
+    "websocket-engineer",
+    "typescript-pro",
+    "javascript-pro",
+    "minimax-docx",
+    "docx",
+    "minimax-pdf",
+    "pdf",
+    "minimax-xlsx",
+    "xlsx",
+    "slides",
+    "pptx",
+    "drawio-reconstruction",
+    "banner-design",
+    "brandkit",
+    "logo-design",
+    "seo",
+    "seo-audit",
+    "ai-seo",
+    "programmatic-seo",
+    "site-architecture",
+    "schema"
+  ]
+}

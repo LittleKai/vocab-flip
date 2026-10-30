@@ -26,7 +26,7 @@ Skill này tự động hóa quy trình: build Windows + Android + Web → copy 
 
 ## Yêu cầu trước khi chạy
 
-1. **Flutter** phải có trong PATH (`D:\3.Flutter\flutter\bin\flutter.bat`).
+1. **Flutter** phải có trong PATH (`flutter` / `D:\DevTools\flutter\bin\flutter.bat`).
 2. **Credential GitHub & B2** đặt trong `..\..\alpha-studio-backend\.env` (hoặc `.env.release` không được bundle):
    ```
    GITHUB_TOKEN=<github personal access token>
@@ -35,7 +35,7 @@ Skill này tự động hóa quy trình: build Windows + Android + Web → copy 
    B2_BUCKET_NAME=alpha-studio
    CDN_BASE_URL=https://cdn.giaiphapsangtao.com/file/alpha-studio
    ```
-   > 🔴 **CẢNH BÁO BẢO MẬT**: Trong `tools/vocabflip/pubspec.yaml`, file `.env` tại root `tools/vocabflip/.env` được khai báo trong `flutter.assets` và **bị đóng gói vào mọi bản build client (APK/ZIP/Web)**. **TUYỆT ĐỐI KHÔNG** ghi `GITHUB_TOKEN` hay `B2_SECRET_ACCESS_KEY` vào `tools/vocabflip/.env`. Các script trong skill này tự động đọc từ `..\..\alpha-studio-backend\.env`.
+   > 🔴 **CẢNH BÁO BẢO MẬT**: Trong `tools/vocabflip/pubspec.yaml`, chỉ `assets/config.env` được khai báo trong `flutter.assets` để đóng gói cấu hình public vào client. **TUYỆT ĐỐI KHÔNG** ghi `GITHUB_TOKEN` hay `B2_SECRET_ACCESS_KEY` vào `assets/config.env` hay `tools/vocabflip/.env`. Các script trong skill này chỉ đọc từ `..\..\alpha-studio-backend\.env` hoặc `.env.release`.
 3. **Git** working directory sạch (không có uncommitted changes).
 4. Máy phải là **Windows** (build Windows native cần chạy trên Windows).
 
@@ -191,7 +191,7 @@ vocabflip-app/
 
 ## Lưu ý quan trọng
 
-- **Bảo mật `.env`**: `tools/vocabflip/.env` nằm trong `pubspec.yaml` assets nên mọi biến trong đó đều lộ diện ở client. Chỉ lưu `GITHUB_TOKEN` và `B2_*` trong `alpha-studio-backend/.env` hoặc `.env.release`.
+- **Bảo mật cấu hình**: `assets/config.env` nằm trong `pubspec.yaml` assets nên mọi biến trong đó đều lộ diện ở client. Chỉ lưu `GITHUB_TOKEN` và `B2_*` trong `alpha-studio-backend/.env` hoặc `.env.release` (không bao giờ lưu trong `assets/config.env` hay `tools/vocabflip/.env`).
 - **Tên file asset**: `AppVersion.fromJson()` và `routes/vocab.js` nhận diện Windows ZIP qua điều kiện tên chứa `windows` + kết thúc bằng `.zip`, và Android APK qua đuôi `.apk`. Giữ nguyên quy ước `vocabflip-windows-v<version>.zip` và `vocabflip-v<version>.apk`.
 - **Data size**: Các từ điển SQLite (`en_vi_dict.db`, `zh_vi_dict.db`, `ja_vi_dict.db`, `chinese_dict.db`, `stroke_data.db`) được bundle vào `assets/`, nên APK và Windows ZIP khá lớn.
 - **Giới hạn 200MB cho upload B2**: `upload-b2.ps1` dùng `b2_upload_file` một phần (tối đa 200MB mỗi file).

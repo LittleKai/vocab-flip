@@ -184,21 +184,29 @@ class ImageService {
 
       String pathToUpload = sourcePath;
 
-      // If resize is needed, resize and save locally first
-      if (maxWidth != null) {
-        final resizedPath = await saveImageLocally(sourcePath, maxWidth: maxWidth);
-        if (resizedPath != null) {
-          pathToUpload = resizedPath;
+      try {
+        // If resize is needed, resize and save locally first
+        if (maxWidth != null) {
+          final resizedPath =
+              await saveImageLocally(sourcePath, maxWidth: maxWidth);
+          if (resizedPath != null) {
+            pathToUpload = resizedPath;
+          }
         }
-      }
 
-      final result = await CloudinaryService().uploadImage(pathToUpload);
-      if (result.success) {
-        debugPrint('ImageService: Successfully uploaded to Cloudinary: ${result.url}');
-        return result.url;
-      } else {
-        debugPrint('ImageService: Cloudinary upload failed: ${result.error}');
-        return null;
+        final result = await CloudinaryService().uploadImage(pathToUpload);
+        if (result.success) {
+          debugPrint(
+              'ImageService: Successfully uploaded to Cloudinary: ${result.url}');
+          return result.url;
+        } else {
+          debugPrint('ImageService: Cloudinary upload failed: ${result.error}');
+          return null;
+        }
+      } finally {
+        if (pathToUpload != sourcePath) {
+          await deleteImage(pathToUpload);
+        }
       }
     } catch (e) {
       debugPrint('ImageService: Error uploading image to Cloudinary: $e');

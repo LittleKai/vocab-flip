@@ -120,14 +120,13 @@ Write-Step "Reading GITHUB_TOKEN"
 
 $BackendEnv = [System.IO.Path]::GetFullPath((Join-Path $ProjectRoot "..\..\alpha-studio-backend\.env"))
 $ReleaseEnv = Join-Path $ProjectRoot ".env.release"
-$LocalEnv   = Join-Path $ProjectRoot ".env"
 
-$EnvVars = Read-EnvMap -CandidatePaths @($LocalEnv, $BackendEnv, $ReleaseEnv)
+$EnvVars = Read-EnvMap -CandidatePaths @($BackendEnv, $ReleaseEnv)
 $Token = if ($env:GITHUB_TOKEN) { $env:GITHUB_TOKEN } else { $EnvVars['GITHUB_TOKEN'] }
 
 if (-not $Token) {
     Write-Err "Could not find GITHUB_TOKEN in ../../alpha-studio-backend/.env, .env.release, or environment."
-    Write-Host "WARNING: Do NOT put GITHUB_TOKEN in tools/vocabflip/.env because pubspec.yaml bundles .env into the app!" -ForegroundColor Red
+    Write-Host "WARNING: Never put GITHUB_TOKEN in assets/config.env or tools/vocabflip/.env!" -ForegroundColor Red
     exit 1
 }
 
