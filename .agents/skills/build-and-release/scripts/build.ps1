@@ -198,6 +198,10 @@ if ($TargetList -contains "web") {
         }
         New-Item -ItemType Directory -Path $PublicVocabDir -Force | Out-Null
         Copy-Item -Path "$WebBuildDir\*" -Destination $PublicVocabDir -Recurse -Force
+        # Strip native-only SQLite databases, debug symbols, NOTICES, and local canvaskit (loaded from gstatic CDN)
+        Get-ChildItem -Path (Join-Path $PublicVocabDir "assets\assets") -Filter "*.db" -File -ErrorAction SilentlyContinue | Remove-Item -Force
+        Remove-Item -Path (Join-Path $PublicVocabDir "canvaskit") -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path (Join-Path $PublicVocabDir "assets\NOTICES") -Force -ErrorAction SilentlyContinue
         Write-Success "Web build copied to: $PublicVocabDir"
     } else {
         Write-Host "[WARN] Frontend repo not found at $FrontendRoot - Web build remains at $WebBuildDir" -ForegroundColor Yellow
